@@ -1,0 +1,53 @@
+
+
+DSL Customization
+url: http://tbala.net/joomla/index.php
+==============================
+
+cheatmode
+-------------------------
+光碟開機進入待機畫面，按下 <F2> 或 <F3> 按鍵，在開機提示訊息 boot: 後面輸入 "dsl toram 2 vga=788"，按下 < Enter 鍵>，用不同模式開機
+
+
+儲存系統設定變更
+-------------------------
+/opt/bootlocal.sh, add "mount /mnt/sda1" => 滑鼠右鍵 > System > Backup/Restore > sda1(or other device) > Backup
+
+
+關閉開機歡迎畫面
+-------------------------
+sudo su => /home/dsl/.xinitrc => add "#" to dillo
+
+
+以root身份使用終端機
+-------------------------
+/home/dsl/.xtdesktop/Aterm.lnk => 找到 Command 開頭字串，在 aterm 前面加上 "sudo "
+
+
+擴充套件
+-------------------------
+*應用套件區分為三類，分別為 .dsl 、 .uci 與 .unc 三類
+	.dsl 套件，特色在於套件完全載入在記憶體中，DSL 3.0 以前的版本
+	.uci 套件，透過 KNOPPIX 所產生 cloop 的裝置，將壓縮為 .uci 的套件掛載到檔案位置上，缺點是套件必須是只能安裝在 /opt 目錄底下的套件
+	.unc 套件，類似 .uci 套件，可以透過 cloop 裝置掛載使用，並不限於只能安裝在 /opt 目錄底下的套件
+*操作
+	至官網下載doom.dsl => mv /home/dsl/doom.dsl /mnt/hda1 => reboot => boot : dsl mydsl=hda1 <enter>
+	在硬碟或隨身儲存裝置建立 mydsl 資料夾 => 將下載檔案搬移到 mydsl 資料夾 => 重新開機，套件自動載入
+
+
+重製光碟
+-------------------------
+*前置步驟
+	DSL Live CD
+	作業空間 /dev/sdb1/iso
+*操作
+	boot in cheatmode with "mysdl=xxxx"
+	mkmydsl
+	enter working directory: /mnt/sdb1/iso/ => 最終會在 /mnt/sdb1/iso/ 目錄下產生 iso 檔
+	若在 /mnt/sdb1/iso/mydsl 目錄下放置一些套件，則 mkmydsl 會將前述套件包入 iso 檔
+	
+
+變更系統預設 IP
+-------------------------
+*滑鼠右鍵 > System > Net Setup > netcardconfig 
+*edit /opt/bootlocal.sh > exec /opt/bootlocal.sh

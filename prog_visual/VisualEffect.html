@@ -1,0 +1,259 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Visual Effect</title>
+
+
+<style type="text/css">@import url(/home/engells/mnt/MyDefaultType.css);
+</style>
+</head>
+<body>
+<br>
+<h1>Visual Effect on Ubuntu</h1>
+<br>
+<h3>
+Visual effects</h3>
+<hr>
+<ul>
+Before installing Compiz-Fusion, make sure the
+display chip is
+supported by kernel <br>
+<li>If our display chip doesn't work wekk, run dpkg-reconfigure
+to
+reconfig X.ORG:<br>
+<p class="command">sudo dpkg-reconfigure xserver-xorg </p>
+</li>
+<li>Add "deb http://ppa.launchpad.net/compiz/ubuntu jaunty
+main" into
+"/etc/apt/sources.list" </li>
+<li>Update source:&nbsp; sudo apt-get update </li>
+<li>Install "compiz"</li>
+<li>Run the follow command to active 3D effect: fusion-icon</li>
+</ul>
+<br>
+<h3>Compiz</h3>
+<hr>
+首先安装CompizConfig设置管理器（3D驱动必须装好）
+<br>
+sudo apt-get install
+<br>
+compizconfig-settings-manager
+<br>
+运行
+<br>
+系统-&gt;首选项-&gt;Advanced Desktop Effects
+<br>
+Settings，点击General Compiz options，把Desktop
+<br>
+Size选项卡里的“水平虚拟大小”设置为4，“垂直虚拟大小”设置为1，“桌面数”设置为4，后退，勾选“桌面立方体”“旋转立方体”“立方体倒映”
+<br>
+“Cube Caps ”几项，按住Ctrl+alt，再按住鼠标左键移动，3D桌面效果出现。
+<br>
+在Gube
+<br>
+Gears前面打钩，然后找到前面打过钩的桌面立方体，点击，选择Transparent Cube，将Opacity During
+<br>
+Rotation降到50左右，再将3D桌面调出来，立方体成半透明的了，并且里面有三个齿轮在滚动！
+<br>
+点击旋转立方体-&gt;一般，把缩放调整到1.0，把速度调整到0.7，再按Ctrl+alt+向左/向右键，可以看到立方体运动时的慢动作，
+并且立方体小了很多。
+<br>
+将鼠标在桌面上的空白位置点击一下，然后转动鼠标的滚轮，出现旋转的3D桌面效果。按住Super键(Ctrl与Alt中间的那个键）+Tab键，桌面水
+平排列。
+<br>
+进入调整大小-&gt;动作，点击一般前面的小三角，双击“启动所有窗口的窗口拾取器”，选中Topleft，点击OK。现在将你的鼠标移动到桌
+面左上角，就能实现类似Mac
+<br>
+os X的Expose特效了。
+<br>
+进入CompizConfig设置管理器的主界面，点击Expo-&gt;动作，在窗口中的Expo上面双击，勾选Top
+<br>
+Right，然后OK。将鼠标移动到桌面的右上角，4个桌面整齐排列在一个3D空间内（同super+E效果），可以将窗口从一个桌面拖动到另一个桌面，
+甚至放在两个桌面中间！
+<br>
+在CompizConfig设置主界面选择Shift
+<br>
+Switcher-&gt;动作-&gt;Initial(All
+<br>
+workspace)下，勾选Bottomleft。鼠标移动到桌面的左下角，出现iPhone的Cover
+<br>
+Flow特效。可以用鼠标滚轮和方向键切换桌面。回到Shift Switcher，点击外观，在Switcher
+<br>
+mode中选择Flip。鼠标移动到桌面的左下角，出现windows vista中的Flip3D特效。
+<br>
+在CompizConfig设置管理器主界面选择“在屏幕上绘制火焰”前面
+<br>
+的复选框，现在就可以直接按住Super+shift键，然后用鼠标左键在屏幕写了。火焰的默认颜色是红色，可以直接进入“在屏幕上绘制火焰”设置项里，
+<br>
+调整火焰颜色，或者干脆“随机”，取消火焰的时候同时按
+<br>
+Super+Shift+C。
+<br>
+再次回到主界面中，勾选Windows
+<br>
+Previews，这样将鼠标移动到任务栏会出现预览窗口。
+<br>
+在CCSM（CompizConfig设置管理器）主界面选择移动窗口，将其设置界面中的不透明度设置到60左右，这样你移动窗口的时候就会有半透明的效
+果。
+<br>
+同样在主界面中选择General Options-&gt;Opacity
+<br>
+Settings，点击ADD（添加）。在OpacityWindows 中输入Dock，OpacityWIndow
+<br>
+Values输入数值80。再以同样的方式添加DropDownMenu和PopupMenu，数值都为80。输入完毕之后，不管是什么菜单，现在都是以
+半透明的方式显示了，包括右键菜单。
+<br>
+在CCSM主界面中选择Animations-&gt;CloseAnimation，在窗口中的第一个Glide2上双击，然后从
+CloseEffect的下拉菜单中选择Burn，这样每次关闭窗口的时候会有火焰的效果。
+<br>
+点击Effect
+<br>
+Settings，找到下面的Fire，点击小三角形出现火焰选项，然后勾选其中的“随机颜色火焰”后面的复选框，火焰颜色随机。也可以去
+OpenAnimation里设置开启窗口时的动画特效，或者就选“随机”。
+<br>
+深度中关于特效快捷键介绍太少了，我搜了一些资料结合自己经验把它们写了出来，希望对大家能有用。如果那不对或遗漏请告诉我，以方便我更改和补充。
+<br>
+1、给立方体设置一个背景，进入 CompizConfig -&gt; 桌面立方体
+<br>
+-&gt; Appearance -&gt; Skydome 勾选
+<br>
+“Background”，在 Background Images 中选择一个背景图片即可。
+<br>
+2、如果要让立方体增加一个倒影，勾选 CompizConfig -&gt; Cube Reflection
+<br>
+即可。
+<br>
+Tips: 展示立方体默认快捷键是 Ctrl+Alt+鼠标左键拖动，Ctrl+Alt+方向键旋转立方体。
+<br>
+3、使用神灯效果，这个效果最早出现在 Mac 上。
+<br>
+勾选 CompizConfig -&gt; Animations
+<br>
+Tips: 建议取消 CompizConfig -&gt; 最小化效果，勾选 CompizConfig
+<br>
+-&gt; 渐弱窗口
+<br>
+4、火焰字
+<br>
+勾选 CompizConfig -&gt; Paint fire on the screen
+<br>
+即可。
+<br>
+可以在 CompizConfig -&gt; Paint fire on the screen
+<br>
+-&gt; Fire Particle Color 这里设置火焰的颜色，勾选 Randomly Colored
+<br>
+Fire 会写出五彩斑斓的文字。
+<br>
+Tips: 默认快捷键是 shift+win+鼠标左键，按 shift+win+c 是清除效果。
+<br>
+5、桌面展示
+<br>
+勾选 CompizConfig -&gt; Expo
+<br>
+Tips: 默认快捷键是 win+e，鼠标移动到屏幕左上角也可以。
+<br>
+6、雪花效果
+<br>
+勾选 CompizConfig -&gt; Snow
+<br>
+再到这里下载雪花材质，在 Snow -&gt; Textures 这里添加进去即可。
+<br>
+7、菜单透明问题
+<br>
+默认菜单是透明的，可以到 CompizConfig -&gt; General Options
+<br>
+-&gt; Opacity Settings 这里进行设置。删除 Window opacities
+<br>
+里面的那行代码就可以了。
+<br>
+8、3D 层叠窗口效果
+<br>
+勾选 CompizConfig -&gt; 3D Windows
+<br>
+9、给立方体中增加一些鱼儿
+<br>
+勾选 CompizConfig -&gt; Cube Atlantis
+<br>
+按住 Ctrl+Alt+鼠标左键拖动桌面，就能看见了。
+<br>
+10、屏幕保护
+<br>
+勾选 CompizConfig -&gt; Screen Saver
+<br>
+有两种效果，一种是 Rotating cube 旋转立方体，一种是 Flying windows 飞行的窗口。
+<br>
+11、3D 窗口切换效果
+<br>
+勾选 CompizConfig -&gt; Shift Switcher
+<br>
+在 Switcher mode 中可以选择两种切换效果，一种类似 Vista 的 Flip3D 切换，一种类似 Mac 的
+<br>
+CoverFlow 切换。
+<br>
+Tips: 默认快捷键是：超级键+Tab
+<br>
+* 打开主菜单 = Alt + F1
+<br>
+* 运行 = Alt + F2
+<br>
+* 显示桌面 = Ctrl + Alt + d
+<br>
+* 最小化当前窗口 = Alt + F9
+<br>
+* 最大化当前窗口 = Alt + F10
+<br>
+* 关闭当前窗口 = Alt + F4
+<br>
+* 截取全屏 = Print Screen
+<br>
+* 截取窗口 = Alt + Print Screen
+<br>
+默认特殊快捷键
+<br>
+* 展示所有窗口程序 = F10
+<br>
+* 展示当前窗口最上层程序 = F11
+<br>
+* 展示当前窗口所有程序 = F12
+<br>
+* 切换窗口 = Alt + Tab
+<br>
+* 旋转3D桌面 = Ctrl + Alt + 左/右箭头（也可以把鼠标放在标题栏或桌面使用滚轮切换）
+<br>
+* 旋转3D桌面（活动窗口跟随） = Ctrl + Shift + Alt + 左/右箭头
+<br>
+* 手动旋转3D桌面 = Ctrl + Alt + 左键单击并拖拽桌面空白处
+<br>
+* 窗口透明/不透明 = possible with the “transset” utility or Alt + 滚轮
+<br>
+* 放大一次 = 超级键 + 右击
+<br>
+* 手动放大 = 超级键 + 滚轮向上
+<br>
+* 手动缩小 = 超级键 + 滚轮向下
+<br>
+* 移动窗口 = Alt + 左键单击
+<br>
+* 移动窗口时贴住边框 = 左键开始拖动后再 Ctrl + Alt
+<br>
+* 调整窗口大小 = Alt + 中击
+<br>
+* Bring up the window below the top window = Alt +
+<br>
+middle-click
+<br>
+* 动态效果减速 = Shift + F10
+<br>
+* 水纹 = 按住 Ctrl+超级键
+<br>
+* 雨点 = Shift-F9
+<br>
+* 桌面展开＝ Ctrl + Alt + 下箭头，然后按住 Ctrl + Alt 和左/右箭头选择桌面
+<br>
+* 火焰＝超级键+shift+左键拖动 取消：超级键+shift＋c
+<br>
+* 选择多窗口,合并,切换,取消 超级键+s， 超级键+g ，超级键 +t，超级键＋u-------<br>
+<br>
+<hr><br>
+<br>
+</body></html>

@@ -1,0 +1,90 @@
+
+
+
+
+omxplayer --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc --subtitles test.cht.srt test.avi
+RaspBMC
+XBMC
+
+
+
+
+設定無線網路
+====================
+Raspberry
+sudo vim /etc/wpa_supplicant/wpa_supplicant.conf
+        ssid="wifi_domain"
+        psk="wifi_passwd"
+
+
+
+
+設定螢幕解析度
+====================
+config.txt 取消註解
+	hdmi_safe=1
+	hdmi_drive=2
+	config_hdmi_boost=4 
+
+進入 Raspbian 終端機
+	tvservice -d edid.dat
+	edidparser edid.dat
+
+編輯 Raspbian /boot/config.txt
+	# hdmi_safe=1
+	hdmi_group=2 #DMT=2, CEA=1
+	hdmi_mode=47 => hdmi_mode=47   1440x900   60 Hz
+
+重開機
+	sudo reboot
+
+參數意義
+	hdmi_drive：設定要驅動 DVI (1) 還是 HDMI (2)，必須使用 HDMI ，也就是設定為 2 才會有聲音。
+	hdmi_group：用來指定要使用 CEA 或 DMT 的格式設定解析度。
+	hdmi_mode：當 hdmi_group=2，而 hdmi_mode=16 時，表示使用 1024x768 60 Hz 的解析度。
+	 hdmi_mode=69   1920x1200  60 Hz  
+	 hdmi_mode=70   1920x1200  75 Hz
+	URL: http://elinux.org/RPiconfig
+
+
+
+
+中文設定
+====================
+sudo raspi-config
+	Internationalisation Options => Change Locale => zh_TW.UTF-8 UTF-8 => zh_TW.UTF-8 => 重新開機
+
+安裝中文輸入法
+	sudo apt-get install scim scim-tables-zh scim-chewing
+	 # 同時按下Ctrl及空白鍵，即可切換中文輸入法
+
+安裝中文字型
+	sudo apt-get install ttf-wqy-zenhei
+
+
+
+
+
+遠端桌面控制
+====================
+XRDP
+----------
+sudo apt-get install xrdp tightvncserver
+sudo systemctl enable xrdp
+
+
+使用 VNC
+----------
+sudo apt-get update
+sudo apt-get install tightvncserver
+sudo tightvncserver
+	# 設定密碼 & 完全存取
+vncserver :1 
+	# 設定 VNC Server 連線位置為 1。也可為 2 或其他號碼
+
+
+
+
+外殼
+====================
+Kodi

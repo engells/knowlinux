@@ -1,0 +1,121 @@
+# vim:ts=4
+
+
+
+使用 schoot 安裝 chroot 環境
+==============================
+sudo apt-get install schroot debootstrap
+
+sudo gedit /etc/schroot/schroot.conf
+	[vivid]	#客體作業系統的名稱
+		description=Ubuntu Vivid	# 簡短說明，一般是放發行版本及其版本名稱
+		type=directory	# 客體作業系統的執行環境，一般是安裝在資料夾來執行，所以設成 'directory'
+		directory=/vivid	# 客體作業系統安裝的資料夾路徑
+		users=arthurtoday	# 允許使用客體作業系統的主體作業系統的使用者清單，用逗號分隔多個的使用者名稱
+		groups=sbuild	# 允許使用客體作業系統的主體作業系統的使用者群組清單，用逗號分隔多個的使用者群組名稱
+
+sudo mkdir /vivid
+
+sudo debootstrap --arch=amd64 --variant=buildd vivid /vivid http://free.nchc.org.tw/ubuntu/
+	# /ect/schroot/deffault 資料夾下已經分別有 fstab 和 copyfiles 兩個檔案來定義和處理目錄掛載問題
+
+schroot -c vivd -u arthurtoday
+
+cat /etc/lsb-release
+	DISTRIB_ID=Ubuntu
+	DISTRIB_RELEASE=15.04
+	DISTRIB_CODENAME=vivid
+	DISTRIB_DESCRIPTION="Ubuntu Vivid Vervet (development branch)"
+
+
+
+
+好用的 schroot
+http://novus.pixnet.net/blog/post/29322140
+http://jacky.aiwaly.com/wp/schroot-chroot-for-any-users.html
+==============================
+最近需要編譯一個很挑剔 gcc 和 glibc 版本、而且作者疑似已經沒有繼續維護的程式。雖然是可以裝多套 gcc 和 glibc，然後以不同的 suffix 和 spec file 切換使用，但我實在不願意去更動那個脆弱的 makefile，所以 chroot 自然成為最有經濟效益的方案。
+
+研究了一下如何自動幫 chroot 設定環境，於是找到了 schroot，花了一點時間了解之後我幾乎不會想再回去用原有的 chroot 指令。可惜的是網路上關於這個工具的介紹並不多，很多人就只是當成不用 root 權限的 chroot 來用，還有一些讓我不能理解的文章，明明花了篇幅去安裝 schroot 並且撰寫設定檔，結果最後卻還是用原始的 chroot.....
+
+schroot 也是建立在 chroot 之上，但是比起後者有以下的優點：
+
+1.不需要 root 權限。使用 root 權限進入 chroot 環境還是有潛在危險性。
+2.可以很方便的設定多個環境。
+3.自動化。可以設定進入環境時自動複製檔案、mount 位置、執行程序等等；並且在離開的時候把這些變更還原。
+4.可以直接從 disk image 或 archive 進 chroot
+
+
+撰寫配置檔
+-------------------------
+使用 schroot 之前要先建立偽系統目錄的內容，可使用 debootstrap 或直接從系統中複製一份，這裡不多說明。接下來要編輯 schroot.conf，對於隨用即丟的環境似乎稍微麻煩一點，這種情況直接用系統的 chroot 命令會比較單純。但對於打算重複使用的環境來說，只要一次把配置檔寫好以後就可以直接進入，還算蠻方便的。
+
+主要配置檔位於 /etc/schroot/schroot.conf，次要配置檔放在 /etc/schroot/chroot.d，兩者的差別我不太清楚，用前者就可以了。配置檔的寫法和 Windows 的 ini 差不多，大概像這樣：
+
+[hardy_amd64]
+type=directory
+description=Ubuntu 8.04 Hardy for amd64
+directory=/srv/chroot/hardy64
+root-users=foo
+users=foo,bar
+
+[sid_file]
+type=file
+description=Debian sid file-based chroot
+file=/srv/chroots/sid.tar.gz
+priority=3
+groups=sbuild
+
+簡單的說明
+
+區段名稱和 description 可依個人偏好命名。
+type：可為 plain、directory、file、loopback、block-device、btrfs-snapshot、lvm-snapshot 之一。其中 plain 和 directory 都是資料夾，差別在於 directory 會自動 執行預設的 setup script 和掛載一些目錄，而 plain 什麼都不會做。使用 file 可以直接把 archive 當成 chroot 目標。
+directory：當 type 為 plain 或 directory 時，用來指定目標的位置。
+file：當 type 為 file 時，用來指定目標的位置。
+root-user: 原系統中可以透過 schroot 進入此子系統並取得 root 權限的使用者。
+users: 原系統中可以透過 schroot 進入此子系統的使用者。
+我懶得打了，請參考：http://manpages.ubuntu.com/manpages/natty/man5/schroot.conf.5.html
+
+把配置存檔後可以用以下命令列舉：schroot -l
+
+假如 hardy_amd64 有出現在上面的列表中，執行：schroot -c hardy_amd64 -u <使用者名稱>
+
+《！注意，經 12012/11/05 實測，schroot 似乎是以 host 系統的帳號名稱登入 chroot 環境。即以 aaa 帳戶執行 schroot，則登入為 chroot 環境的 aaa 帳戶》
+
+
+複製與掛載檔案
+-------------------------
+由於我實在沒時間寫教學文章，以下虎頭蛇尾的點到為止，僅提供一些資訊給有興趣的人。
+
+在 /etc/schroot/default 下面有幾個檔案，主要的功能為
+
+fstab
+指定原系統當中會被掛載進子系統的目錄，格式和系統的 /etc/fstab 雷同。注意在預設的情況下 schroot 會自動把 host 的 /home 給 bind 進來，這點和 dchroot 或 chroot 不同，如果對子系統的 /home 做變更，原系統也會受到影響。這個行為可以透過編輯 fstab 加以調整，把 /home 那行註解掉即可。
+
+copyfiles
+指定每次進入子系統時，原系統中會被複製進子系統的檔案
+
+nssdatabases
+指定每次進入子系統時，原系統中會被複製進子系統的資料庫，如 passwd、shadow、group 等等。注意每次進入都會重新複製一次，所以在子系統內對這些資料庫做的變更都會被覆寫掉。不希望這個行為可以更改此檔案。
+
+這裡使用的是 Ubuntu Natty 所對應的版本，舊版可能會叫做 fstab-default、copyfiles-default 這些名稱。
+
+《！注意，/etc/schroot/default/copyfiles 的優先度高於 /etc/schroot/copyfiles-default》
+
+
+自動執行 script
+-------------------------
+schroot 會自動執行 /etc/schroot/setup.d/ 底下所找到的 scripts，當 chroot 啟動時會用檔名順序並且以 「setup-start」選項執行，而離開 chroot 時會用相反順序並以「setup-stop」選項執行。可以在現有的檔案中增加你想進行的動作，也可以自己建立新的 script。
+
+
+使用 schroot 在 chroot 環境安裝程式
+url:	 http://forum.ubuntu.com.cn/viewtopic.php?f=48&t=376479 
+-------------------------
+schroot -c precise apt-get install 套件
+
+
+其他參考資料
+-------------------------
+http://manpages.ubuntu.com/manpages/natty/man1/schroot.1.html
+http://manpages.ubuntu.com/manpages/natty/man5/schroot-setup.5.html
+http://manpages.ubuntu.com/manpages/natty/man7/schroot-faq.7.html

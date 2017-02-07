@@ -1,0 +1,130 @@
+
+
+
+User Mode Linux with Ubuntu
+url:	http://blog.csdn.net/hongbomin/article/details/6979362
+	http://blog.chinaunix.net/uid-23357152-id-3393555.html
+==============================
+
+測試結果
+-------------------------
+1.not work on 2012-11-13	error message: not syncing: No init found.
+2.Debian 及 Ubuntu 的套件有 user-mode-linux、uml-utilities、rootstrap 等，似乎可以直接安裝 uml 核心及產生 toot_fs 映像檔。
+  也就是不需手動編譯 uml 核心。在 2012-11-16 測試中，Ubuntu 12.04 無法順利執行 uml，不確定問題是在uml 核心或 toot_fs 映像檔。
+3.可至 http://uml.devloop.org.uk/ 網站下載 uml 核心及產生 toot_fs 映像檔。但無法對 Debian 及 Ubuntu 之 toot_fs 映像檔開機。
+  DSL 4.4 之 toot_fs 映像檔可以開機，仍有問題回報。整體而言，問題有可能是因為 Ubuntu 本身。
+
+
+
+用戶模式 Linux (User Mode Linux)，縮寫為 UML。顧名思義 UML 是個在用戶空間運行的 linux 內核。UML 能夠為 kernel 虛擬一些實際的物理設備，啟動 UML 只需要要一個 root 文件系統的 image 文件。UML 可視為一種虛擬化技術。
+
+UML的好處
+
+第一、做一個虛擬服務器，UML 以安全的方式運行在用戶空間，可以確保服務器不會對本機的內容進行破壞
+第二、便於 kernel 開發和調試。kernel 中一些與平台無關的模塊，如文件系統，內存管理等，使用 UML 調試更加方便。
+
+
+運行UML
+
+
+安裝 rootfs 至硬碟映像檔
+-------------------------
+sudo apt-get install debootstrap 
+dd if=/dev/zero of=rootfs.img bs=1M count=1024 
+mkfs.ext3 rootfs.img
+mkdir uml-karmic-root 
+sudo mount -o loop rootfs.img uml-karmic-root 
+cd uml-karmic-root 
+sudo debootstrap --arch i386 karmic uml-karmic-rootfs/ http://ftp.sjtu.edu.cn/ubuntu
+
+
+配置 rootfs
+-------------------------
+sudo echo "/dev/ubd0 / ext3 defaults 0 1" > uml-karmic-root/etc/fstab 
+sudo echo "proc /proc proc defaults 0 0" >> uml-karmic-root/etc/fstab
+
+sudo echo "127.0.0.1 localhost" > uml-karmic-root/etc/hosts
+
+echo "auto lo" > uml-karmic-root/etc/network/interfaces 
+echo "iface lo inet loopback" >> uml-karmic-root/etc/network/interfaces 
+echo "auto eth0" >> uml-karmic-root/etc/network/interfaces 
+echo "iface eth0 inet dhcp" >> uml-karmic-root/etc/network/interfaces
+
+sudo chroot uml-karmic-root	# 準備禁用 rootfs tty[1-6]控制台，為了避免啟動 UML 時會彈出 xterm 終端，只允許啟用tty0
+rm /etc/init/tty[2-6].conf	# tty 文件在 ubuntu 8.10 為 /etc/event.d/tty[1-6]，而 9.10 以後是 /etc/init/tty[1-6].conf
+mv /etc/init/tty1.conf /etc/init/tty0.conf 
+sudo sed -i '/exec/s/tty1/tty0/' /etc/init/tty0.conf	#exec /sbin/getty 38400 tty1 => exec /sbin/getty 38400 tty0
+sudo sed -i '/ACTIVE_CONSOLE/s/tty\[1-6\]/tty0/' /etc/default/console-setup
+vi /etc/securetty => 添加tty0允許root登錄tty0控制台。 
+
+cd /dev				# chroot 環境
+mknod --mode=660 ubd0 b 98 0
+chown root:disk ubd0
+
+
+以 UML 模式編譯 linux 內核
+-------------------------
+wget http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.32.7.tar.bz2
+tar -xjv linux-2.6.32.7.tar.bz2
+cd kernel-2.6.32.7
+make mrproper ARCH=um
+make defconfig ARCH=um
+make ARCH=um
+
+成功編譯後，在 kernel-2.6.32.7 目錄中會出現一個名為 linux 的可執行文件，它就是 UML 模式之 linux 內核
+
+
+
+運行 UML
+-------------------------
+cd kernel-2.6.32.7
+./linux mem=512M ubd0=rootfs.img	#一個 linux 內核 在用戶空間中 boot 啟動
+
+如果想退出uml，直接敲入halt命令。
+
+
+
+常見問題及解決辦法：
+-------------------------
+1. 無法掛載/etc/fstab定義的掛載點
+
+錯誤信息：
+… 
+One or more of the mounts listed in /etc/fstab cannot yet be mounted: 
+(ESC for recovery shell) 
+/: waiting for /dev/root 
+/tmp: waiting for (null)
+
+可能原因：
+a. 沒有修改rootfs中的/etc/fstab文件 
+b. 沒有為ubda創建設備節點
+
+解決辦法：
+a. 修改rootfs中的fstab為:
+/dev/ubda / ext3 defaults 0 1 
+proc /proc proc defaults 0 0
+
+b. 創建ubda設備文件節點
+# sudo chroot uml-karmic-root 
+# mknod /dev/ubda b 98 0
+
+
+2.  出現「Failed to open console …」錯誤信息
+
+請參見2.d更改系統配置禁用tty控制台。
+
+
+3. 「F_SETLK failed, file already locked by pid …」錯誤
+
+一個 rootfs 的 img 文件只能伺候 一個 UML。檢查是否已經有運行之 UML，如果有刪除那個進程，重新執行。
+
+
+更多UML的信息請參考： 
+UML項目首頁：http://user-mode-linux.sourceforge.net/
+UML on Linux Action: http://www.tekcited.net/user-mode-linux-hot-linux-on-linux-action/
+
+
+關於UML中網絡的配置，請參考：
+http://www.tekcited.net/user-mode-linux-network-setup/
+
+

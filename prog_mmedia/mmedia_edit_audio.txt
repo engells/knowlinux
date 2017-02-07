@@ -1,0 +1,119 @@
+# vim:ts=4
+
+Media Format Converting
+http://dev.firnow.com/course/6_system/linux/Linuxjs/20090924/176946.html
+==============================
+常常在電驢上下載 CD 的 APE 鏡像，下載後還原成 WAV 格式，再進行分割並提取自己喜歡的歌曲，然後轉成 APE 存入電腦，同時還轉成 MP3 存入 MP4 播放器。現在總結一下在 Linux 下如何這幾種格式之間相互轉換。
+
+目前常見的音頻格式主要有：wav(無壓縮)、mp3/wma/ogg(有損壓縮)、ape/flac(無損壓縮)
+
+無損壓縮是在不損壞音質的情況下進行壓縮，壓縮後大概有原來的一半，主要是為了方便在網上傳輸和存儲。壓縮後可以還原成和原來一模一樣的文件，如同 RAR／ZIP 壓縮文件一樣。
+
+有損壓縮是以犧牲音質來換取文件大小，音質越差，文件越小。一般 320K 比特率的 mp3 聽起來和 APE 沒有什麼太明顯的差別，除非是聽那種專門試音的歌曲，或用非常好的耳機／音響來聽。
+
+
+所需要用到的工具：
+-------------------------
+MP3 相關工具: lame
+OGG 相關工具: vorbis-tools
+APE 相關工具: mac, mot found in ubuntu
+FLAC 相關工具: flac
+WAV 相關工具: shntool
+BIN/CUE鏡像分割: bchunk
+
+
+1. MP3 和 WAV 之間相互轉換
+-------------------------
+mp3 -> wav
+	lame -decode <輸入_mp3文件> <輸出_wav文件>
+
+wav -> mp3
+	lame -V1  <輸入_wav文件> <輸出_ogg文件>
+	lame -b <bit rate> <輸入_wav文件> <輸出_ogg文件>
+	shntool conv -o "cust ext=mp3 lame -b <比特率> - %f" <輸入_wav文件>
+
+比如我要把文件「蘋果電腦開機音樂.mp3「轉換成apple-login.wav，可以這樣做:
+$ lame -b 256 蘋果電腦開機音樂.mp3 apple-login.wav
+
+
+2. OGG 和 WAV 之間相互轉換
+-------------------------
+ogg -> wav
+	oggdec <輸出_ogg文件> -o <輸入_wav文件>
+wav -> ogg
+	oggenc -b <比特率> <輸入_wav文件> -o <輸出_ogg文件>
+
+
+3. APE 和 WAV 之間相互轉換
+-------------------------
+ape -> wav
+	mac <輸入_ape文件> <輸出_wav文件> -d
+wav -> ape
+	mac <輸入_wav文件> <輸出_ape文件> -c <壓縮比率, 默認為 2000>
+
+
+4. FLAC 和 WAV 之間相互轉換
+-------------------------
+flac -> wav
+	flac -d <輸入_flac文件> -o <輸出_wav文件>
+wav -> flac
+	flac <輸入_wav文件> <輸出_flac文件> -<壓縮比率 1-8 , 默認為 5>
+
+
+5. 分割 APE/CUE 鏡像
+-------------------------
+i) 先解碼成WAV格式
+	mac CDImage.ape CDImage.wav -d
+
+	再進行切割
+	bchunk -w CDImage.wav CDImage.cue output
+	或
+	shnsplit -f CDImage.cue CDImage.wav
+
+ii) 也可以直接切割
+	shnsplit -f CDImage.cue -i ape CDImage.ape
+
+iii) 切割並轉換到其他格式(FLAC/mp3)
+	shnsplit -f CDImage.cue -i ape -o flac CDImage.ape
+
+	shnsplit -f CDImage.cue -i ape \
+		-o "cust ext=mp3 lame -b 320 - %f" CDImage.ape
+
+
+6. APE <-> FLAC 互相轉換
+-------------------------
+	shnconv -i ape -o flac CDImage.ape
+	shnconv -i flac -o ape CDImage.flac 
+
+
+
+
+Ubuntu 中好用的影音轉檔軟體 - winff 
+http://slgaly.sljh.tcc.edu.tw/lifetype/index.php?op=ViewArticle&articleId=919&blogId=16
+==============================
+安裝及中文化方法：
+
+1.由「應用程式」開啟「Ubuntu軟體中心」
+
+2.輸入ffmpeg搜尋到 ffmpeg，執行安裝
+(或開啟終端機 貼上 sudo aptitude install ffmpeg 安裝)
+
+3.再由「Ubuntu軟體中心」同一畫面安裝winff
+
+4.執行中文化：開啟終端機貼上以下指令
+
+ (1)cd /usr/share/winff/languages/
+ (2)sudo msgfmt winff.zh_TW.po -o winff.mo
+ (3)sudo mv winff.mo /usr/share/locale/zh/LC_MESSAGES/
+
+5.由「應用程式」/「影音」開啟winff，就是中文化後的轉檔軟體囉！
+
+
+
+
+MP3 edit
+-------------------------
+sudo apt-get install soundconverter mp3splt mp3splt-gtk
+sudo aptitude install libavcodec-unstripped-52
+
+

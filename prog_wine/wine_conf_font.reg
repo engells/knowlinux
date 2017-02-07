@@ -1,0 +1,77 @@
+REGEDIT4
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontLink]
+"FontLinkControl"=dword:00004000
+"FontLinkDefaultChar"=dword:00003000
+
+/* 平滑化(anti-alias) */
+/* 如果覺得開了之後字體難看，把三個Y改成N */
+[HKEY_CURRENT_USER\Software\Wine\X11 Driver]
+"ClientSideAntiAliasWithCore"="Y"
+"ClientSideAntiAliasWithRender"="Y"
+"ClientSideWithRender"="Y"
+
+/* 平滑字型 */
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"FontSmoothing"="2"
+
+/* 替換字型1 */
+/* 安裝Wine不會提供字型，所以需要替換字型，以 LiHei Pro 替換 */
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes]
+@="LiHei Pro"
+"Arial Baltic,186"="LiHei Pro,186"
+"Arial CE,238"="LiHei Pro,238"
+"Arial CYR,204"="LiHei Pro,204"
+"Arial Greek,161"="LiHei Pro,161"
+"Arial TUR,162"="LiHei Pro,162"
+"Courier New Baltic,186"="LiHei Pro,186"
+"Courier New CE,238"="LiHei Pro,238"
+"Courier New CYR,204"="LiHei Pro,204"
+"Courier New Greek,161"="LiHei Pro,161"
+"Courier New TUR,162"="LiHei Pro,162"
+"Helv"="LiHei Pro"
+"Helvetica"="LiHei Pro"
+"MS Shell Dlg"="LiHei Pro"
+"MS Shell Dlg 2"="LiHei Pro"
+"PMingLiU"="LiHei Pro"
+"新細明體"="LiHei Pro"
+"Tahoma"="LiHei Pro"
+"Times"="LiHei Pro"
+"Times New Roman Baltic,186"="LiHei Pro,186"
+"Times New Roman CE,238"="LiHei Pro,238"
+"Times New Roman CYR,204"="LiHei Pro,204"
+"Times New Roman Greek,161"="LiHei Pro,161"
+"Times New Roman TUR,162"="LiHei Pro,162"
+"Tms Rmn"="LiHei Pro"
+
+/* 替換字型2 */
+[HKEY_CURRENT_USER\Software\Wine\Fonts\Replacements]
+@="LiHei Pro"
+"Arial"="LiHei Pro"
+"Arial Unicode MS"="LiHei Pro"
+"Batang"="LiHei Pro"
+"Dotum"="LiHei Pro"
+"Fixedsys"="LiHei Pro"
+"Gulim"="LiHei Pro"
+"Microsoft Sans Serif"="LiHei Pro"
+"MingLiU"="LiHei Pro"
+"MS Gothic"="LiHei Pro"
+"MS Mincho"="LiHei Pro"
+"MS PGothic"="LiHei Pro"
+"MS PMincho"="LiHei Pro"
+"MS UI Gothic"="LiHei Pro"
+"PMingLiU"="LiHei Pro"
+"Simsun"="LiHei Pro"
+"Songti"="LiHei Pro"
+"System"="LiHei Pro"
+"Tahoma"="LiHei Pro"
+"Terminal"="LiHei Pro"
+
+/* 取代字型 */
+/* Wine 1.1.12 打補丁後也會有亂碼，所以要修改這裡 */
+/* Wine 1.1.12 之前可以不用修改，改了應該也沒關係 */
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\FontLink\SystemLink]
+"Microsoft Sans Serif"="lihei.ttf,LiHei Pro"
+"SimSun"="lihei.ttf,LiHei Pro"
+"Tahoma"="lihei.ttf,LiHei Pro"
+"PMingLiU"="lihei.ttf,LiHei Pro"
+"Lucida Sans Unicode"="lihei.ttf,LiHei Pro"

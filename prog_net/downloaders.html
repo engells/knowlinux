@@ -1,0 +1,436 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+  <input>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Downloaders</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body style="direction: ltr;">
+<br>
+
+<h1>Downloaders<br>
+</h1>
+
+<br>
+
+<h3>Download Controller Brief<br>
+</h3>
+
+<hr>
+<ul>
+
+  <li>wget<br>
+http://werdna1222coldcodes.blogspot.tw/2012/04/wget.html
+    <ul>
+      <li>wget -t0 -c -nH -np -m -P /localdir
+http://example.com/mirrors/ftp.redhat.com
+        <div class="cmd_opt">-t0:
+設定重試次數。當連結中斷或超時，wget會重新連接。-t0代表把重試次數設為無窮多。<br>
+-c:&nbsp; 設定續傳功能。<br>
+-nH: 不建立該網站名稱的子目錄 /example.com/，而直接在當前目錄下建立鏡像的目錄結構。<br>
+-np: 不遍歷父目錄，如果有連結連到目標資料夾的parent或其他目錄，不下載。<br>
+-m:&nbsp; 鏡像，相當同時使用-r和-N。<br>
+-r:&nbsp; 遞迴下載，把文件中所有的連結都下載回來。此參數產生砍站效果。<br>
+-N:&nbsp; 下載時檢查timestamp，只下載有更新的文件，如果檔案大小和最修改日期都一樣就不下載。<br>
+-P:&nbsp; 指定下載到本機的某個目錄下。</div>
+      </li>
+      <li>wget --recursive --no-clobber --page-requisites
+--html-extension
+--convert-links --restrict-file-names=windows --domains example.org
+--no-parent www.example.org/manual/install/<br>
+        <div class="cmd_opt">--recursive: download the
+entire
+Web site.<br>
+--domains example.org: don't follow links outside website.org.<br>
+--no-parent: don't follow links outside the directory manual/install/.<br>
+--page-requisites: get all the elements that compose the page (images,
+CSS and so on).<br>
+--html-extension: save files with the .html extension.<br>
+--convert-links: convert links so that they work locally, off-line.<br>
+--restrict-file-names=windows: modify filenames so that they will work
+in Windows as well.<br>
+--no-clobber: don’t overwrite any existing files (used in case the
+download is interrupted and resumed).</div>
+      </li>
+    </ul>
+  </li>
+  <li>curl<br>
+cURL，參閱 ~/ktws/0.linux.doc/prog.z.others/downloads.txt 文件<br>
+  </li>
+  <li>aria2<br>
+aria2c -c -s16 -x16 -k2M -d ~/path/to/store URL1 URL2
+    <div style="margin-left: 20px;">-c：表示續傳，如果是新的下載就不需要此參數了<br>
+-s16：表示分成16塊併行下載，<br>
+-x16：表示每個源最大同時開啟16個線程，否則一個URL只開一個線程。建議就設為16線程。<br>
+-k2M：表示最小2M一個分塊（軟件說明上說可以以K為單位，不過在我機器上報錯說參數不對……）<br>
+-d：下載存檔路徑<br>
+URL1 URL2﹍：下載來源（URL）</div>
+圖形界面：uget </li>
+  <li>youtube-dl<br>
+sudo apt-get install youtube-dl<br>
+youtube-dl "URL"<br>
+  </li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>WGet 詳細命令<br>
+</h3>
+<hr>
+<ul>
+  <li>啟動：<br>
+    <ul>
+      <li>-V,&nbsp; --version<br>
+顯示 Wget 版本並離開</li>
+      <li>-h,&nbsp; --help<br>
+印出這段說明文字</li>
+      <li>-b,&nbsp; --background<br>
+啟動後進入背景作業</li>
+      <li>-e,&nbsp; --execute=指令<br>
+執行 ‘.wgetrc’ 形式的指令</li>
+    </ul>
+  </li>
+  <li>紀錄訊息及輸入檔案：<br>
+    <ul>
+      <li>-o,&nbsp; --output-file=檔案<br>
+將紀錄訊息寫入&lt;檔案&gt;中</li>
+      <li>-a,&nbsp; --append-output=檔案<br>
+將紀錄訊息加入&lt;檔案&gt;末端</li>
+      <li>-d,&nbsp; --debug<br>
+印出偵錯訊息</li>
+      <li>-q,&nbsp; --quiet<br>
+安靜模式 (不輸出訊息)</li>
+      <li>-v,&nbsp; --verbose<br>
+詳細輸出模式 (預設使用這個模式)</li>
+      <li>-nv, --non-verbose<br>
+關閉詳細輸出模式，但不啟用安靜模式</li>
+      <li>-i,&nbsp; --input-file=FILE<br>
+download URLs found in local or external FILE.</li>
+      <li>-F,&nbsp; --force-html<br>
+以 HTML 方式處理輸入檔</li>
+      <li>-B,&nbsp; --base=URL<br>
+resolves HTML input-file links (-i -F) relative to URL.</li>
+    </ul>
+  </li>
+  <li>下載：<br>
+    <ul>
+      <li>-t,&nbsp; --tries=次數<br>
+ 設定重試次數 (0 表示無限)</li>
+      <li>--retry-connrefused<br>
+ 即使連線被拒仍然會不斷嘗試</li>
+      <li>-O&nbsp; --output-document=檔案<br>
+將資料寫入指定檔案中</li>
+      <li>-nc, --no-clobber<br>
+ 不覆寫已經存在的檔案</li>
+      <li>-c,&nbsp; --continue<br>
+繼續下載已下載了一部份的檔案</li>
+      <li>--progress=方式<br>
+選擇下載進度的表示方式</li>
+      <li>-N,&nbsp; --timestamping<br>
+除非遠端檔案比較新，否則不下載遠端檔案</li>
+      <li>-S,&nbsp; --server-response<br>
+顯示伺服器回應訊息</li>
+      <li>--spider<br>
+不下載任何資料</li>
+      <li>-T,&nbsp; --timeout=秒數<br>
+指定所有時限為同一數值</li>
+      <li>--dns-timeout=秒數<br>
+指定 DNS 查找主機的時限</li>
+      <li>--connect-timeout=秒數<br>
+指定連線時限</li>
+      <li>--read-timeout=秒數<br>
+ 指定讀取資料的時限</li>
+      <li>-w,&nbsp; --wait=秒數<br>
+每次下載檔案之前等待指定秒數</li>
+      <li>--waitretry=秒數<br>
+每次重覆嘗試前稍等一段時間 (由 1 秒至指定秒數不等)</li>
+      <li>--random-wait<br>
+每次下載之前隨機地指定等待的時間</li>
+      <li>--no-proxy<br>
+禁止使用代理伺服器</li>
+      <li>-Q,&nbsp; --quota=大小<br>
+設定下載資料的限額大小</li>
+      <li>--bind-address=位址<br>
+使用本機的指定位址 (主機名稱或 IP) 進行連線</li>
+      <li>--limit-rate=速率<br>
+限制下載速率</li>
+      <li>--no-dns-cache<br>
+不記憶 DNS 查找主機的資料</li>
+      <li>--restrict-file-names=OS<br>
+只使用作業系統能夠接受的字元作為檔案字元</li>
+      <li>--ignore-case<br>
+ignore case when matching files/directories.</li>
+      <li>-4,&nbsp; --inet4-only<br>
+ 只會連接 IPv4 地址</li>
+      <li>-6,&nbsp; --inet6-only<br>
+ 只會連接 IPv6 地址</li>
+      <li>--prefer-family=FAMILY<br>
+ 優先採用指定的位址格式，可以是 IPv6、IPv4 或者 none</li>
+      <li>--user=用戶<br>
+ 指定 ftp 和 http 用戶名稱</li>
+      <li>--password=PASS<br>
+ 指定 ftp 和 http 密碼</li>
+      <li>--ask-password<br>
+ prompt for passwords.</li>
+      <li>--no-iri<br>
+ turn off IRI support.</li>
+      <li>--local-encoding=ENC<br>
+use ENC as the local encoding for IRIs.</li>
+      <li>--remote-encoding=ENC<br>
+ use ENC as the default remote encoding.</li>
+    </ul>
+  </li>
+  <li>目錄：<br>
+    <ul>
+      <li>-nd&nbsp; --no-directories<br>
+ 不建立目錄</li>
+      <li>-x,&nbsp; --force-directories<br>
+ 強制建立目錄</li>
+      <li>-nH, --no-host-directories<br>
+不建立含有遠端主機名稱的目錄</li>
+      <li>--protocol-directories<br>
+ 在目錄中加上通訊協定名稱</li>
+      <li>-P,&nbsp; --directory-prefix=名稱<br>
+儲存檔案前先建立指定名稱的目錄</li>
+      <li>--cut-dirs=數目<br>
+ 忽略遠端目錄中指定&lt;數目&gt;的目錄層</li>
+    </ul>
+  </li>
+  <li>HTTP 選項：<br>
+    <ul>
+      <li>--http-user=用戶<br>
+指定 HTTP 用戶名稱</li>
+      <li>--http-passwd=密碼<br>
+指定 HTTP 密碼</li>
+      <li>--no-cache<br>
+不使用伺服器中的快取記憶資料</li>
+      <li>--default-page=NAME<br>
+Change the default page name (normally this is `index.html'.).</li>
+      <li>-E,&nbsp; --adjust-extension<br>
+ save HTML/CSS documents with proper extensions.</li>
+      <li>--ignore-length<br>
+忽略 ‘Content-Length’ 標頭欄位</li>
+      <li>--header=字串<br>
+在連線資料標頭中加入指定字串</li>
+      <li>--max-redirect<br>
+ maximum redirections allowed per page.</li>
+      <li>--proxy-user=用戶<br>
+設定代理伺服器用戶名稱</li>
+      <li>--proxy-password=密碼<br>
+ 設定代理伺服器密碼</li>
+      <li>--referer=URL<br>
+ 在 HTTP 請求中包括 ‘Referer: URL’ 標頭</li>
+      <li>--save-headers&nbsp;&nbsp;&nbsp;&nbsp; 將 HTTP 連線資料標頭存檔</li>
+      <li>-U,&nbsp; --user-agent=AGENT<br>
+ 宣稱為 AGENT 而不是 Wget/VERSION</li>
+      <li>--no-http-keep-alive<br>
+ 不使用 HTTP keep-alive (持久性連線)</li>
+      <li>--no-cookies<br>
+不使用 cookie</li>
+      <li>--load-cookies=檔案<br>
+程式啟動時由指定檔案載入 cookie</li>
+      <li>--save-cookies=檔案<br>
+程式結束後將 cookie 儲存至指定檔案</li>
+      <li>--keep-session-cookies<br>
+會載入和儲存暫時性的 cookie</li>
+      <li>--post-data=字串<br>
+ 使用 POST 方式送出字串</li>
+      <li>--post-file=檔案<br>
+ 使用 POST 方式送出檔案內容</li>
+      <li>--content-disposition<br>
+honor the Content-Disposition header when choosing local file names (EXPERIMENTAL).</li>
+      <li>--auth-no-challenge<br>
+send Basic HTTP authentication information without first waiting for the server's challenge.</li>
+    </ul>
+  </li>
+  <li>HTTPS (SSL/TLS) 選項：<br>
+    <ul>
+      <li>--secure-protocol=PR<br>
+ 選擇安全通訊協定，可以使用 auto, SSLv2, SSLv3 或 TLSv1</li>
+      <li>--no-check-certificate<br>
+ 不檢驗伺服器的憑證</li>
+      <li>--certificate=檔案<br>
+ 指定用戶端的憑證檔案名稱</li>
+      <li>--certificate-type=類型<br>
+ 用戶端憑證的類型，可以是 PEM 或 DER</li>
+      <li>--private-key=檔案<br>
+ 指定私鑰檔案</li>
+      <li>--private-key-type=類型<br>
+ 私鑰的類型，可以是 PEM 或 DER</li>
+      <li>--ca-certificate=檔案<br>
+ 載有憑證管理中心 (CA) 簽章的檔案</li>
+      <li>--ca-directory=目錄<br>
+ 載有憑證管理中心 (CA) 簽章的目錄</li>
+      <li>--random-file=檔案<br>
+作為 SSL 隨機數產生程序 (PRNG) 的來源數據檔案</li>
+      <li>--egd-file=檔案<br>
+ 產生隨機數據的 EGD socket 檔案名稱</li>
+    </ul>
+  </li>
+  <li>FTP 選項：<br>
+    <ul>
+      <li>--ftp-user=用戶<br>
+指定 FTP 用戶名稱</li>
+      <li>--ftp-password=密碼設定<br>
+ FTP 密碼</li>
+      <li>--no-remove-listing<br>
+不刪除 ‘.listing’ 檔案</li>
+      <li>--no-glob<br>
+ 不展開有萬用字元的 FTP 檔名</li>
+      <li>--no-passive-ftp<br>
+ 不使用「被動」傳輸模式</li>
+      <li>--retr-symlinks<br>
+ 在遞迴模式中，下載鏈結指示的目標檔案 (不包括目錄)</li>
+    </ul>
+  </li>
+  <li>遞迴下載：<br>
+    <ul>
+      <li>-r,&nbsp; --recursive<br>
+遞迴下載</li>
+      <li>-l,&nbsp; --level=數字<br>
+最大搜尋深度 (inf 或 0 表示無限)</li>
+      <li>--delete-after<br>
+刪除下載後的檔案</li>
+      <li>-k,&nbsp; --convert-links<br>
+ make links in downloaded HTML or CSS point to local files.</li>
+      <li>-K,&nbsp; --backup-converted<br>
+將檔案 X 轉換前先備份為 X.orig</li>
+      <li>-m,&nbsp; --mirror<br>
+相等於 -N -r -l inf --no-remove-listing 選項</li>
+      <li>-p,&nbsp; --page-requisites<br>
+下載所有顯示網頁所需的檔案，例如圖片等</li>
+      <li>--strict-comments<br>
+用嚴格方式 (SGML) 處理 HTML 注釋。</li>
+    </ul>
+  </li>
+  <li>遞迴下載時有關接受/拒絕的選項：<br>
+    <ul>
+      <li>-A,&nbsp; --accept=清單<br>
+ 接受的檔案樣式，以逗號分隔</li>
+      <li>-R,&nbsp; --reject=清單<br>
+ 排除的檔案樣式，以逗號分隔</li>
+      <li>-D,&nbsp; --domains=清單<br>
+ 接受的網域，以逗號分隔</li>
+      <li>--exclude-domains=清單<br>
+排除的網域，以逗號分隔</li>
+      <li>--follow-ftp<br>
+ 跟隨 HTML 文件中的 FTP 鏈結</li>
+      <li>--follow-tags=清單<br>
+ 會跟隨的 HTML 標籤，以逗號分隔</li>
+      <li>-G,&nbsp; --ignore-tags=清單 <br>
+會忽略的 HTML 標籤，以逗號分隔</li>
+      <li>-H,&nbsp; --span-hosts <br>
+遞迴模式中可進入其它主機</li>
+      <li>-L,&nbsp; --relative<br>
+ 只跟隨相對鏈結</li>
+      <li>-I,&nbsp; --include-directories=清單<br>
+ 準備下載的目錄</li>
+      <li>-X,&nbsp; --exclude-directories=清單<br>
+ 準備排除的目錄</li>
+      <li>-np, --no-parent<br>
+ 不進入上層的目錄</li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<h3>cURL 詳細命令</h3>
+
+
+<hr>cURL 和 wget 一樣是 linux 中檔案下載時非常實用的工具，對於大部份的下載工作兩者都同樣能達成，curl 比 wget
+強大的地方在於他還能支援上傳。<br>
+
+<ul>
+
+  <li>取得網頁內容，螢幕輸出<br>
+curl http://www.linuxidc.com</li>
+  <li>-o: 取得網頁內容，檔案輸出<br>
+curl -o page.html http://www.linuxidc.com <br>
+  </li>
+  <li>-x: 指定 http 使用的 proxy <br>
+curl -x 123.45.67.89:1080 -o page.html http://www.linuxidc.com</li>
+  <li>-D: 把 http response 裡面的 cookie 資訊另存新檔<br>
+curl -x 123.45.67.89:1080 -o page.html -D cookie0001.txt
+http://www.linuxidc.com <br>
+  </li>
+  <li>-b: 把 cookie 資訊加到 http request 裡<br>
+curl -x 123.45.67.89:1080 -o page1.html -D cookie0002.txt -b
+cookie0001.txt http://www.linuxidc.com <br>
+  </li>
+  <li>-A: 設定瀏覽器資訊<br>
+    <ul><li>Windows 2000上的 IE6.0<br>
+curl -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)" -x
+123.45.67.89:1080 -o page.html -D cookie0001.txt http://www.linuxidc.com</li><li>Linux Netscape 4.73<br>
+curl -A "Mozilla/4.73 [en] (X11; U; Linux 2.2; 15 i686" -x
+123.45.67.89:1080 -o page.html -D cookie0001.txt
+http://www.linuxidc.com </li>
+    </ul>
+  </li>
+  <li>-e: 設定 referrer
+另外一個伺服器端常用的限制方法，就是檢查 http 訪問的 referer。比如你先訪問首頁，再訪問裡面所指定的下載頁，這第二次訪問的
+referer 位址就是第一次訪問成功後的頁面位址。這樣，伺服器端只要發現對下載頁面某次訪問的 referer
+位址不是首頁的位址，就可以斷定那是個盜連了<br>
+curl -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)" -x
+123.45.67.89:1080 -e "mail.linuxidc.com" -o page.html -D cookie0001.txt
+http://www.linuxidc.com</li>
+  <li>-O: 使用伺服器上的檔案名，存在本地 <br>
+curl -O http://cgi2.tky.3web.ne.jp/~zzh/screen1.JPG</li>
+  <li>可使用 Regular Expression 抓取所有 match 的檔案，指定 match 的群組內容為新檔名<br>
+curl -O http://cgi2.tky.3web.ne.jp/~zzh/screen[1-10].JPG<br>
+curl -o #2-#1.jpg http://cgi2.tky.3web.ne.jp/~{zzh,nick}/[001-201].JPG<br>
+原來： ~zzh/001.JPG -&gt; 下載後：001-zzh.JPG<br>
+原來： ~nick/001.JPG -&gt; 下載後：001-nick.JPG</li>
+  <li>-c: 續傳 (只能用在原本是 curl 傳輸的檔案)<br>
+curl -c -O http://cgi2.tky.3wb.ne.jp/~zzh/screen1.JPG</li>
+  <li>-r: 分塊下載<br>
+curl -r 0-10240 -o "zhao.part1"
+http:/cgi2.tky.3web.ne.jp/~zzh/zhao1.mp3 &amp;\<br>
+curl -r 10241-20480 -o "zhao.part1"
+http:/cgi2.tky.3web.ne.jp/~zzh/zhao1.mp3 &amp;\<br>
+curl -r 20481-40960 -o "zhao.part1"
+http:/cgi2.tky.3web.ne.jp/~zzh/zhao1.mp3 &amp;\<br>
+curl -r 40961- -o "zhao.part1" http:/cgi2.tky.3web.ne.jp/~zzh/zhao1.mp3<br>
+Linux用 cat zhao.part* &gt; zhao.mp3合併<br>
+Windows用copy /b 合併</li>
+  <li>-u: 指定 FTP 帳號密碼<br>
+curl -u name:passwd ftp://ip:port/path/file<br>
+curl ftp://name:passwd@ip:port/path/file</li>
+  <li>-T: 上傳檔案<br>
+curl -T localfile -u name:passwd ftp://upload_site:port/path/<br>
+curl -T localfile http://cgi2.tky.3web.ne.jp/~zzh/abc.cgi
+(注意這時候使用的協定是 HTTP 的 PUT method) <br>
+  </li>
+  <li>Http GET 與 POST 模式<br>
+    <ul><li>GET 模式什麼 option 都不用，只需要把變數寫在 url 裡面就可以了比如：<br>
+curl http://www.linuxidc.com/login.cgi?user=nickwolfe&amp;password=12345</li><li>而 POST 模式的 option 則是 -d<br>
+curl -d "user=nickwolfe&amp;password=12345"
+http://www.linuxidc.com/login.cgi</li><li>到底該用 GET 模式還是 POST 模式，要看對面伺服器的程式設定。比如 POST 模式下的文件上傳  <form action="http://cgi2.tky.3web.ne.jp/~zzh/up_file.cgi" enctype="multipar/form-data" method="post"><input name="upload" type="file"> <input name="nick" value="go" type="submit"></form>
+這樣一個 HTTP 表單，我們要用 curl 進行模擬，就該是這樣的語法：<br>
+curl -F upload=@localfile -F nick=go
+http://cgi2.tky.3web.ne.jp/~zzh/up_file.cgi</li>
+    </ul>
+  </li>
+  <li>https 使用本地認證<br>
+curl -E localcert.pem https://remote_server</li>
+  <li>通過 dict 協定去查字典<br>
+curl dict://dict.org/d:computer </li>
+</ul>
+
+<div class="ref">參考資料：
+<hr class="ref"><cite>http://werdna1222coldcodes.blogspot.tw/2012/04/curl_18.html</cite><br>
+<cite>http://evelynnote.blogspot.tw/2011/03/curl.html</cite><br>
+<cite>http://www.zenboss.com/index.php?title=Linux_curl&amp;variant=zh-hk</cite></div>
+
+<br>
+
+<br>
+
+</body></html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>ATI Display Chip</title>
+  
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style></head><body style="direction: ltr;">
+<br>
+
+<h1>ATI Display Chip</h1>
+
+<br>
+
+<br>
+
+<h3>How to install ATI driver - Method 1<br>
+</h3>
+
+url: http://wiki.ubuntu-tw.org/index.php?title=HowtoInstallGraphicsDriver<br>
+&nbsp;&nbsp;&nbsp; http://wiki.cchtml.com/index.php/Main_Page<br>
+
+<hr style="width: 100%; height: 2px;">
+<ul>
+
+<li>Install<br>
+    <ul>
+      <li>到官方網站下載適合的驅動程式到家目錄。</li>
+      <li>執行 "sudo sh *.run"（*.run代表你下載回來的檔案）</li>
+      <li>安裝過程請使用automatic的設定值</li>
+      <li>安裝完成後請重新開機，並在ubuntu的開機選單中選擇用recovery mode進入ubuntu</li>
+      <li>選擇 root，並執行以下指令<br>
+aticonfig --initial<br>
+aticonfig --overlay-type=Xv<br>
+exit</li>
+      <li>選擇resume，回到GNOME桌面</li>
+    </ul>
+</li>
+  <li>Uninstall<br>
+    <ul>
+      <li>開機時進入 recovery mode。</li>
+      <li>選擇使用 root 模式。</li>
+      <li>輸入 sh /usr/share/ati/fglrx-uninstall.sh &lt;= 安裝 ATI 官方顯示卡驅動程式後出現<br>
+      </li>
+      <li>輸入 apt-get remove --purge fglrx*</li>
+      <li>輸入 apt-get remove --purge xserver-xorg-video-ati xerver-xorg-video-radeon</li>
+    </ul>
+  </li>
+
+</ul>
+
+<br>
+
+<h3>How to install ATI driver - Method 2<br>
+</h3>
+
+<hr style="width: 100%; height: 2px;">
+<ul>
+
+  <li>Download ATI drivers with version &gt;= 9.6, url: http:
+//wiki.cchtml.com/</li>
+  <li>Run the commands below:<br>
+    <p class="command">
+$ sudo apt-get update<br>
+$ sudo apt-get install build-essential cdbs fakeroot dh-make debhelper
+debconf libstdc++5 dkms<br>
+$ sudo apt-get install linux-headers-$(uname -r)
+&nbsp;&lt;=optional, incase the packages needed<br>
+$ sh
+ati-driver-installer-9-6-x86.x86_64.run --buildpkg
+Ubuntu/jaunty &nbsp;<br>
+$ sudo dpkg -i
+xorg-driver-fglrx_*.deb
+fglrx-kernel-source_*.deb fglrx-amdcccle_*.deb
+    <br>
+$ sudo aticonfig --initial -f</p>
+  </li>
+  <li>Reboot</li>
+  <li>Edit xorg.conf if necessary<br>
+Section "Device"<br>
+&nbsp; Identifier "Configured Video Device"<br>
+&nbsp; Option "RenderAccel" "on"<br>
+&nbsp; Option "AccelMethod" "XAA"<br>
+&nbsp; Option "AGPMode" "4"<br>
+End Section
+  </li>
+  <li>If smplayer can't play video, set up mplayer configuration</li>
+  <ul>
+    <li>Edit file of ~/.mplayer/gui.conf, change vo_driver =
+"x11" form vo_driver = "xv"&nbsp;</li>
+    <li>SMplayer &gt; options &gt; preference &gt;
+general &gt; video &gt; output driver, change the value to
+"x11"
+form "xv"</li>
+  </ul>
+  <li>Disable default fglrx if necessary</li>
+  <ul>
+    <li>Editfile of&nbsp;
+/etc/default/linux-restricted-modules-common</li>
+    <li>Change DISABLED_MODULES="fglrx" form DISABLED_MODULES=""</li>
+  </ul>
+</ul>
+
+<br>
+
+<h3>How to remove ATI driver(fglrx)</h3>
+
+<hr style="width: 100%; height: 2px;">
+<ul>
+
+  <li>Run the commands below:</li>
+  <p class="command" margin-left="40px=">$ sudo
+dkms build -m fglrx
+-v 8.632 -k
+`uname -r` =&gt; dkms stands for Dynamic Kernel Module Support<br>
+$ fglrx info<br>
+$ sudo apt-get autoremove xorg-driver-fglrx<br>
+$ exit<br>
+Resume Normal Boot<br>
+  </p>
+</ul>
+
+<br>
+
+<h3>X with ATI Chip</h3>
+
+<hr>
+<ul>
+
+  <li>sudo cp /etc/X11/xorg.conf /etc/X11/xorg.conf.back</li>
+  <li>sudo aticonfig --initial -f</li>
+  <li>Reboot, if necessary</li>
+  <li>sudo gedit /etc/X11/xorg.conf<br>
+...
+    <br>
+Section "ServerFlags"<br>
+&nbsp; Option&nbsp;&nbsp;&nbsp; "DontZap"
+"no"&nbsp;&nbsp;&nbsp; # 這個區塊就是把 " crl + alt + ← " 強制重啟桌面環境
+的功能開起來。
+    <br>
+EndSection<br>
+    <br>
+Section "Monitor"<br>
+&nbsp; Identifier&nbsp;&nbsp;&nbsp;
+"Configured Monitor"<br>
+&nbsp; HorizSync&nbsp;&nbsp;&nbsp;
+31.5-67.5&nbsp;&nbsp;&nbsp; #水平頻率範圍<br>
+&nbsp; VertRefresh&nbsp;&nbsp;&nbsp;
+60-75&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+#垂直頻率範圍<br>
+EndSection<br>
+    <br>
+...<br>
+    <br>
+Section "Screen"<br>
+&nbsp;Identifier&nbsp;&nbsp;&nbsp; "Default
+Screen"<br>
+&nbsp;Device&nbsp;&nbsp;&nbsp; "Configured
+Video Device"<br>
+&nbsp;Monitor&nbsp;&nbsp;&nbsp; "Configured
+Monitor"<br>
+&nbsp;DefaultDepth&nbsp;&nbsp;&nbsp; 24<br>
+&nbsp;SubSection&nbsp;&nbsp;&nbsp; "Display"<br>
+&nbsp;Depth&nbsp;&nbsp;&nbsp;
+24&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+#很眼熟對吧，在之前修改gdm解析度時也有出現這東西。<br>
+&nbsp;Modes&nbsp;&nbsp;&nbsp;
+"1360x768"&nbsp;&nbsp;&nbsp; # Modes 後面就是要強制的解析度。<br>
+&nbsp;EndSubSection<br>
+EndSection</li>
+</ul>
+
+</body></html>

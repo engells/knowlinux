@@ -1,0 +1,13 @@
+
+Openbox之自動啟動 
+在家目錄下的.config/openbox/autostart.sh裡寫入自動啟動之程式，在每行指令之最後加上 ＆則可以將獨占變成背景執行。
+sudo cp /etc/xdg/openbox/rc.xml ~/.config/openbox/rc.xml
+sudo chown engells:engells ~/.config/openbox/rc.xml
+
+sudo nano /etc/X11/xinit/xinitrc, 輸入(gcin輸入法)：
+export LANG=zh_TW.UTF-8
+export LC_CTYPE=zh_TW.UTF-8
+export GTK_IM_MODULE=gcin
+export XMODIFIERS="@im=gcin"
+gcin & 
+

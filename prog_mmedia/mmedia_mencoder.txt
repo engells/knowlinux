@@ -1,0 +1,122 @@
+
+
+
+用 mencoder 分割影片
+http://hi.baidu.com/jiyeqian/blog/item/14bc2616918bbf10962b43f6.html
+http://forum.ubuntu.org.cn/viewtopic.php?f=74&t=153755
+http://randle.wordpress.com/2010/03/13/mencoder-split-movie/
+==============================
+分割：
+ mencoder -ss 05:00 -endpos 8:00 -oac copy -ovc copy filename.mp4 -o output.mp4
+ -ss(start seek) 05:00 表示從 5:00（五分鐘）開始
+ -endpos(end position) 8:00 表示停止於 8:00（八分鐘）
+ -oac(output audio codec) copy 表示保留既有音效編碼
+ -ovc(output video codec) copy 表示保留既有影像編碼
+ -o(output) 指定輸出檔名
+
+合併：
+  mencoder -ovc copy -oac copy file1 file2 -o output
+
+例一：
+mencoder basket.rm -ovc lavc -oac lavc -o basket.avi
+把basket.rm文件轉換為basket.avi文件，其中，視頻轉換為mp4格式,音頻轉換為mp2格式。
+"-o basket.avi" 定義轉換成的文件名為 "basket.avi",
+"-ovc lavc" 表示用默認的 mp4 格式編碼圖象，
+"-oac lavc" 表示用默認的 mp2 格式編碼聲音。
+
+例二：
+mencoder basket.rm -ovc lavc -oac mp3lame -o basket.avi
+"oac mp3lame" 表示用 mp3 格式編碼聲音。
+
+例三：
+mencoder basket.rm -ovc lavc -oac mp3lame -o basket.avi -ss 5:00 -endpos 8:00
+"-ss 5:00 -endpos 8:00" 表示轉換從 5 分 0 秒到 13 分 0 秒的片段。
+
+例四：
+mencoder basket.avi -ovc copy -oac copy -o newbasket.avi -ss 5:00 -endpos 8:00
+把 basket.avi 文件中的 5 分 0 秒到 13 分 0 秒的部分拷貝到 newbasket.avi文件中。
+"-ovc copy"表示不作視頻轉換，
+"-oac copy"表示不作音頻轉換。
+
+例五：
+mencoder a1.avi a2.avi -ovc copy -oac copy -o asum.avi
+把 a1.avi 和 a2.avi 文件合併為 asum.avi 文件。
+
+例六：
+mencoder basket.rm -ovc lavc -oac lavc -lavcopts vbitrate=100 -lavcopts abitrate=32 -o basket.avi
+限制目的文件的大小。目的文件中，一秒鐘圖象占用 100kbit 空間,一秒鐘聲音占用 32kbit 空間。較小的檔案，一般意味著較低的圖象和聲音的質量。
+
+mencoder 串流轉錄功能
+http://blog.xuite.net/michaelr/linux/5216179
+ # mencoder -oac copy -ovc copy mms://domainname/filename.wmv[.asf/.wma] -o 存檔名稱
+
+
+
+
+mplayer 截取影片圖像
+http://inspire.twgg.org/c/audio-a-video/video/complete-with-examples-ffmpeg-and-mencoder.html
+==============================
+mplayer -ss START_TIME -noframedrop -nosound -vo jpeg -frames N NAME_OF_VIDEO_FILE
+-ss指定開始的時間，結合-frames參數，限定從某個時間開始、截取幾幀圖像。為了體現整個影片的內容，我需要在影片中間隔時間相同 的幾個點、每個點截取1幀圖像，所以按道理應該用-frames 1，但是mplayer這樣截圖的情況下，第一幀似乎永遠都會截取到一個黑屏，所以我常用-frames 2。截取下來的圖像保存在了當前目錄，名稱從00000001.jpg開始依次遞增，按照-frames 2，就是取00000002.jpg為結果，刪除00000001.jpg即可。經過簡單實驗，在截取wmv、rmvb影片時，前面的好幾幀都會是黑屏， 也只能參考上面的做法多取幾幀了。
+
+為了取影片中間隔大致相同的幾個點，可以用-ss指定時間，也可以用-sb指定開始字節，在我的實際使用中，使用-sb只會得到黑屏，所以通過文件 大小來設置間隔點的辦法不行，只能用-ss時間間隔了，這就需要首先得到影片的總時間。好在mplayer為我們提供了類似的功能：
+
+mplayer -identify movie-filename -nosound -vc dummy -vo null
+從所有輸出中可以grep到如下信息：
+- filetype: ASF file format detected.
+- dimensions and format: VIDEO: [MP43] 320×240 24bpp 1000.000 fps 0.0 kbps ( 0.0 kbyte/s)
+- video format: ID_VIDEO_FORMAT=MP43
+- width (dimensions): ID_VIDEO_WIDTH=320
+- height (dimensions): ID_VIDEO_HEIGHT=240
+- length in seconds: ID_LENGTH=98.00
+參考8(http://gallery.menalto.com/node/40548) 
+
+這樣會輸出一大堆影片信息，從中截取所需內容即可，在bash shell中，取得影片總時間長度（以秒為單位）的命令如下：
+
+FILESIZE=`mplayer -identify -nosound -vc dummy -vo null $1 | grep ID_LENGTH | sed -r 's/ID_LENGTH=([[:digit:]]*)(.[[:digit:]]*)?/1/g'`
+
+有了影片的總時長，我們就可以根據所要截取的幀數，計算出每個間隔點的時間位移了。不過要注意一般影片的開始-ss 0和結束-ss TOTAL_TIME_OF_VIDEO截取下來都會是黑屏，在處理的時候要分別加上和減去若干秒。
+
+截取工作完成後，我們擁有了一堆000000xx.jpg文件，如果能把這些文件都放到一個文件中，每行2張，成為一張大圖片，在發佈的時候會很方便。所以，我們使用imagemagick(http://www.imagemagick.org/script/index.php)中的montage命令來實現：
+
+montage -geometry +0+0 -tile 2 *.jpg montage.jpg
+
+-geometry +0+0是設定使用原始圖片大小，-tile 2參數設定每行放2張圖片，最後一個參數是要生成的目標文件名，現在，我們就能夠得到像剛才那張一樣的圖片了。 
+
+
+將 wmv 轉檔成avi
+-------------------------
+mencoder file1.wmv -ofps 23.976 -ovc x264 -oac copy -o file1.avi
+mencoder file2.wmv -ofps 23.976 -ovc x264 -oac copy -o file2.avi
+
+
+mencoder圖片做成電影
+-------------------------
+#用當前目錄中的所有 JPEG 文件創建 DivX4 文件：
+mencoder *.jpg -mf on:w=800:h=600:fps=25 -ovc divx4 -o output.avi
+
+#用當前目錄中的一些 JPEG 文件創建 DivX4 文件：？
+mencoder *.jpg -mf on:w=800:h=600:fps=25 -ovc divx4 -o output.avi
+
+#用當前目錄中的所有 JPEG 文件創建 Motion JPEG(MJPEG) 文件：
+mencoder *.jpg -mf on:w=800:h=600:fps=25 -ovc copy -o output.avi
+
+#用當前目錄中的所有 PNG 文件創建一個非壓縮的文件：
+mencoder *.png -mf on:w=800:h=600:fps=25:type=png -ovc rawrgb -o output.avi
+
+
+VCD 2 mpeg
+-------------------------
+mencoder vcd://2 -o file.avi -oac copy -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=2000
+Assuming the movie is the second title on VCD, this will create the file file.avi, which will be mpeg4 (divx) encoded movie with maximum average bitrate of 2000 Kb/s. The rest is in 'man mencoder' I found the final part of the manual (the examples ) being most useful.
+
+
+Avidemux
+http://briian.com/?p=7385
+http://avidemux.sourceforge.net/download.html
+http://briian.com/?p=6878
+-------------------------
+簡單用法：
+mencoder *.jpg -mf on:fps=15 -o output.avi -ovc xvid
+
+參考6 參考7(http://huangjiahua.livejournal.com/99358.html) 

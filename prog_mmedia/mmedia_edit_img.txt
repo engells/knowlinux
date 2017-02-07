@@ -1,0 +1,39 @@
+#!/bin/bash
+# program: 光碟影像管理
+# made by: Engells
+# date: Jan 11, 2012
+# content: 將光碟內容轉成 iso 格式檔案
+
+#使用 vcdxrip 指令將光碟影片取出，該指令含於 vcdimager 套件
+vcdxrip -C /dev/cdrom1 
+
+#使用 dd 指令產生 iso 檔案
+dd if=/dev/cdrom1 of=/home/t1.iso
+
+#Image file
+#==============================
+#http://www.arthurtoday.com/2011/09/ubuntu-imgnrgcuebinmdfdmg-iso.html
+#https://help.ubuntu.com/community/ManageDiscImages
+#==============================
+#CloneCD/IMG Images 檔案轉換程式
+sudo apt-get install ccd2iso
+ccd2iso /路徑/來源檔.img  路徑/目的檔.iso
+
+#CUE/BIN Images 檔案轉換程式
+sudo apt-get install bchunk
+bchunk /路徑/來源檔.bin /路徑/來源檔.cue 路徑/目的檔.iso (需同時指定來源的 cue 和 bin 檔，順序不能顛倒)
+
+#MDF Images 檔案轉換程式 ( Alcohol 120% 酒精檔案)
+sudo apt-get install mdf2iso
+mdf2iso /路徑/來源檔.mdf 路徑/目的檔.iso
+
+#NRG Images 檔案轉換程式 ( Nero 檔案)
+sudo apt-get install nrg2iso
+nrg2iso /路徑/來源檔.nrg 路徑/目的檔.iso
+
+#DMG Images 檔案轉換程式 ( Apple 檔案)，DMG 檔案要先轉換成 img 檔之後再由 img2iso 轉成ISO 檔
+sudo apt-get install dmg2img
+dmg2img /路徑/來源檔.dmg 路徑/目的檔.img
+
+
+

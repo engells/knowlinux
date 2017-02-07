@@ -1,0 +1,74 @@
+# vim:ts=4
+
+簡單介紹 ubuntu/var/log/ 下各個日志文件，方便出現錯誤的時候查詢相應的log
+
+/var/log/alternatives.log-更新替代信息都記錄在這個文件中
+
+/var/log/apport.log -應用程序崩潰記錄
+
+/var/log/apt/	-用apt-get安裝卸載軟件的信息
+
+/var/log/auth.log  -登錄認證log
+
+/var/log/boot.log  -包含系統啟動時的日志。
+
+/var/log/btmp	 -記錄所有失敗啟動信息
+
+/var/log/Consolekit  - 記錄控制台信息
+
+/var/log/cpus	  - 涉及所有打印信息的日志
+
+/var/log/dist-upgrade  - dist-upgrade這種更新方式的信息
+
+/var/log/dmesg	 -包含內核緩沖信息（kernel ringbuffer）。在系統啟動時，顯示屏幕上的與硬件有關的信息
+
+/var/log/dpkg.log	- 包括安裝或dpkg命令清除軟件包的日志。
+
+/var/log/faillog	 - 包含用戶登錄失敗信息。此外，錯誤登錄命令也會記錄在本文件中。
+
+/var/log/fontconfig.log -與字體配置有關的log。
+
+/var/log/fsck	  - 文件系統日志
+
+/var/log/faillog	-包含用戶登錄失敗信息。此外，錯誤登錄命令也會記錄在本文件中。
+
+/var/log/hp/
+
+/var/log/install/
+
+/var/log/jokey.log
+
+/var/log/kern.log –包含內核產生的日志，有助於在定制內核時解決問題。
+
+/var/log/lastlog —記錄所有用戶的最近信息。這不是一個ASCII文件，因此需要用lastlog命令查看內容。
+
+/var/log/faillog –包含用戶登錄失敗信息。此外，錯誤登錄命令也會記錄在本文件中。
+
+/var/log/lightdm/
+
+/var/log/mail/ –這個子目錄包含郵件服務器的額外日志。
+
+/var/log/mail.err	-類似於上面的
+
+/var/log/news/
+
+/var/log/pm-powersave.log
+
+/var/log/samba/	–包含由samba存儲的信息。
+
+/var/log/syss.log
+
+/var/log/speech-dispacher/
+
+/var/log/udev
+
+/var/log/ufw.log
+
+/var/log/upstart/
+
+/var/log/uattended-upgrades/
+
+/var/log/wtmp —包含登錄信息。使用wtmp可以找出誰正在登陸進入系統，誰使用命令顯示這個文件或信息等。
+
+/var/log/xorg.*.log— 來自X的日志信息。
+

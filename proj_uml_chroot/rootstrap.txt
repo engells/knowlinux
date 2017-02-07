@@ -1,0 +1,8 @@
+# vim:ts=2
+
+rootstrap
+	A tool for building complete Linux filesystem images
+	http://manpages.ubuntu.com/manpages/precise/en/man1/rootstrap.1.html
+
+slirp
+	slip/ppp emulator using a dial up shell account

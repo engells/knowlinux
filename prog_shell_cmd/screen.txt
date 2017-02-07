@@ -1,0 +1,96 @@
+
+
+
+
+Screen
+url:	http://archerworks.blogspot.com/2010/05/linuxscreenbindkey.html
+	http://blog.cdpa.nsysu.edu.tw/kmwang/archives/000059.html
+	http://www.jeffhung.net/blog/articles/jeffhung/1001/
+==============================
+screen	#全名 full-screen window manager，是在Linux or BSD上一個很好用的工具，可以在一個terminal下開啟多重視窗執行
+
+分割視窗」！熱鍵是「Ctrl + a  S 」(大寫的 S唷，也就是Split的意思)，螢幕就會切成兩半了，此時再按「Ctrl + a  tab」就可以切換focus的視窗，接著再「Ctrl + a  c」 建立新視窗，或著以號碼跳選其它視窗。
+
+割視窗有啥好處呢？相信常在trace code的人都能感受，有時常看某個.c檔就想開著他refer 到 header include 的檔案去查找macro定義或struct宣告之類的，或者是兩個檔案做diff比對，此時若能分割視窗就方便多啦！
+
+至於跨視窗的複製貼上怎麼用？
+
+問的好！不巧這剛剛也被我給找出來了！在此便不藏私的一併寫出來吧！首先你得先輸入「Ctrl-a ESC」或「Ctrl-a [」進入「複製模式」(有點像vi的一般模式)，進去此模式後就可以用類似vi的指令來移動游標，例如「h, j, k, l, 0, ^, $, H, M, L, G, |, w, b, e, B, E, Ctrl-u , Ctrl-d, Ctrl-b, Ctrl-f, g, %」等等(如果你的screen版本夠新，應該也是可以直接用上下左右鍵來移動才是)。
+
+若要複製的話，在起始點和終點各按一次空格鍵，這就copy了居於中間High-light的文字並退出「複製模式」，進入「正常模式」，最後用「Ctrl-a ]」就可以貼上了。
+
+如果要做字串搜尋的話，也只要在「複製模式」下輸入類似vi 的「/ 和?」的指令就可以了。複製和搜尋看起來很複雜，但如果你本來就有在用vi編輯器的話，這些指令操作應該覺得很親切、順手才對。
+
+總之，分割視窗也是screen很好用的功能(我知道很多人懶得學，索性會開很多個putty視窗來切換工作，但那樣多重登入實在太佔伺服器資源了...)，若再任意搭配vim的垂直分割功能(這...不會的請去問鳥哥)，你就可以隨心所欲的切視窗看code了
+
+另外，使用上有時後可能會發現，screen畫面都不會動，分頁都沒反應了！
+原來原因是你不小心按到了預設的鎖住螢幕組合技「組合鍵 Ctrl-a s 」
+解決之道是按對應的組合技「組合鍵 Ctrl-a q 」來離開(Quit)
+
+如果你想要永遠ban掉這個討厭的預設熱鍵的話，可以在.screenrc 裡面加上 bind s ，網路上建議remove掉的指令，可以一併加上…
+# remove some stupid / dangerous key bindings
+bind s
+bind k
+bind W
+bind ^k
+bind .
+bind ^\
+bind \\
+bind ^h
+bind h
+
+如果你真的是暫時離開想鎖住螢幕的話，可以用「組合鍵 Ctrl-a x 」，要解鎖的話要輸入Login密碼才能繼續使用，增加不少安全性！
+
+
+------------------------------
+edit ~/.screenrc
+# Start message, 關掉screen的開啟訊息
+startup_message off
+
+# Set hardstatus always on, 視窗底下新增一個很好用的狀態列
+hardstatus alwayslastline " %-Lw%{= Bw}%n%f %t%{-}%+Lw %=| %M %d %0c:%s "
+
+# Set default encoding using utf8, 強制終端機編碼為utf8, 能正常看中文字囉
+defutf8 on
+
+# Refresh the display when exiting programs, 離開視窗時自動refresh一下螢
+altscreen on
+
+# Dynamic title, 支援動態顯示視窗的「標題名稱」
+shelltitle '$ |bash'
+
+# Disable vbell, 關掉熱鍵操作錯誤時的逼逼聲
+vbell off
+
+# Keboard binding
+# bind F7 to detach screen session (to background), F7 關閉screen(至背景) (相當於C-a d )
+bindkey -k k7 detach
+# bind F8 to kill current screen window, F8 kill目前screen視窗
+bindkey -k k8 kill
+# bind F9 to create a new screen, F9 開一個新的screen視窗 (相當於C-a c)
+bindkey -k k9 screen
+# bind F10 to rename current screen window, F10 將目前screen視窗「標題名稱」重新命名
+bindkey -k k; title
+# bind F11 to move to previous window, F11 往前切換視窗 (相當於C-a p)
+bindkey -k F1 prev
+# bind F12 to move to next window, F12 往後切換視窗 (相當於C-a n)
+bindkey -k F2 next 
+# bind Alt`~= to screen0~12, #Alt+` 切換至screen 0, #Alt+1 切換至screen 1, ..., #Alt+= 切換至screen 12
+bindkey "^[`" select 0
+bindkey "^[1" select 1
+bindkey "^[2" select 2
+bindkey "^[3" select 3
+bindkey "^[4" select 4
+bindkey "^[5" select 5
+bindkey "^[6" select 6
+bindkey "^[7" select 7
+bindkey "^[8" select 8
+bindkey "^[9" select 9
+bindkey "^[0" select 10
+bindkey "^[-" select 11
+bindkey "^[=" select 12
+#分割視窗: Alt+s, 切換視窗: Alt+f, 離開分割視窗: Alt+q
+bindkey "^[s" split
+bindkey "^[f" focus
+bindkey "^[q" only
+

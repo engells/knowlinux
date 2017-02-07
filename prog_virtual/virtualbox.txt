@@ -1,0 +1,101 @@
+# vim:ts=4
+
+
+
+相關指令
+==============================
+重新編譯 vboxdrv 驅動程式，linux 核心變動時需作此動作
+	/etc/init.d/vboxdrv setup
+		# 必要時先安裝 dkms、build-essential、linux-headers-generic 套件後再重新編譯驅動程式
+		# 或 sudo /sbin/rcvboxdrv setup
+
+轉換 raw 硬碟映像檔為 vdi 格式
+	VBoxManage convertfromraw /path/to/file_source.img /path/to/file_target.vdi --format VDI
+
+複製 vdi 硬碟映像檔為 raw 格式
+	VBoxManage clonehd /path/to/file_source.vdi  /path/to/file_target.img --format RAW
+
+複製硬碟映像檔，新檔另有 uuid
+	VBoxManage clonevdi file_source.vdi file_target.vdi
+
+更換既有硬碟映像檔的 uuid
+	VBoxManage internalcommands sethduuid filename.vdi
+
+將實體硬碟或分割區建立映射檔
+	VBoxManage internalcommands createrawvmdk -filename /path/to/file_target.vmdk -rawdisk /dev/sdc
+	VBoxManage internalcommands createrawvmdk -filename /path/to/file_target.vmdk -rawdisk /dev/sdc -partitions 1
+		# 參數 -register 及 -relative 意指登錄進裝置清冊
+	VBoxManage internalcommands createrawvmdk -filename ~/path/to/file_target.vmdk -rawdisk /dev/sda -partitions 1,2
+		# 將 /dev/sda 的第一及第二分割區納入虛擬磁碟
+	VBoxManage internalcommands createrawvmdk -filename \path\to\file_target.vmdk -rawdisk \\.\PhysicalDrive[#]
+		# 此指令在 Win 平台上使用，指令最後的 # 字意指磁碟編號，第一顆硬碟編號為 0
+
+建立及開機虛擬電腦
+	VBoxManage createvm --name "machine_name" --ostype "Microsoft Windows" --register
+	VBoxManage modifyvm "machine_name" --memory 768 --acpi on --ioapic on
+	VBoxManage storagectl "machine_name" --name "SATA" --add sata
+	VBoxManage storageattach "machine_name" --storagectl "SATA" --port 0 --device 0 --type hdd \
+		--medium /path/to/file_target.vmdk
+	VBoxManage startvm "machine_name" --type gui
+
+移除 virtualbox
+	sudo dpkg -P virtualbox-3.1 => 完全移除
+	sudo dpkg -r virtualbox-3.1 => 標準移除
+
+增加網路界面
+	sudo VBoxAddIF vbox0 username br0
+
+移除網路界面
+	cat /dev/null > /etc/udev/rules.d/70-persistent-net.rules
+
+在虛擬機掛載分享目錄
+	mkdir ~/share && mount -t vboxsf public ~/share && chown user:group ~/share
+	umount -t vboxsf public && rmdir ~/share
+
+
+
+
+在虛擬機使用 USB 裝置
+==============================
+方法一：以 root 權限執行 VirtualBox
+	sudo VirtualBox
+
+方法二：將使用者加入 vboxusers 群組
+	sudo usermod -aG vboxusers account_name 或
+	sudo adduser account_name vboxusers
+
+
+
+
+將硬碟映像檔內容複製到實體分割區
+==============================
+sudo dd if=/dev/sd? of=disk.img bs=32768
+VBoxManage convertfromraw disk.img disk.vdi --format VDI
+create a new virtual machine and mount disk.vdi.
+boot the virtual machine and install Ubuntu Studio. (Do not take snapshot)
+shutdown virtual machine.
+VBoxManage clonehd disk.vdi disk.img --format RAW
+sudo dd if=disk.img of=/dev/sd? bs=32768
+
+
+
+
+設定虛擬裝置
+==============================
+File > Preferences > Network ，可以管理虛擬網卡，包括新增、移除等。
+
+
+
+
+使用 Virtualbox 從 USB Disk 開機
+==============================
+sudo usermod -G -a disk $USER
+ # 取得 USB 裝置對應之 partition 的 device node 權限。
+ # usermod -G 一定要加-a，否則 group 就會只剩 disk。
+ # 可能要先登出後再登入，才能更新群組資料
+
+VBoxManage internalcommands createrawvmdk -filename /path/to/file_target.vmdk -rawdisk /dev/sdx
+ # 建立 USB Disk 整塊裝置的 vmdk 檔案檔
+
+
+

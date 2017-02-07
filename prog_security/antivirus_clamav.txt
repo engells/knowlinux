@@ -1,0 +1,80 @@
+﻿# vim:ts=4
+
+
+
+ubuntu 安裝 clamav
+==============================
+URL:http://dev.firnow.com/course/6_system/linux/linuxjq/20100315/198720.html
+ 
+安裝
+	sudo apt-get install clamav
+
+啟動
+	clamav start
+
+升級病毒庫
+	sudo freshclam
+
+掃描病毒
+	clamscan 或 
+	clamscan -i -r /var/www
+
+	* 掃描所有用戶的主目錄就使用 clamscan -r /home
+	* 掃描您電腦上的所有檔並且顯示所有的檔的掃描結果，就使用 clamscan -r /
+	* 掃描您電腦上的所有檔並且顯示有問題的檔的掃描結果， 就使用 clamscan -r –bell -i / 
+
+
+當 clamAV 掃描完所有檔的時候，會顯示如下的類似報告
+
+----------- SCAN SUMMARY -----------
+Known viruses: 33840
+Scanned directories: 145
+Scanned files: 226
+Infected files: 1
+Data scanned: 54.22 MB
+I/O buffer size: 131072 bytes
+Time: 20.831 sec (0 m 20 s)
+
+ClamAV 只會去掃描 ClamAV 可以讀取的檔。 果您想掃描所有檔，在命令前加上 sudo .
+
+
+使 ClamAV 以 daemon 防護的方式運行
+*******************************
+安裝 clamav-daemon 就可以了，clamav-daemon將會建立一個名為'clamav'的帳戶，這是為了可以使 ClamAV 掃描一些系統檔，比如您的 Email 存放的地方，您可以添加'clamav'為這些檔或者目錄的所有者。
+
+
+如何知道 clamav-daemon 是否運行了?
+*******************************
+查看進程列表就可以了: ps ax | grep [c]lamd
+
+
+如何刪除病毒檔？
+*******************************
+在掃描的時候，您可以添加'--remove'就可以了
+
+
+如何知道我現在使用的 ClamAV 版本？
+*******************************
+執行 clamscan -v:
+user@ubuntu:/etc/clamav # clamscan -V
+ClamAV 0.83/855/Tue Apr 26 06:40:32 2005
+
+
+如何知道更多的參數
+*******************************
+使用 man clamscan.
+
+
+如何使 ClamAV 按計劃自動運行
+*******************************
+您可以使用'at'命令來使clamscan和freshclam運行，比如
+at 3:30 tomorrow
+at>clamscan -i /home/user > mail user@example.com
+at> <CTRL-D>
+job 3 at 2005-04-28 03:30
+
+或者編輯 /etc/crontab 加入以下內容
+0 3 * * * root /usr/bin/freshclam --quiet -l /var/log/clamav/clamav.log ＃＃每天3點升級
+
+取自"http://wiki.ubuntu.org.cn/index.php?title=ClamAV&variant=zh- cn"
+

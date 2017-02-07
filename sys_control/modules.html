@@ -1,0 +1,82 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Antivir</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body>
+<br>
+
+<h1>Linux Mudules<br>
+</h1>
+
+<br>
+
+<h3>DKMS</h3>
+
+<hr>DKMS is a framework designed to allow individual kernel modules to
+be upgraded without changing the whole kernel. It is also very easy to
+rebuild modules as you upgrade kernels<br>
+
+<br>
+
+<br>
+
+<h3>Dazuko</h3>
+
+<hr>Dazuko is a kernel module which provide a interface to let
+3rd party software access files
+<ul>
+
+  <li>Download deb file:
+http://dazuko.dnsalias.org/wiki/index.php/Main_Page </li>
+  <li>Install some tools: sudo apt-get install module-assistant
+debhelper </li>
+  <li>Install deb file: sudo dpkg -i
+dazuko-source_2.2.0-1_all.deb </li>
+  <li>Compile and install moudle: sudo m-a a-i dazuko </li>
+  <li>Load moudle: sudo modprobe dazuko </li>
+  <li>If you fail in step 5, that may be due to the moudle of
+capability. Try the following commans:
+    <p class="command">sudo modprobe -r capability <br>
+sudo modprobe dazuko <br>
+sudo modprobe capability</p>
+  </li>
+  <li>In oreder to load dazuko when booting，add "dazuko" in
+/etc/modules&nbsp; </li>
+  <li>Creat a new file, /etc/modprobe.d/dazuko, which contain
+the following words: </li>
+  <ul>
+    <li>install dazuko /sbin/modprobe -r capability;
+/sbin/modprobe --ignore-install dazuko; </li>
+    <li>/sbin/modprobe --ignore-install capability
+=&gt; pls don't break the line </li>
+  </ul>
+  <li>&nbsp;Reboot and run the command: lsmod | grep dazuko
+=&gt;
+see if dazuko is loaded </li>
+  <li>&nbsp;Each time the kernel changed, we need do the
+above steps
+again. </li>
+  <li>&nbsp;Reference data: </li>
+  <ul>
+    <li>&nbsp;https://help.ubuntu.com/community/DazukoTroubleshooting
+    </li>
+    <li>&nbsp;http://www.guatewireless.org/en/dazuko- ...
+-en-linea/ </li>
+    <li>&nbsp;http://blog.chinson.idv.tw/2006/04/ubuntu-dazuko.html
+    </li>
+    <li>&nbsp;http://ubuntuforums.org/archive/index.php/t-52385.html</li>
+  </ul>
+</ul>
+
+<br>
+
+<br>
+
+</body></html>

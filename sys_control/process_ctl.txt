@@ -1,0 +1,31 @@
+
+
+
+
+PS
+==============================
+ps us | grep 'firefox'
+列出所有與 FireFox 相關的程序，再搭配 kill 指令中止程序
+
+
+
+
+Kill
+==============================
+指令: kill -Num ProcessID(pid)
+信號簡稱	數值	代表意義
+HUP		1	控制中的終端/程序中斷
+INT		2	鍵盤的插入指令(同 Ctrl + C)
+QUIT		3	鍵盤的中斷指令(同 Ctrl + \)
+TERM		15	程序的終止指令
+KILL		9	程序的強制終止指令(暴力砍掉)
+CONT		18	程序的再啟動指令(STOP(19) 後再重新啟動)
+STOP		19	程序的停止指令(同 Ctrl + Z)
+
+
+acquire information about system
+==============================
+dmsg | more
+more /proc/cpuinfo
+more /proc/meminfo
+

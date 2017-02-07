@@ -1,0 +1,238 @@
+
+
+
+Ubuntu12.04下使用make-kpkg完美編譯安裝3.3.4內核
+http://forum.ubuntu.org.cn/viewtopic.php?t=373067&p=2727319
+==============================
+apt-get install libncurses5-dev	# for make menuconfig
+apt-get install kernel-package	# for make-kpkg
+apt-get install gcc-multilib
+wget http://www.kernel.org/pub/linux/kernel/v3.x/linux-3.3.4.tar.bz2
+tar -xjv -f linux-3.3.4.tar.bz2 -C work_dir
+cd work_dir
+make menuconfig						# may just load default .config file
+make-kpkg --initrd kernel_headers kernel_image -jn	# n is number of cpu cores
+cd ..
+dpkg -i *.deb
+將內核編譯工作目錄下的 Kbuild 拷貝到 /usr/src/linux-headers-3.3.4/
+刪除 /lib/modules/3.3.4/ 下的 build 鏈接文件
+ln -s /usr/src/linux-headers-3.3.4/Kbuild build		# 重新建立build鏈接文件
+刪除編譯工作目錄
+
+
+
+
+Ubuntu 10.04 編譯心內核
+url: http://www.ubuntuhome.com/ubuntu-10-04-install-linux-2-6-34.html
+==============================
+2012年1月測試結果，成功！測試環境如下
+	a.Virtual Box
+	b.Ubuntu 10.04 amd64 2.6.32-33
+	c.New kernel 2.6.33.7
+
+
+第一步：准備工作
+-------------------------
+sudo su
+apt-get install build-essential kernel-package libncurses5-dev libqt3-headers
+	build-essential		<=基本的編程庫（gcc, make等
+	kernel-package		<=Debian 系統裏生成 kernel-image 的一些配置文件和工具
+	libncurses5-dev		<=meke menuconfig 要調用的
+	libqt3-headers		<=make xconfig 要調用的，無 KDE 環境下不需要
+
+
+第二步：下載內核源代碼linux-2.6.34.tar.gz
+-------------------------
+到 www.kernel.org 官網下載最新版本 linux-2.6.34.tar.gz 內核
+假設下載在root目錄，然後解壓到/usr/src/linux-2.6.34目錄裏
+	tar zxvf /root/linux-2.6.34.tar.gz -C /usr/src
+	tar jxvf /root/linux-2.6.34.tar.bz2 -C /usr/src
+
+
+第三步：配置
+-------------------------
+sudo make mrproper	# 清除以前曾經編譯過的舊文件
+cd /usr/src/linux-2.6.34 && cp ../linux-headers-2.6.32-22-generic/.config  ./config	# 複製現行內核配置文件linux-2.6.34目錄下。
+make menuconfig		# 導入內核配置文件
+	移至配置界面選單最後兩項：load a kernel configuration… 及 save a kernel configuration…。
+	先選第一項 load … ，意思是，利用當前的內核配置詳單來設置將要編譯的內核，輸入config
+	然後選 save 將配置保存為 .config 檔，離開配置界面。
+或者 make oldconfig
+
+
+第四步：開如編譯安裝新內核
+-------------------------
+make -j[x]				# 編譯，x指CPU核心(邏輯)數量
+make install				# 安裝
+make modules				# 編譯模組
+make modules_install			# 安裝模組
+mkinitramfs -o /boot/initrd.img-2.6.34	# 創建initrd文件
+
+鳥哥網站示範作法
+	sudo make clean
+	sudo make bzImage -j2
+	sudo make modules -j2
+	sudo make modules_install
+
+
+第五步：更新配置GRUB引導列表
+-------------------------
+grub2環境下，只需以root權限輸入 update-grub
+
+
+啟動失敗之處理
+-------------------------
+重啟系統時，啟動失敗，出現以下提示：
+	warning:can't open directory /lib/modules/2.6.34/modules.dep,no such files or directory
+
+此時選擇從舊內核啟動登錄系統，然後執行以下命令，修改後就能成功啟動新內核了。
+	sudo su
+
+	cp /boot/initrd.img-2.6.34 /boot/initrd-2.6.34.old
+	depmod -a							<=檢查模組相依性，-a表示全部檢查
+	update-initramfs -k 2.6.34 -c					<=更新initrd檔，版本為2.6.34，-c表示產生新檔
+
+	cd /tmp && gzip -dc /boot/initrd.img-2.6.34 | cpio -id
+	touch lib/modules/2.6.34/modules.dep				<=產生modules.dep檔，或者以下一列方式複製
+	cd lib/modules/2.6.34 && cp /lib/modules/2.6.34/modules.dep
+
+	find . | cpio -H newc -o | gzip -cn -9 > /boot/initrd.img-2.6.34
+
+完成上述操作後，重啟系統，選新內核啟動，會彈出一個窗口，先選擇grub update grub ……（因為無法截圖，記不清了，大概有這些字樣）這一項來更新GRUB，然後再選最上面的一項，好象是 resum 字樣的，不知道有沒有記錯，哈哈，請細心點吧。
+
+完成後重新啟動電腦，GRUB菜單會更新成有好多啟動項了，就象剛安裝完 Ubuntu 10.04 時一樣，不過你可以登錄系統後再修改 /boot/grub/grub.cfg 來簡潔它。到此編譯安裝工作圓滿成功，謝謝各位看官的支持！
+
+url:	http://ubuntuforums.org/showpost.php?p=7312473&postcount=5
+
+經2012年1月測試，僅需執行 depmod -a 及 update-initramfs -k #.#.##.# -c兩個指令即可修復。
+
+
+
+
+Could not load modules.dep
+==============================
+
+modprobe: FATAL: Could not load /lib/modules/2.6.35-22-server/modules.dep: No such file or directory
+
+1.將 initramfs.conf 內的 MODULES 參數值改成 dep。
+	sudo vi /etc/initramfs-tools/initramfs.conf
+	MODULES=most → MODULES=dep
+
+2.重新設定 initramfs-tools。
+	sudo dpkg-reconfigure initramfs-tools
+
+3.重新啟動電腦。
+	sudo shutdown -r now
+
+果然，就不再有這個錯誤訊息了
+
+
+
+
+To creat .deb files for kernel upgrade
+http://tw.myblog.yahoo.com/linsa329/article?mid=143
+==============================
+cd /usr/src/linux-2.6.33.7
+make-kpkg clean
+make-kpag --initrd kernel_image kernel_header
+cd ..
+dpkg -i *.deb
+update-initramfs -c -k 2.6.33.7
+update-grub
+
+
+
+
+Other url
+==============================
+http://jasonubt.pixnet.net/blog/post/38776671-unbuntu-linux-%E7%B3%BB%E7%B5%B1%E5%AE%89%E8%A3%9D-%E8%88%87--make-kernel
+http://blog.theosoft.net/article.asp?id=57
+
+
+
+
+kernel相關目錄
+==============================
+內核模組放置位址為 /lib/modules/$(uname -r)
+內核模組編譯位址為 /usr/src/...
+
+
+
+
+Initrd
+==============================
+[轉載請註明出處] http://kezeodsnx.pixnet.net/blog
+作者: kezeodsnx
+
+介紹
+------------------------------
+
+先來個展開 : initrd==>initial Ram Disk 。 initial 沒什麼好說的, ram disk 就比較有趣了。先看看 WiKi 怎麼說 :
+
+A  RAM disk  is a software layer that enables applications to transparently use RAM,often a segment of main memory, as if it were a hard disk or other secondary storage.
+
+==> 是一個軟體層,使得應用程式可 "transparently" 用 RAM ,通常就是主記憶體的一塊,然後把這塊 ram disk 當做 storage 來用。
+
+首先, transparently 很難翻,理解為不透過其他介面 / 操作,意即直接在 ram 上存取,而不須搬動資料  ( 在電腦的世界,程式必須要在 ram 裡才能執行 ) 。這樣來看,好處就顯而易見了 : ram 的速度快, performance 高  ( 相對於 disk) 。缺點呢 ? 沒電資料就不見了。當然也有人做了一些改進缺點的事,不過那是另一個 story 了  (quote from Jeff.) 。
+
+而在 kernel document 中把 initrd 介紹為 :  提供載入一塊 ram disk 的能力,誰載入呢 ? 就是boot loader (lilo, grub, etc) ,因此是由 boot loader 來做此 initialize 的動作。這塊 ram disk會先被 mount 成當時的 rootfs ,也可執行程式  ( 主要是 init) 。等到 initial 好了,就可以把真正的rootfs mount 起來。
+
+從這段話來看, initrd 的功能大概是完成 mount rootfs 之前的前置工作。有什麼要準備 ? 又為什麼要 initrd 準備呢 ? 這就值得好好討論一下了  ( 有請 initrd 大師 ­­Chris
+Yang ,整個他寫的 ) 。
+
+使用 initrd 的流程大概是 :
+	1. bootloader 負責載入 kernel 和 initrd 。
+	2. kernel 解開 initrd ,並釋放 initrd 所佔的 memory 。
+	3. mount initrd /dev/ram0
+	4. 執行 init
+	5. mount  真的正 rootfs server
+	6. chroot ,執行 /sbin/init 
+
+
+CPIO
+------------------------------
+2.6 後的 kernel , initrd 改用 cpio 的格式,好處是這樣的系統不須要特殊的 block device 或 loopback device 。因此只要準備好所須的檔案系統,用以下的 cmd ,即可製作一個 initrd
+	find . | cpio ­­--quiet -­H newc -­o | gzip -­9 -­n > /boot/imagefile.img
+解開可用以下 cmd:
+	gunzip -­dc /boot/imagefile.img | cpio -­idm
+
+
+Example
+------------------------------
+從零開始製作 initrd 的方法不一而足,直接隨便拿一個現成來看吧。
+user@user­ubuntu:~/temp/see$ sudo gunzip ­-dc ../initramfs.img | cpio -­idm
+2054 blocks
+
+user@user­ubuntu:~/temp/see$ ls
+bin  dev  linuxrc  mnt  mnt­system  mnt­user  modules  proc  sbin  sys
+
+可看到基本的 filesystem 架構,預設會執行 linuxrc 這支程式。節錄比較具代表的段落
+
+1. 根據 /etc/fstab  把相關的 fs mount 起來,如 sys , proc , tmp 等
+	echo "rcS:::mounting filesystems"
+	mount ­a 2>/dev/null
+2. 如果有需要其他 daemon 存在,也可叫起來,如 udev
+	echo "rcS:::executing /etc/rc.d scripts"
+	run­parts ­a start /etc/rc.d
+	echo "mkdir /mnt/rootfs...."
+	mkdir ­p /mnt/rootfs/
+3.rootfs 在 SD 卡上,而在掛載真正的 rootfs 之前,系統並不認識 SD 這個 device ,因此要先把driver 掛起來,這也是 initrd 最重要的工作之一。
+	echo "insmod  /home/msm_sdcc.ko...."
+	insmod  /home/msm_sdcc.ko
+	echo "Sleep 5....."
+	sleep 5
+4.  如果 driver 已被正確掛載,應該要產生 device node 。有了 device node ,就可將真正的rootfs mount 起來。之後便可 chroot 進去,執行第一個程式 : /sbin/init
+	if cat /proc/partitions  |  grep mmcblk0 > /dev/null; then
+		echo " Starting mount /dev/mmcblk0...."
+		mount  ­t ext3  /dev/mmcblk0  /mnt/rootfs
+		exec switch_root  /mnt/rootfs   /sbin/init "$@" </mnt/rootfs/dev/console >
+		/mnt/rootfs/dev/console
+	fi
+5. mount rootfs 失敗,進入 debug shell
+	echo "mount rootfs fail......"
+	/bin/busybox sh
+
+結論
+------------------------------
+做個小結, initrd 中的 linuxrc ,做了兩件事 : 1. 掛必須的 driver;2.  掛真正的 rootfs ,並執行 /sbin/init 。為什麼會在 initrd 做呢 ? 通常一個 distro 的發行,會盡量希望能安裝到所有的電腦,但硬體百百種,不可能把所有的 driver 都 build 到 kernel 裡。因此,比較有彈性的方式是維持 kernel 不動, customize initrd 。
+

@@ -1,0 +1,134 @@
+# vim:ts=2
+
+
+
+docker logs [container id or name]
+docker network create cdb-net
+docker network rm cdb-net
+docker commit containrt_name image_ref
+
+
+
+Image 指令
+====================
+查詢 repository images
+	docker search ubuntu:16.04
+
+查詢 local images
+	docker images
+
+下載 image
+	docker pull ubuntu:16.04
+	docker pull centos:latest
+
+登錄 Docker Repository
+	docker login
+
+刪除 image
+	docker rmi ubuntu:16.04
+	docker rmi $(docker images -q -f "dangling=true")
+		-q：--quiet
+		-f：--filter
+		"dangling=true"：表示無標籤之 local image
+
+將 image 備份為檔案及回存至 local image pool
+	docker save -o xenial.tar ubuntu:16.04
+	docker load --input xenial.tar 或 docker load < xenial.tar
+
+修改 image 的 tag
+	docker tag
+
+
+
+
+Container 指令
+====================
+查詢 container
+	docker ps 或 docker ps -a
+	docker inspect -f "{{ .State.Pid }}" [container id]
+
+產生並啟動 container
+	docker run -it ubuntu:16.04 /bin/bash
+		-i：以互動模式啟動 container
+		-t：產生虛擬終端機
+		ubuntu:16.04：以 repository:tag 格式表示作為基底的 image
+		bin/bash：表示在 container 要執行的程式
+
+	docker run -d --name dbmaria -p 80:80 -v /home/db/maria:/var//lib/maria -e MYSQL_ROOT_PASSWORD='123' -e MYSQL_DATABASE='ayu' ubuntu:16.04
+		-d：背景執行 container，會傳回 container id
+		--name dbmaria：將 container 命名為 dbmaria
+		-p 80:8080：將 host 的 80 port 映射為 container 的 8080 port，可使用多個 -p 參數
+		-v /home/db/maria:/var//lib/maria：將 host 的 /home/db/maria 掛載為 container 的 /var//lib/maria，可使用多個 -v 參數
+		-e MYSQL_ROOT_PASSWORD='123'：設定環境參數，資料庫管理密碼為 123
+		-e MYSQL_DATABASE='ayu'：設定環境參數，資料庫為 ayu
+		--net=net_name：指定使用 net_name 網路，該網路由 docker network create 指令建立
+
+	docker run -d --name dbshare -v /host/folder:/container/folder image_ref
+	docker run -d --name db01 --volumes-from dbshare image_ref
+	docker run -d --name db02 --volumes-from db01 image_ref
+
+啟動已存在之 container
+	docker start
+
+進入 container
+	docker exec -it [container id or name] /bin/bash
+	docker attach [container id or name]
+	nsenter --target PID --mount --uts --ipc --net --pid
+
+停止 container
+	docker stop [container id or name]
+
+導出 container 並回存為 local image
+	docker export [container id or name] > file.tar
+	cat file.tar | docker import - ubuntu:16.04
+
+刪除 container
+	docker rm [container id]
+		僅能刪除停止運作之 container，可加入 -f 參數強制刪除運作中的 container
+
+	docker rm -f [container name]
+
+	docker rm $(docker ps -a -q)
+
+
+
+
+Network bridge
+====================
+network config
+----------
+edit /etc/default/docker
+	DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4 --bip=192.168.20.0/24 -b=br20"
+	--dns：指 docker0 所提供 DNS 位址
+	--bip：設定的網段
+	-b：指定橋接網路介面
+systemctl stop docker
+ifconfig docker0 down
+ifdown docker0
+brctl delbr docker0
+systemctl restart docker
+
+
+
+
+Install Docker
+====================
+Ubuntu
+----------
+apt update
+apt install apt-transport-https ca-certificates
+apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" | sudo tee /etc/apt/sources.list.d/docker.list
+apt update
+apt install linux-image-extra-$(uname -r) linux-image-extra-virtual
+apt install docker-engine
+systenctl start docker
+docker version
+docker info
+
+
+Centos
+----------
+yum install -y docker  
+systemctl start docker  
+

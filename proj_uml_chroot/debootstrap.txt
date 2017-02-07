@@ -1,0 +1,40 @@
+# vim:ts=4
+
+
+debootstrap 指令
+http://www.linuxsir.org/bbs/thread382609.html
+==============================
+debootstrap --arch amd64 testing /path/to/dir http://mirrors.163.com/debian
+#                  架構    版本   安裝目錄     套件來源位置，未指定時則會由 Internet 下載
+
+參數說明：
+--arch amd64
+	指定安裝64位系統，本參數的選項已知有 i386、i686、amd64 
+
+testing
+	指定安裝 testing 分支，使用 unstable、stable、testing 或 Debian / Ubuntu 版本代號也可以
+
+/path/to/dir
+	安裝目錄 
+
+http://mirrors.163.com/debian
+	dpkg / apt 套件來源位置
+
+實際範例：
+debootstrap --arch amd64 precise /path/to/dir http://free.nchc.org.tw/ubuntu
+
+dpkg-reconfigure locales
+dpkg-reconfigure tzdata
+
+
+
+
+debootstrap 用途
+==============================
+1.建立基本的 Debian 系統
+2.建立供 chroot 使用之環境
+3.將基本的 Debian 系統建置於硬碟映像檔，再搭配 UML 模式編譯之 Linux 核心，在 User space 執行有別於 Host 的 Linux 系統
+4.同上，建立硬碟映像檔，再搭配 QEMU 軟體執行，url: http://sakbk.pixnet.net/blog/post/28422868-qemu-with-debootstrap-
+5.搭配可開機媒介，安裝 Debian 至硬碟或隨身碟
+6.在 64 位元核心架構執行 32 位元程式
+

@@ -1,0 +1,250 @@
+# vim:ts=2
+
+
+英派 9300+ 規格
+==============================
+聯發科 Mediatek MTK6577 英派 9300+(512 MB RAM) H9500(1G RAM)
+	CPU	Cortex-A9 @ 1GHz * 2
+	GPU	PowerVRTM SGX531T
+	RAM	512 MB
+	Storage	4 GB Flash + microSD
+	Display	5.3″ IPS 960×540 (qHD)
+sandisk
+
+
+
+
+Android 架構
+==============================
+Java
+	languaage:java
+	virtual machine:	JVM, Java virtual machine / Java bytecode
+		虛擬機器功能是設定共通的指令，針對各種不同的架構各寫一個程式去配合這套指令。如此，只需要把程式編譯成「虛擬機器」看得懂的就行了
+		Java 使用的共通指令就稱做「Java bytecode」。Java bytecode 應是經編譯過的指令檔案，而非原始碼檔案。
+	library:	Java runtime library, 函式庫
+Android
+	languaage:	java
+	virtual: machine	Dalvik / dex, Dalvik executable
+	library:	Java runtime library, 函式庫
+
+
+
+
+Ubuntu on Android
+==============================
+
+硬體要求：
+	CPU > 1GHz; Android Version > 2.1; Android 設備需要自定義的 ROM 韌體; SD > 2.5GB~3.5GB
+	設備需要支持 WIFI (這個用於其他設備通過 WIFI 登錄); 支持 Ext2 文件系統(大部分 Android 設備應該都支持)
+
+手機取得 root權限，並且安裝了下列軟體：
+	BusyBox; Terminal Emulator; Android VNC Viewer
+
+步驟:
+	mkdir /sdcard/ubuntu
+	cp ubuntu files to /sdcard/ubuntu
+	cd /sdcard/ubuntu
+	su
+	cp bootscript.sh /system/bin/
+	chmod 755 /system/bin/bootscript.sh
+	bootscript.sh /sdcard/ubuntu/ubuntu.img
+	sh ubuntu.sh
+		keyin password
+		enable VNC and SSH
+		keyin screen resoultion, ex: 854x480, 'x' is lower alpha x
+		save as default screen resolution
+		cat /etc/issue.net, would show "Ubuntu 12.04..."
+
+	Cell phone to PC
+		keep terminal run in background
+		run Android VNC Viewer
+		keyin nickname
+		keyin passwird, could be the same as before
+		address: localhost 或 127.0.0.1
+		poet:	5900
+		Color Format: 24-bit color (4 bpp) or higher
+		click 'Connect', would connect PC
+		choose menu > disconnect, would disconnect PC
+
+	run exit in Terminal Emulator, would exit Ubuntu
+	run /sdcard/ubuntu/bootscript.sh with root authority, would re-enter Ubuntu
+
+	PC to Cell phone
+		run VNC program on PC, could connect to Cell phone
+		vnc4server; freenx
+
+
+Linux on Android 機制
+-------------------------
+imgfile=/sdcard/ubuntu/xxx.img
+mnt=/data/local/mnt
+source /sdcard/ubuntu/xxx.img.config
+losetup /dev/block/loop255	# 動態建立 loop255
+mount -t ext2 /dev/block/loop255 /sdcard/ubuntu/xxx.img		# 類似 HardDisk →  /dev/sdx → /path/to/mount-point 架構
+mount -t devpts devpts /data/local/mnt/dev/pts
+mount -t proc proc /data/local/mnt/proc
+mount -t sysfs sysfs /data/local/mnt/sys
+mount -o bind /sdcard /data/local/mnt/sdcard
+mount -o bind sdcard/ubuntu/ /data/local/mnt/root/cfg
+user mount mechnism，掛載於 /data/local/mnt/android
+sysctl -w net.ipv4.ip_forward=1	# 加入 rounter 機制
+chroot /data/local/mnt /root/init.sh xxx.img
+
+
+
+
+Plasma Active for Nexus 7
+==============================
+step0: get fmage files
+	get and extract the "moslo-nexus7-*.tar.gz"
+	get and extract the "plasma-active-*.tar.bz2"
+
+step1: unlock the boot loader
+step2: reboot into fastboot mode
+	reboot and keep the volume down key pressed
+step3: flash the MOSLO files which extracted from "moslo-nexus7-*.tar.gz"
+	fastboot -c "ro console=tty1 rootwait rootfstype=ext4" flash:raw boot zImage-moslo initrd-moslo
+step4: boot into MOSL with connecting to PC
+step5: format the userdata partition as ext4 file system:
+	mkfs.ext4 /dev/sdX	#	/dev/sdX is where the exported userdata partition showed up.
+step6: mount the userdata partition and extract the rootfs tarball to it
+	mount /dev/sdX /mnt/foo
+	cd /mnt/foo
+	tar xvf /plasma-active-nexus7-*.tar.bz2
+	sync
+	cd -
+	umount /mnt/foo
+step7: reboot into Plasma Active installation, with detaching the Nexus 7 from PC
+	Do not press any key during reboot. If booting failed:
+		fastboot -c "root=/dev/mmcblk0pX ro console=tty1 rootwait rootfstype=ext4" boot zImage-moslo
+			# For the non-3G models X is 9.
+			# For the 3G model X is 10.
+
+If user don’t need the MOSLO and want to boot directly into Plasma Active on reboot you can do this permanently by flashing the MOSLO kernel as follows:
+	fastboot -c "root=/dev/mmcblk0pX ro console=tty1 rootwait rootfstype=ext4" flash:raw boot zImage-moslo
+		For the non-3G models X is 9.
+		For the 3G model X is 10.
+
+User can re-install the MOSLO at any time later without any problem. You can also temporarily boot into MOSLO by following the MOSLO installation instructions above and leaving out “flash:raw”.
+
+kexec:直接啟動到另外的內核
+
+guide:http://ruedigergad.com/2012/12/21/plasma-active-for-nexus-7-running-the-touch-optimized-plasma-active-linux-distribution-on-nexus-7/
+source:http://download.kde.org/unstable/active/3.0/images/nexus7/
+
+
+
+
+英派 9300+ 刷機
+url:	http://www.mobile01.com/topicdetail.php?f=586&t=2928257&p=6
+		http://baoo.pixnet.net/blog/post/31024907
+==============================
+
+ROM 假設有 4G，要分為3個分區，9300+ 的預設分區大小：
+1.作業系統空間：1.5G
+2.安裝APP空間：512MB
+3.內置SD容量：2G，此空間為存檔案用的，如圖片影片等等
+
+以預設 512 MB 來裝 APP，說真的算比較少了一點，裝多一點遊戲就爆了。所以把內置 SD 卡的 2G 空間跟 512 MB 的 APP 安裝空間對調，這樣就有 2G 空間可安裝 APP 啦。
+
+RAM 是系統運行的暫存記憶體，執行大型遊戲或開啟多個 APP ，RAM 越大效能就越好，可以多工切換！但無法另外擴充跟修改。
+
+
+9/14 刷機教程(同步更新於1樓)
+-------------------------
+在此分享我的刷9300+的過程
+
+系統環境:Win7 64位元
+
+首先下載 I9700recovery全刷2G 感謝"BSMI"板友分流上傳
+https://code.google.com/p/i-cloud/downloads/detail?name=I9700recovery2G.rar
+
+
+下載完成後解壓縮,內有以下資料夾
+USB VCOM Driver
+SP_Flash_Tool_v3.1222.00-6577
+
+第一步：
+將手機關機電池拔下，直接把 USB 傳輸線接上，電腦會抓到新硬體。接著請到控制台 > 裝置管理員，找到那個新硬體(有驚嘆號的!) > 點選"更新驅動程式"，路徑就選到"USB VCOM Driver"內的資料夾 > 看你是 Win7 還是 XP 或 Vista
+選完後讓系統安裝就完成第一步驟了!
+
+第二步:
+拔除USB線，裝上電池(不要開機)，再重新插上USB線，此時電腦又會找到新硬體。同第一步驟，到控制台 > 裝置管理員，找到那個新硬體(有驚嘆號的!) > 點選"更新驅動程式"，路徑就選到"USB VCOM Driver"內的資料夾 > 看你是 Win7 還是 XP 或 Vista
+驅動安裝完成後先不拔 USB 線。
+
+第三步:
+打開 "SP_Flash_Tool_v3.1222.00-6577" 資料夾，開啟 Flash_tool.exe。點選「Scatter-loading」，選取「MT6577_Android_scatter_emmc.txt」檔案
+
+第四步:
+點選 Download 後會出現警告視窗，選擇「是」就開始刷入 Recovery 跟分區了。
+成功的話會出現綠色圈圈就表示 OK 啦！此時 USB 線可以拔除。
+
+第五步:
+下載J大製作的「Taiwan_Hero-9300+_ICS_V.01-4.zip」，網址為：http://www.4shared.com/zip/aR_pU-or/Taiwan_Hero-9300_ICS_V01-4.html。下載完後複製到你外插的 SD 卡內最外層目錄即可，再將記憶卡插到到手機上。
+
+第六步:
+同時按住開機鍵+音量鍵"上"(大約10-15秒)，直到進入Recovery(音量鍵可以上下移動.開機鍵=確認)，依序執行：
+1.清空Data/恢復出廠設定
+2.清空Cache分區
+3.高級
+4.清空Dalvik-Cache，1~4的步驟為3Wpie
+5.回上層目錄，從SD卡選擇更新，找到「Taiwan_Hero-9300+_ICS_V.01-4.zip」確認安裝
+
+完成後就選擇「重啟系統」，收工～。
+
+
+
+
+內置sd卡與外置sd卡....互換位置
+==============================
+相信有許多人，有內置sd太小，外置sd（sdcard2或extsd）卻只能放資料。一些遊戲或者是影音播放軟體根本不會去讀外置sd（sdcard2或extsd）。記憶卡買多大都沒啥用，非常困擾。終於，我找到修改路徑的方法。注意， Android 4.0 以上適用，4.0 以下的話路徑不太一樣！
+
+1.android4.0版本適用
+2.需root
+3.使用ES文件瀏覽器，找到system/etc/vold.fstab這個文件，用文字編輯器打開vold.fstab文件，找到下面的語句：
+
+注意：各機種不同....通常第一個sd裝置會稱為：sdcard......第二個裝置通常稱為：sdcard2或extsd...請依你的機器原本命名修改位置即可！！
+
+dev_mount sdcard /mnt/sdcard auto /devices/platform/goldfish_mmc.0 /devices/platform/mtk-sd.0/mmc_host
+dev_mount sdcard /mnt/sdcard2 auto /devices/platform/goldfish_mmc.1 /devices/platform/mtk-sd.1/mmc_host
+
+把位置互換....改成
+dev_mount sdcard /mnt/sdcard2 auto /devices/platform/goldfish_mmc.0 /devices/platform/mtk-sd.0/mmc_host
+dev_mount sdcard /mnt/sdcard auto /devices/platform/goldfish_mmc.1 /devices/platform/mtk-sd.1/mmc_host
+
+儲存後退出。此時會自動在本資料夾下備份一個 vold.fstab.bak 檔案。重啟機器，進入系統設置的存儲下，就會發現內外卡已經換位了。內置 8G 存儲被識別為 extsd 卡，在最下面，而外置32g被視為SD卡。哪天想換回來，把 vold.fstab 檔刪除，把 vold.fstab.bak 的“.bak”去掉，然後重啟即可。
+
+
+
+
+APK Lists
+==============================
+Emulator ROMs Plus, game emulator
+
+Desktop Themes:
+	GO 桌面EX, theme
+	GDE 3D 桌面, theme
+
+Traffic:
+	SYGIC導航
+	DailyRoads 行車記錄器
+	台灣天氣資訊
+	墨跡天氣
+	行動股市
+	GooglePlay商店
+	LINE
+
+Input Methods:
+	gPen
+	超注音
+
+Hacker
+	Superuser
+	Superuser Elite, 精英版
+	Root Explorer
+	Advanced Task Manager
+	Advanced Task Killer
+	叔叔工具箱
+	AutoKiller Memory Optimizer
+
+

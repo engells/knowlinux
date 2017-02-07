@@ -1,0 +1,232 @@
+# vim:ts=2
+
+
+常用指令
+====================
+啟動 Container
+	lxc-start -n name_of_machine -d
+	lxc-restart -n name_of_machine	# 重啟  Container
+	lxc-execute -n name_of_machine cmd	# 啟動 Container 並執行指令
+
+查詢 Container 名單
+	lxc-ls -f
+
+查詢 Container 資訊
+	lxc-info -n name_of_machine
+
+登入 Conatiner
+	lxc-attach -n name_of_machine
+	lxc-console -n name_of_machine	# 終端機模式
+	ssh -X user@ip_of_container	# SSH 模式登入可執行視窗時程
+
+停止 Container
+	lxc-stop -n name_of_machine
+
+複製 Container
+	lxc-copy -n old_machine N new_machine
+	lxc-clone -o 來源虛擬機器名稱 -n 新虛擬機器名稱 # 複製 Conatiner
+
+暫停及恢復 Container
+	lxc-freeze -n name
+	lxc-unfreeze -n name
+
+
+
+
+搬移 container
+====================
+先在目的電腦上建新的同名 container
+	sudo lxc-create -t ubuntu -n name_of_machine
+
+停止來源電腦 Container
+	sudo lxc-stop -n name_of_machine
+
+以 rsync 指令，透過 ssh 傳送 Container 
+	sudo rsync -av --numberic-ids /path/to/name_of_machine -e ssh name_of_user@url_of_destination:/path/to/clone
+	# 要保留檔案的使用者 ID，一定要使用 rsync 的 --numberic-ids 選項來複製檔案
+	# name_of_user@url_of_destination: 如 xxx@192.168.nn.nn
+	# /path/to/clone: 如 /home/virt/lxdu/u1606u
+
+在目的電腦以複製過來的 container 資料夾覆蓋掉先前 lxc-create 建立的 container 資料夾
+	sudo rmdir /path/to/name_of_machine
+	sudo cp -rf /path/to/clone/. /path/to/name_of_machine
+
+
+
+
+Containers share folders
+====================
+edit /path/to/name_of_machine/config
+	add 「 lxc.mount = /path/to/name_of_machine/fstab 」
+
+touch /path/to/name_of_machine/config
+	/path/in/host /path/to/name_of_machine/mount/rootfs/dir none bind,create=dir
+	# /path/to/name_of_machine/rootfs/mount/dir 最好使用 Host 主機的絕對路徑
+
+
+
+
+NetWork Config
+====================
+Host /etc/default/lxc or /etc/default/lxc-net
+----------
+	LXC_BRIDGE="lxcbr0"
+	LXC_ADDR="10.0.3.1"
+	LXC_NETMASK="255.255.255.0"
+	LXC_NETWORK="10.0.3.0/24"
+	LXC_DHCP_RANGE="10.0.3.2,10.0.3.254"
+	LXC_DHCP_MAX="253"
+	----------
+	sudo systemctl restart lxc
+
+
+Host file: /var/lib/lxc/name_of_machine/config or ~/.local/share/lxc/name_of_machine/config
+----------
+	lxc.network.link = lxcbr0
+
+
+Host file: /etc/network/interfaces
+----------
+	auto br0
+	iface br0 inet dhcp
+	bridge_ports eth0
+
+	sudo ifup br0
+
+
+Ubuntu container with static IP
+----------
+container /etc/network/interfaces
+	auto eth0
+	iface eth0 inet manual
+		address 10.0.3.91
+		netmask 255.255.255.0
+		gateway 10.0.3.1
+		dns-nameserver 168.95.1.1
+
+
+CentOS container with static IP
+----------
+container /etc/sysconfig/network-scripts/ifcfg-eth0
+	BOOTPROTO=static
+	IPADDR=10.0.3.101
+	NETMASK=255.255.255.0
+	GATEWAY=10.0.3.1
+	DNS1=168.95.1.1
+
+
+
+
+X in container
+====================
+Method 1:
+----------
+apt install xauth
+apt install dbus dbus-x11
+
+
+Method 2:
+----------
+在 /var/lib/lxc/name_container/config 中加入以下内容
+	lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir
+	lxc.mount.entry = /dev/snd dev/snd none bind,optional,create=dir
+	lxc.mount.entry = /tmp/.X11-unix tmp/.X11-unix none bind,optional,create=dir
+	lxc.mount.entry = /dev/video0 dev/video0 none bind,optional,create=file
+	lxc.hook.pre-start = /home/USERNAME/.local/share/lxc/precise-gui/setup-pulse.sh # this line not sure
+
+container:
+	export DISPLAY=:0
+
+
+----------
+url:
+	url:http://www.rendoumi.com/lxcrong-qi-nei-ru-he-yun-xing-firefox/
+
+
+
+
+Unprivileged Mode
+====================
+config files matching
+----------
+	/etc/lxc/lxc.conf => ~/.config/lxc/lxc.conf
+	/etc/lxc/default.conf => ~/.config/lxc/default.conf
+	/var/lib/lxc => ~/.local/share/lxc
+	/var/lib/lxcsnaps => ~/.local/share/lxcsnaps
+	/var/cache/lxc => ~/.cache/lxc
+
+
+Method 1: Working
+-----------
+/etc/lxc/lxc-usernet 
+	name_of_user veth lxcbr0 2
+
+grep 'name_of_user' /etc/sub?id
+	/etc/subgid:name_of_user:100000:65536
+	/etc/subuid:name_of_user:100000:65536
+
+mkdir -p ~/.config/lxc
+
+cp /etc/lxc/default.conf ~/.config/lxc
+
+edit ~/.config/lxc/default.conf
+	lxc.id_map = u 0 100000 65536
+	lxc.id_map = g 0 100000 65536
+
+chmod a+x ~/.local/share/lxc
+
+
+Method 2: Just for ref
+----------
+First allocate additional uids & gids to user
+	sudo usermod -v 100000-165535 name_of_user
+	sudo usermod -w 100000-165535 name_of_user
+
+edit /etc/lxc/default.conf
+	lxc.id_map = u 0 100000 65536	# 将 uid 0 映射為 100000，共 65536 個
+	lxc.id_map = g 0 100000 65536	# 将 gid 0 映射為 100000，共 65536 個
+
+Tip: If you want to use it as a one off simply add the 2 lxc.id.map lines to the container config in /var/lib/lxc, and not /etc/lxc/default.
+You may get a permission error when starting the container. In this case change the permissions on the /var/lib/lxc folder => chmod o+x /var/lib/lxc
+
+
+
+
+Memory and CPU Limit
+====================
+設定記憶體上限
+	sudo lxc-cgroup -n 虛擬機器名稱 memroy.limit_in_bytes 256M
+
+設定 CPU 使用上限
+	sudo lxc-cgroup -n 虛擬機器名稱 cpu.shares 512	數字最高為 1024，不帶數字參數就會顯示設定值
+	sudo lxc-cgroup -n ubuntu-lxc-vm cpuset.cpus 0,3	使用第 0、4顆 CPU
+
+以設定檔 /var/lib/lxc/虛擬機器名稱/config 設定記憶體及 CPU 上限
+	lxc-cgroup.memroy.limit_in_bytes = 256M
+	lxc-cgroup.cpu.shares = 512
+	lxc-cgroup..cpu.shares = 0,3
+
+
+
+
+Creat LXC Container
+====================
+sudo lxc-create -t ubuntu -n name_of_machine
+	用預設範本建立 Container	，預設的帳號和密碼都是「ubuntu」
+
+sudo lxc-create -t download -n name_of_machine -- -d ubuntu -r xenial -a amd64
+	用下載範本建立 Container，建立和操作 Container 時，都不需要用到 sudo 指令
+	# sudo lxc-create -n centos_lxc -t centos -- -R 7 -a x86_64
+
+
+
+
+Install Packages
+	https://www.flockport.com/lxc-using-unprivileged-containers/
+	https://www.flockport.com/start
+====================
+sudo apt install lxc bridge-utils systemd uidmap
+mkdir ~/.config/lxc ~/.local/share/lxc ~/.cache/lxc
+ls /sur/share/lxc/templates
+
+

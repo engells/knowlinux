@@ -1,0 +1,120 @@
+# vim:ts=4
+
+
+
+find 概述
+==============================
+
+語法
+-------------------------
+find path -option [-print] [ -exec | -ok  command ]  {} \;
+	-print			將找到的檔案輸出到標准輸出
+	-exec command {} \;	對查到的檔案執行command操作,{} 和 \;之間有空格
+	-ok 			和 -exec相同，只不過在操作前要詢用戶
+	-name filename		找名為filename的檔案
+	-perm			按執行權限來找
+	-user username		按檔案屬主來找
+	-nouser			查無有效屬主的檔案，即檔案的屬主在 /etc/passwd 中不存在
+	-group groupname	按群組來找
+	-nogroup		查無有效屬組的檔案，即檔案的屬組在 /etc/groups 中不存在
+	-mtime -n +n		按檔案更改時間來找，-n 指 n 天以內，+n 指 n 天以前
+	-atime -n +n		按檔案存取時間來找，-n 指 n 天以內，+n 指 n 天以前
+	-ctime -n +n		按檔案建立時間來找，-n 指 n 天以內，+n 指 n 天以前 
+	-newer f1 !f2		查更改時間比 f1 新但比 f2 舊的檔案
+	-type b/d/c/p/l/f	查是區塊設備、目錄、字符設備、管道、符號鏈接、普通檔案
+	-size n[c]		查長度為 n 塊 [ 或 n 字節 ] 的檔案
+	-depth			找檔案在進入子目錄前先行查找完本目錄
+	-mount			查檔案時不跨越檔案位置所在的掛載點
+	-follow			如果遇到符號鏈接檔案，就跟蹤鏈接所指的檔案
+	-cpio			對匹配的檔案使用 cpio
+
+
+釋例
+-------------------------
+find . -type d -exec rmdir  {} \;
+	exec 是找到之後要執行的指令
+	{} 代表找到的檔案
+	; 是指令 exec 的終止符號，要用 \ 進行跳脫(excape)的動作
+	http://magicallove.twbbs.org/wordpress/?p=269
+
+find ~/ktws/ -type f -name '*.txt' -mtime -20
+	# 將指定目錄 20 天內修改過的檔案列出
+
+find ~/ktws/ -type f -name '*.txt' -atime -20
+	# 將指定目錄 20 天內存取過的檔案列出
+
+
+
+
+其他釋例
+=============================
+查詢檔案名稱或目錄名稱
+	find $HOME -name '*.mp3'
+
+查詢檔案名稱 (不區分大小寫)
+	find /etc -iname 'Network'
+
+指定只要搜尋「檔案」名稱
+	find /var/log -iname '*.log' -type f
+
+指定只要搜尋「目錄」名稱
+	find /etc -iname 'apache2' -type d
+		補充說明：可用的 –type 參數值如下
+			b	block (buffered) special
+			c	character (unbuffered) special
+			d	directory ( 一般目錄 )
+			p	named pipe (FIFO)
+			f	regular file ( 一般檔案 )
+			l	symbolic link
+			s	socket
+			D	door (Solaris)
+
+找尋所有檔案大小大於 50MB 的檔案
+	find /var -type f -size +50M
+		註1: 不加上 –name 參數即代表搜尋所有檔案
+
+找尋所有檔案大小小於 50MB 的檔案
+	find /var -type f -size -50M
+
+尋找超過 7 天沒有被存取或修改過的檔案 (判斷檔案存取時間)
+	find $HOME -type f -atime +7
+
+尋找曾經在 7 天內被存取或修改過的檔案 (判斷檔案存取時間)
+	find $HOME -type f -atime -7
+
+尋找超過 10 分鐘沒有被存取或修改過的檔案 (判斷檔案存取時間)
+	find $HOME -type f -amin +10
+
+尋找曾經在 10 分鐘內被存取或修改過的檔案 (判斷檔案存取時間)
+	find $HOME -type f -amin -10
+
+尋找檔案建立時間已超過 30 天的檔案
+	find $HOME -type f -ctime +30
+
+尋找特定使用者的檔案 ( 以帳號名稱 tom 為例 )
+	find $HOME -type f -user tom
+
+刪除 30 天以上未經存取過的暫存檔案 ( 注意: 以下指令最後一個分號(;)前一定要加上反斜線 )
+	find /tmp -type f -atime +30 -print -exec rm -f '{}' \;
+		# 註1: 加上 –print 是為了讓被刪除的檔案檔名一併顯示在畫面上，這個參數可以省略 
+		# 註2: 使用 –exec 會讓查詢到的每一個檔案路徑代入 ‘{}’ 位置，一個檔案會執行一遍 rm 命令
+
+刪除 30 天以上未經存取過的暫存檔案 ( 使用 xargs 當成單一命令的參數 )
+	find /tmp -type f -print0 | xargs -0 rm -v
+		# 註1: 加上 –print0 是為了讓輸出的結果不以「斷行字元」分隔，而改以 null 為結果的分隔字元 
+		# 註2: 使用 xargs 命令加上 –0 是為了讓傳入的資料以 null 字元當成參數的分隔 
+		# 註3: 使用 rm 命令加上 –v 是為了能顯示出被刪除的檔案名稱，這個參數可以省略 
+		# 註4: 使用 xargs 會將所有 find 命令查到的檔案轉換成 rm 的參數列，如果檔案過多可能會執行失敗! 
+		# 註5: 使用 xargs 可確保後面的程式 ( rm ) 只執行一次，所以理論上執行速度較快！
+
+相同參數需輸入多筆並且以「或」邏輯運算時要用 –o 參數串接起來
+	例1：同時找兩種檔名樣式的檔案
+		find $HOME -name '*.mp3' -o -user '*.ogg'
+
+	例2：同時找兩個擁有者的檔案
+		find /usr/local -user user1 -o -user user2
+ 
+注意事項：
+	使用萬用字元時務必加上單引號( ' ) 
+
+

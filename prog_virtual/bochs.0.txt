@@ -1,0 +1,183 @@
+# vim:ts=4
+
+
+
+虛擬機Bochs安裝出現錯誤
+==============================
+出現「ERROR: X windows gui was selected, but X windows libraries were not found.」
+	解決辦法：sudo apt-get install libx11-dev xserver-xorg-dev xorg-dev
+
+出現「ERROR: pkg-config was not found, or unable to access the gtk+-2.0 package.
+ Install pkg-config and the gtk+ development package, or disable the gui debugger, or
+ the wxWidgets display library (whichever is being used).」
+	解決辦法：sudo apt-get install libgtk2.0-dev
+
+
+
+
+BOCHS 簡介及配置
+==============================
+
+Bochs 簡介
+-------------------------
+Bochs（讀音同 Box）是用 C++開發 的以 LGPL 許可證發放的開放源代碼的 x86，x86-64 模擬器，模擬整個 PC。可以運行於多種主流平台下，包括 x86, PPC, Alpha, Sun 和 MIPS。
+
+和 Bochs 類似的虛擬機軟體還有：VMware，Virtual PC，VirtualBox。這些都使用了虛擬化技術，部分指令直接交給硬體執行。而 Bochs 完全是靠軟體模擬來實現的，所以 Bochs 虛擬機的速度慢很多，而且應該稱 Bochs 為模擬器，而非虛擬機。從啟動到重啟，包括 PC 的外設鍵盤，鼠標，VGA 卡，磁盤，網卡等，全部都是由軟體來模擬。
+
+也正是由於 Bochs 完全是靠軟體來模擬整個 PC 環境，因此它常適合開發操作系統，這對廣大操作系統愛好者來說是個福音。有了 Bochs ，調試操作系統非常非常的容易，Bochs 自帶一個調試器 bochsdbg，可從 PC 剛啟動的那一刹那起就開始模擬，注意，這不是從讀取磁盤中的引導扇區那開始模擬。
+
+在 Bochs 中安裝操作系統，不會分區宿主機硬盤，而僅僅是在宿主機中建立一個大文件——磁盤鏡像文件。
+
+Bochs 自帶的 bximage 工具可以創建軟盤，硬盤的鏡像文件。
+
+在 Bochs 中運行操作系統的最低要求：
+	Bochs 軟體
+	BIOS 鏡像
+	VGA BIOS 鏡像
+	可引導開機的磁盤鏡像（軟盤，硬盤，光盤）或物理磁盤（軟盤，光盤）
+
+
+配置Bochs —— 告訴Bochs你想模擬一台擁有何種硬體配置的PC。
+-------------------------
+這裏只介紹如何使用配置文件配置 Bochs。
+
+Bochs 提供了一個配置文件的模版：bochsrc-sample.txt，可以在 Bochs 的安裝目錄中找到。在配置文件中「#」為注釋符號，表明「#」後面的全部是注釋的內容，類似於C / C++ 中的行注釋「//」。
+
+——其實只要懂點硬體，看看這個模板文件就懂如何配置了，要學習，官網的資料最好。
+
+Romimage
+    # ROMIMAGE:
+    # The ROM BIOS controls what the PC does when it first powers on.
+    # Normally, you can use a precompiled BIOS in the source or binary
+    # distribution called BIOS-bochs-latest. The ROM BIOS is usually loaded
+    # starting at address 0xf0000, and it is exactly 64k long. Another option
+    # is 128k BIOS which is loaded at address 0xe0000.
+    # You can also use the environment variable $BXSHARE to specify the
+    # location of the BIOS.
+    # The usage of external large BIOS images (up to 512k) at memory top is
+    # now supported, but we still recommend to use the BIOS distributed with
+    # Bochs. The start address optional, since it can be calculated from image size.
+    #=======================================================================
+    #romimage: file=$BXSHARE/BIOS-bochs-latest 
+    #romimage: file=bios/seabios-0.5.1.bin
+    #romimage: file=mybios.bin, address=0xfff80000 # 512k at memory top
+    使用安裝目錄下的文件就可以了。
+
+Vgaromimage
+    #=======================================================================
+    # VGAROMIMAGE
+    # You now need to load a VGA ROM BIOS into C0000.
+    #=======================================================================
+    #vgaromimage: file=bios/VGABIOS-elpin-2.40
+    #vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
+    #vgaromimage: file=bios/VGABIOS-lgpl-latest-cirrus
+    使用安裝目錄下的文件就可以了。
+
+Megs
+    指定內存大小。「megs: 32」表示分配 32MB 內存，如果嫌少，可在行首添加「#」將之屏蔽，然後選擇更大的內存，記得將行首的「#」刪除.
+
+Floppya
+    #=======================================================================
+    # FLOPPYA:
+    # Point this to pathname of floppy image file or device
+    # This should be of a bootable floppy(image/device) if you're
+    #  booting from 'a' (or 'floppy').
+    #
+    # You can set the initial status of the media to 'ejected' or 'inserted'.
+    #   floppya: 2_88=path, status=ejected    (2.88M 3.5"  media)
+    #   floppya: 1_44=path, status=inserted   (1.44M 3.5"  media)
+    #   floppya: 1_2=path, status=ejected     (1.2M  5.25" media)
+    #   floppya: 720k=path, status=inserted   (720K  3.5"  media)
+    #   floppya: 360k=path, status=inserted   (360K  5.25" media)
+    #   floppya: 320k=path, status=inserted   (320K  5.25" media)
+    #   floppya: 180k=path, status=inserted   (180K  5.25" media)
+    #   floppya: 160k=path, status=inserted   (160K  5.25" media)
+    #   floppya: image=path, status=inserted  (guess media type from image size)
+    #   floppya: type=1_44                    (1.44M 3.5" floppy drive, no media)
+    #
+    # The path should be the name of a disk image file.  On Unix, you can use a raw
+    # device name such as /dev/fd0 on Linux.  On win32 platforms, use drive letters
+    # such as a: or b: as the path.  The parameter 'image' works with image files
+    # only. In that case the size must match one of the supported types.
+    # The parameter 'type' can be used to enable the floppy drive without media
+    # and status specified. Usually the drive type is set up based on the media type.
+    #=======================================================================
+    #floppya: 1_44=/dev/fd0, status=inserted
+    #floppya: image=../1.44, status=inserted
+    #floppya: 1_44=/dev/fd0H1440, status=inserted
+    #floppya: 1_2=../1_2, status=inserted
+    #floppya: 1_44=a:, status=inserted
+    #floppya: 1_44=a.img, status=inserted
+    #floppya: 1_44=/dev/rfd0a, status=inserted
+
+    這是A驅動器的參數，當然，自然也是模擬的。通常所用的軟驅是1.44MB的，因此後面跟的參數是1_44=/dev/fd0 注意：/dev/fd0表示你當前的真實軟驅。如果你想使用鏡像文件(在編寫操作系統中，我們一般都使用鏡像文件)則把/dev/fd0改成你鏡像文件的路徑，如果你的配置文件和鏡像文件在同一個文件夾中則可以直接寫鏡像名稱，比如1_44=msdos.img就可以。
+
+    當然，也可以模擬其它的軟驅，如2.88M，720K，360K的，這非常的有用！後面的參數status標明軟驅的狀態，只能有兩個inserted（軟盤插入軟驅），ejected（軟盤未插入軟驅）。完整的就是「floppya: 1_44=msdos: 1_44=/dev/rfd0a, status=inserted」。
+
+Boot
+    這是啟動的驅動器，它的頻率也比較高。它可以帶的參數有floppy（軟驅啟動），disk（磁盤啟動），cdrom（光驅啟動）。
+
+ATA[0-3]－MASTER，ATA[0-3]－SLAVE
+    指定硬盤或光盤的參數，並指明它是主盤還是從盤。標准的參數是ata0-master: type=disk, mode=flat, path="30M.sample", cylinders=615, heads=6, spt=17，type參數只能是兩者，disk（硬盤），cdrom（光盤），mode這個參數鏡像類型，它僅僅是針對磁盤才有效，有幾種，flat（一個文件的布局）concat（多個文件的布局）external（開發者指定的，通過C＋＋的類BOCHS就是C＋＋開發的）dll（開發者指定的，通過dll文件）vmware3（wmware3使用的硬盤鏡像）。還有幾個其它的不介紹；path是指定硬盤或是光盤鏡像的文件。Cylinders，Heads，Spt這幾個參數通過這名字就能知道了。注意，這通常來說也不算是太重要，但是某些時候，則是特別重要，比如裝minix1.5的時候，用bximage這個bochs自帶的創建磁盤工具創建了個硬盤，然後就指明路徑就運行，結果分區的時候一直出錯，查了半天才發現這幾個參數沒有設置好，bximage創建的硬盤的Heads和Spt似乎是固定的，和模板自帶的不一樣，結構分區的時候，自然按配置文件裏的計算，和實際的自然不符。
+
+總之，有了配置模版文件，只要稍微懂一些英文很容易就能明白各個參數的作用和如何使用。
+
+
+參數名說明
+
+config_interface：關於配置文件的接口。其實就是在 BOCHS 運作過程中改變配置的界面
+
+display_library：圖形庫。
+
+Romimage：ROM BIOS，BIO S映像檔
+
+Megs：記憶體
+
+optromimage [1-4]：ROM 鏡像的選項
+
+vgaromimage：VGA ROM BIOS
+
+floppya：軟碟 A
+
+floppyb：軟碟 B
+
+ata[0-3]：硬碟或光碟的 ATA 控制器
+
+ATA[0-3]-MASTER ATA[0-3]-SLAVE：：ATA 設備的類型
+
+Boot：啟動驅動器
+
+Ips：模擬的頻率，有些時候特別有用，比如我裝minix1.5的時候，在login的時候，如果機子高檔的話，輸入passwd的時間特別短，這時候就需要調整頻率了。當然，聽說軟體如果對實時控制特別研的時候，也必須改它。
+
+Clock：時鍾
+
+floppy_bootsig_check：是否檢查軟盤引導時候的引導的標記0xaa55
+
+log：調試用的日志
+
+logprefix：日志記錄的格式
+
+panic：Bochs這個軟體本身錯誤的信息，如配置文件出錯或是模擬錯誤如不支持圖形模式
+
+Error：Bochs遇到不能模擬的情況，如出現非法指令
+
+Info：一些不常出現的情況
+
+Debug：主要用來開發 Bochs 這個軟體時報告情況用的
+
+debugger_log：調試器輸出錯誤的文件。
+
+com1：串行端口。
+
+parport1：並行端口。
+
+sb16：聲卡
+
+vga_update_interval：VGA卡刷新率
+
+ne2k：網卡
+
+當我們寫好配置文件後，將其後綴名改為.bxrc，就可以被Bochs識別了。這時候我們只要雙擊該配置文件Bochs就啟動並按照該配置文件進行配置，自動執行。
+
+
+

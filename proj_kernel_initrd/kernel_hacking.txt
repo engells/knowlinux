@@ -1,0 +1,124 @@
+
+
+
+也談Linux Kernel Hacking – 內核配置、編譯與安裝
+url:	http://tonybai.com/2012/03/15/linux-kernel-hacking-series-kernel-config-compile-and-install/
+==============================
+
+一、准備工作
+-------------------------
+1、准備一台裝有Linux的PC
+不建議在 Windows 或 Solaris 下編譯 Linux Kernel，那樣只會自找麻煩。Linux Kernel 在 Linux 下編譯才是正路(除非你真的要做跨平台交叉編譯)。我這裏用了一台運行在 XenServer 5.6 p2 上的裝有 Red Hat Enterprise Linux(RHEL) 5.5 的虛擬機。在該虛擬機上執行 'uname -r'，可以得到當前 Linux 內核版本信息為：2.6.18-194.el5xen。
+
+2、獲取內核源碼包
+Linux Kernel，特別是之前發布的穩定版內核，幾乎都可以 100% 的順利通過編譯。為了能與手頭資料"兼容"，我選擇了2.6.28版本內核。Linux Kernel的發布版本可在 http://www.kernel.org/pub/linux/kernel下找到，這裏執行下面命令獲取源碼：
+wget -c http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.28.tar.gz
+
+下載後的源碼包無需放在系統目錄 (/usr/src/linux) 下，在你自己的普通權限用戶下建立一個臨時目錄存放源碼包即可，比如我們在 /home/tonybai 下建立 linux-kernel 目錄，將下載的 linux-2.6.28.tar.gz 放入該目錄中，解壓後
+tar xvzf linux-2.6.28.tar.gz && ls 
+linux-2.6.28/  linux-2.6.28.tar.gz
+
+3、檢查編譯內核所依賴的工具及版本是否滿足要求
+在 linux-2.6.28/Documentation/Changes 中有該版本內核編譯所依賴的工具以及最低版本信息列表，需確認一下當前主機上是否安裝了這些工具，版本是否滿足最低要求。通過 linux-2.6.28/scripts/ver_linux 可以快速獲取當前主機上各個工具以及當前版本的信息，可將這些信息與編譯該內核的最低版本比對，以確定是否需要安裝或升級工具版本。
+
+
+二、配置內核
+-------------------------
+Linux Kernel的編譯有些類似於那些使用 autotools 創建構建腳本的開源包，需要先 Configure，然後 make 和 make install。不同的是  Linux Kernel 的 Configure 要稍顯複雜，畢竟與普通開源包相比，Linux Kernel 算得上是一個龐然大物了。不過 Linux Kernel 的開發者們顯然在這方面也做了很多工作，通過提供各種命令和默認配置來簡化配置過程，下面是常用的幾個配置命令。
+ 
+* make config
+這個是最基本的配置命令，同時也是配置過程最複雜、耗時最長的配置命令。該命令會將 Linux Kernel 所有配置項逐一在控制台窗口輸出，並讓你作出yes、no或是 module 的選擇。我查看了一下 RHEL 5.5 的配置項個數，總共有 2300 多項，想必這個過程下來，你已經筋疲力盡了。所以除了某些特殊情況，我們是不會使用這個命令的。該命令會在 linux-2.6.28 目錄下面創建一個 .config 隱藏文件，該文件存儲了你的配置選擇，類似這樣：
+ 
+# .config
+#
+# Automatically generated make config: don't edit
+# Linux kernel version: 2.6.28
+# Wed Mar 14 17:13:23 2012
+#
+# CONFIG_64BIT is not set
+CONFIG_X86_32=y
+# CONFIG_X86_64 is not set
+CONFIG_X86=y
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
+CONFIG_GENERIC_TIME=y
+… …
+
+* make defconfig 
+一個一個選擇配置太累，內核開發者顯然也不原意這樣做，因此內核提供了另外一個命令 make defconfig。這個命令會為你生成一份默認的 .config 文件，而整個過程無需你作出任何選擇。實際上該命令是直接將 arch/x86/configs/i386_defconfig 或 x86_64_defconfig 拷貝為  linux-2.6.28/.config
+
+* make menuconfig / make gconfig / make xconfig
+雖然有了默認配置，但開發者總是有修改配置的需求。內核提供了 make menuconfig 命令，允許開發者以圖形界面(基於ncurses)的形式修改特定的配置項。根據大家的喜好不同，內核還提供了基於 gtk+圖形界面的 make gconfig 和基於 X11 圖形界面的 make xconfig 來修改配置項，這兩個命令在功用上與 make menuconfig 是等同的。
+
+*make oldconfig
+另外還有一種方法配置內核，那就是直接使用Linux發行版自帶的 .config 或其他開發者的 .config 來配置你的內核。如果你是第一次配置內核，建議直接使用所在主機的 Linux 的 .config。我所用的 Linux 的 .config 文件在 /usr/src/kernels/2.6.18-194.el5-xen-x86_64下面。不過由於下載的 Kernel 版本是 2.6.28，與該 .config 不匹配，所以還需執行 make oldconfig 命令來更新配置。該命令會保留 .config 已有的配置項的值，而對於新Kernel版本引入的新配置項提供交互式的選擇。我用的就是這種方法：
+ 
+$ make oldconfig
+scripts/kconfig/conf -o arch/x86/Kconfig
+#
+# configuration written to .config
+#
+
+
+三、編譯內核
+-------------------------
+配置好內核後，就可以執行內核編譯了，和上層應用一樣，只需一個 make 就好。
+ 
+make
+ 
+整個編譯過程(非跨平台交叉編譯，只是本地編譯)大約20多分鍾，編譯成功後，產生許多新文件，其中重要的文件有：
+ 
+linux-2.6.28/vmlinux
+linux-2.6.28/System.map
+linux-2.6.28/arch/x86/boot/bzImage
+ 
+其中 bzImage 就是編譯好的可引導的、壓縮的 Linux 內核映像文件。而 System.map 則是內核符號表文件，vmlinux 是未經壓縮的內核文件。
+
+
+四、安裝內核
+-------------------------
+安裝內核與配置、編譯內核不同，需要 root 權限。切換到 root 後，首先要安裝的是內核模塊，內核模塊將會被安裝到 /lib/modules
+ 
+make modules_install	# 安裝內核模塊
+make install		# 安裝內核
+ 
+make install調用的是對應 arch 下提供的 install.sh 來安裝內核。arch/x86/boot/install.sh 檢測系統中是否安裝了 installkernel 腳本，如果有則調用 installkernel 工具安裝內核，否則進行默認安裝。至少在 Red Hat 的發行版上是可以找到 installkernel 這個腳本。installkernel 除了將 bzImage 和 System.map 安裝到/boot下之外，還調用了 /sbin/new-kernel-pkg 制作了 initrd-2.6.28.img，並修改了 grub.conf(使用grubby配置grub)的內容，加入新內核選項。但默認引導的內核依舊是原先的內核，需要手工將修改選項。
+
+
+五、引導新內核
+-------------------------
+安裝了新內核後，執行Reboot，新內核引導一切順利。用'uname -r'查看結果如下
+
+
+六、升級內核
+-------------------------
+升級內核是內核開發者的日常活動之一。當有其他開發者發布新補丁或自己在現有內核上做了修改後，都會重新配置、編譯和安裝內核，也就是升級內核。
+ 
+升級內核一般按如下如下命令序列執行：
+make oldconfig
+make
+make modules_install	# 如果有kernel module更新
+make install
+
+對於版本號不變的內核重新執行 install，安裝腳本會將上一次安裝的 2.6.28 內核改名為 2.6.28.old，然後將新內核安裝到 /boot下。grub.conf內容沒有被修改。
+
+
+七、自訂內核版本編號
+-------------------------
+XenServer 下的 RHEL 5.5 的內核版本號為 2.6.18-194.el5xen，Ubuntu 10.04 下的內核版本號為 2.6.32-30-generic。如何自訂內核版本編號呢？其實很簡單，修改頂層 Makefile 即可。
+ 
+Makefile 
+ 
+VERSION = 2
+PATCHLEVEL = 6
+SUBLEVEL = 28
+EXTRAVERSION = -tonybai-dev
+ 
+一個 Kernel 的版本號 KERNELVERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)，因此可修改 EXTRAVERSION 的內容來定義一個個性化的版本號，就像上面代碼中的那樣。
+ 
+修改 Makefile 後，執行 make clean; make ;make modules_install; make install即可。
+ 
+至此，內核配置、編譯與安裝的部分就暫時告一段落了。在這個過程中，我參考了許多資料，這其中包括：
+*《Linux Kernel In a Nutshell》→ http://book.douban.com/subject/1886897/
+*《Professional Linux Kernel Architecture》 → http://book.douban.com/subject/4843567/
+*《Linux Kernel Development, 3rd》→ http://book.douban.com/subject/6097773/
+ 

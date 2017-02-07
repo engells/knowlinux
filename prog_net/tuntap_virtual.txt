@@ -1,0 +1,308 @@
+# vim:ts=4
+
+
+查詢如何在 ADSL 環境下設置橋接模式。網路上流傳的分享有線網路介面作法（NetworkManager > wired / eth0 > IPV4 Settings > Method 改成 Shared to other）。其環境是設定電腦一的網卡接往電腦二，讓電腦二可以上網。然而電腦一必須有兩張以上網卡，否則該分享模式無法運作。
+
+可以嚐試在 host 機器建立虛擬網路介面 tap0 192.168.10.11，然後用 NAT 方式將 tap0 的封包與 eth0 互傳。
+
+相關設定檔：
+-------------------------
+/etc/resolv.conf，DNS(Domain Name Server)設定檔
+	中華電信Hinet，主 DNS：168.95.1.1，次 DNS：168.95.192.1
+	Seednet DNS，主 DNS：139.175.55.244，次 DNS：139.175.252.16
+
+/etc/sysctl.conf, /etc/sysctl.d/*，系統的變數設定，其中 /etc/sysctl.d/10-network-security.conf 可協助設定 NAT(Network Affress Translation)
+	net.ipv4.ip_forward=1
+	iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE # 裡面的 eth0 指的是連外的介面
+	net.ipv4.conf.all.rp_filter=1
+
+/etc/hostname
+
+/etc/hosts
+
+query real address
+http://whatismyipaddress.com/?gclid=CNDF8Jvuga4CFQFLpgodMSUs4g
+http://briian.com/?p=5085
+210.64.255.21
+
+
+
+#There are some examples about Linux tuntap function, could be used in Virtual box network
+
+# 在 Ubuntu 內虛擬網路，可借用 tun/tap 功能，執行方式可用 scrip 檔機動產生，也可以寫入 /etc/network/interfaces 設定檔內。
+# 以下為數個寫入 /etc/network/interfaces 設定檔的範例：
+
+# Sample 1
+#==========================================================
+#From Nano雞排
+#安裝套件 bridge-utils 及 uml-utilities
+#編輯 /etc/network/interfaces，增加虛擬介面
+
+auto br0
+iface br0 inet static
+	pre-up brctl addbr br0
+	pre-up tunctl -b -u username -t tap0
+	pre-up brctl addif br0 tap0
+	pre-up ifconfig tap0 up
+	post-dwon brctl delif br0 tap0
+	post-down tunctl -d tap0
+	post-down brctl delbr br0
+	address 192.168.12.1
+	netmask 255.255.255.0
+	bridge_ports tap0
+	bridge_fd 9
+	bridge_hello 2
+	bridge_maxage 12
+	bridge_stp off
+
+#pre-up 指令，意指在啟動網路介面(Network interface)前執行指令
+#post-down 指令，意指在關閉網路介面(Network interface)後執行指令
+
+
+
+# Sample 2
+#==========================================================
+#From http://hlchang.com/?p=107
+#安裝套件 bridge-utils 及 uml-utilities
+#編輯 /etc/network/interfaces，增加虛擬介面
+
+auto br0
+iface br0 inet dhcp 
+    bridge_ports eth0
+
+auto eth0 
+iface eth0 inet manual 
+    up ifconfig $IFACE 0.0.0.0 up 
+    up ip link set $IFACE promisc on 
+    down ip link set $IFACE promisc off 
+    down ifconfig $IFACE down
+
+
+
+# Sample 3
+#==========================================================
+#From YaYa-Ubuntu 站-楊奕農 http://yinung2.blogspot.com/2010/02/ubuntu-virtualbox-ip.html
+#router為 192.168.138.254，ubuntu的主機網路位址為192.168.138.191
+#/etc/network/interfaces
+
+auto eth0
+	iface eth0 inet manual
+
+auto br0
+	iface br0 inet static
+	address 192.168.138.191
+	netmask 255.255.255.0
+	gateway 192.168.138.254
+	bridge_ports eth0 vbox0
+
+auto lo
+	iface lo inet loopback
+----------
+
+重新啟動網路，sudo /etc/init.d/networking restart 
+
+編輯 /etc/vbox/interfaces，Ubuntu 10.04 + VBox 3.1.8 未發現此檔
+# Each line should be of the format :
+# 
+vbox0 waue br0
+----------
+
+sudo /etc/init.d/vboxnet restart
+
+sudo chown root:vboxusers /dev/net/tun
+sudo chmod g+rw /dev/net/tun
+
+gedit /etc/udev/rules.d/20-names.rules，Ubuntu 10.04 + VBox 3.1.8 /etc/udev/rules.d/10-vboxdrv.rules
+將 KERNEL=="tun", NAME="net/%k"
+改成 KERNEL=="tun", NAME="net/%k", GROUP="vboxusers", MODE="0660"
+
+開啟virtualbox > 設定值 > 網路 > 附掛到："主端介面" > 介面名稱："vbox0"
+
+#此篇文章似乎適用於較舊版的Vbox
+
+
+
+
+# 以下則是數個用 script 機動建立虛擬網路的範例
+
+# Sample 1
+#===========================================================
+#!/bin/bash
+# Program:
+# Auto create bridge interface for virtual machines in VirtualBox
+# History:
+# 2009/01/02 Kaien Liu First release
+# http://kaien.kaienroid.com/blog/?p=143
+
+[ -z "$1" ] && echo "need one parameter!" && exit -1
+
+if [ "$1" -le 0 ] ; then echo "no interface be created" && exit 0 ; fi
+
+sudo apt-get install bridge-utils uml-utilities
+
+for ((i=0; i<$1; i++))
+do
+	tunctl -t tap"$i" -u username	#建立一個tap介面(虛擬網路介面，uml-utilities所包含之tunctl所建立)
+done
+
+ifconfig eth0 0.0.0.0 promisc		#把電腦上實體的網路卡設定成promiscuous模式
+
+brctl addbr br0				#增加一個bridge(虛擬橋接器)
+
+brctl addif br0 eth0			#把虛擬橋接器接到實體網路卡，也就是eth0接至br0橋接器的port上
+
+#ifconfig br0 ???.???.???.???		#如果eth0是固定ip，將虛擬橋接器對應到固定ip
+
+#ifconfig br0 0.0.0.0 up		#ADSL，Ubuntu 正體中文站 討論區，經測試無效
+
+dhclient br0				#eth0若採用dhcp模式，就使用dhclient設定橋接器br0
+
+for ((i=0; i<$1; i++))
+do
+	brctl addif br0 tap"$i"		#將虛擬橋接器與VM上對應的Interface Name接起
+	ifconfig tap"$i" up		#把VM要用的網路介面叫起來
+done
+
+chmod 666 /dev/net/tun			#設定好/dev/net/tun讀寫權限，tun裝置為linux原生之虛擬網路介面支援
+
+echo "$1"" interface were created!"
+
+
+
+#! /bin/bash
+# Program:
+# Auto remove bridge interface for virtual machines in VirtualBox
+# History:
+# 2009/01/02 Kaien Liu First release
+
+[ -z "$1" ] && echo "need one parameter!" && exit -1
+
+if [ "$1" -le 0 ]; then echo "no interface be removed!" && exit 0 ; fi
+
+brctl delif br0 eth0			#切斷br0與eth0連接
+
+for ((i=0; i<$1; i++))
+do
+	brctl delif br0 tap"$i"		#切斷br0與tap$i連接
+	ifconfig tap"$i" down		#停止tap$i網路介面
+	#tunctl -d tap"$i"
+done
+
+ifconfig br0 down			#停止br0網路介面
+brctl delbr br0				#刪除br0網路介面(虛擬橋接器)	
+ifconfig eth0 down			#重新啟動實體網路卡
+ifconfig eth0 up
+
+
+
+
+# Sample 2
+#===========================================================
+
+#http://alexc168.blogspot.com/2011/07/linux-virtualbox-network-bridge.html
+
+sudo apt-get tunctl			#安裝 tunctl 模組，該模組被包在 uml-utilities 套件中
+sudo apt-get bridge-utils		#安裝 bridge-utils 模組
+
+#設定 tun 設備、載入 tun 模組及設定自動載入
+#mkdir /dev/net				#新增網路設備目錄
+#mknod /dev/net/tun c 10 200		#新增設備檔，該檔在 Ubuntu 10.04 已存在
+#chmod 0666 /dev/net/tun		#變更設備檔案權限
+#modprobe tun				#載入 tun 模組
+#echo "if [ -f /dev/net/tun ]; then	#設定自動載入 tun 模組
+#> modprobe tun >/dev/null 2>&1
+#> fi" >>/etc/rc.d/rc.sysinit
+
+
+#設定橋接本地端網卡
+brctl addbr br0				#新增橋接設備
+ifconfig eth0 0.0.0.0			#清除本地端網卡設定
+brctl addif br0 eth0			#設定本地端網卡至橋接設備
+ifconfig br0 192.168.1.2 netmask 255.255.255.0	#設定橋接設備網址
+
+
+#設定虛擬網路設備及橋接虛擬網卡
+VBoxTunctl -t vbox0 -u root		#新增虛擬網卡
+brctl addif br0 vbox0			#設定虛擬網卡至橋接設備
+ifconfig vbox0 up			#啟動虛擬網卡
+
+
+#設定預設路由
+route del default			#刪除預設路由
+route add default gw 192.168.1.2 br0	#新增預設路由
+
+
+VBoxTunctl、VBoxAddIF、VBoxDeleteIF
+Create: VBoxTunctl [-b] [-u owner] [-g group] [-t device-name] [-f tun-clone-device]
+Delete: VBoxTunctl -d device-name [-f tun-clone-device]
+
+The default tun clone device is /dev/net/tun - some systems use /dev/misc/net/tun instead
+
+
+
+
+# Sample 3
+
+#===========================================================
+#Virtual Box網路設定
+#!/bin/bash
+#====================vbox.sh的內容開始======================
+# **********************************************************
+# 
+# 建立一個橋接的環境，用一個br0，橋接起eth0與一個tap0。要還原設定時，用clean參數。
+# Create by cafetw at 20070827
+# E-mail:cafetw@gmail.com
+# if can't run the sh, try
+# sudo apt-get install uml-utilities bridge-utils
+#
+# **********************************************************
+
+if [ "$1" == "" ]; then
+	tunctl -t tap0 -u username	# username請換成實際使用者名稱
+	brctl addbr br0
+	ifconfig eth0 0.0.0.0 promisc
+	brctl addif br0 eth0
+	dhclient br0			#如果沒有固定IP, 上面會讓br0用DHCP的方式取得IP
+	#ifconfig br0 {固定IP} netmask {Netmask IP}	
+	#如果有固定IP的話，把上面的#拿掉，即可以用上面這行來設定br0的IP設定，當然，記得把dhclient那行加上#
+
+	brctl addif br0 tap0
+	ifconfig tap0 up
+	chmod 666 /dev/net/tun
+	#route del default
+	#route add default gw		#最後設定一下default 的 gateway IP。
+fi
+
+if [ "$1" == "clean" ]; then
+	brctl delif br0 eth0
+	brctl delif br0 tap0
+	ifconfig br0 down
+	brctl delbr br0
+	ifconfig tap0 down
+	ifconfig eth0 down
+	ifconfig eth0 up
+	dhclient eth0			#如果你的環境可以用DHCP，就把上面這行拿掉#，下面那行加上#
+	# ifconfig eth0 {固定IP} netmask {Netmask IP}
+	#要用固定IP的話，就加上設定。
+	#route add default gw		#設定你的GateWay IP
+fi
+
+exit 0
+
+#====================vbox.sh的內容開始=================
+
+#還原設定指令如下或重開機，設定就消失了
+sudo ~/backup/vbox.sh clean
+
+#irtual Box部份的設定
+#打開 VirtualBox -> 設定 -> 網路 -> 配接卡，Attached to(附掛到)，選主端介面
+#在主機介面設定值中的Interface Name(介面名稱)打入tap0，#然後按確定，把設定存下來。這樣就可以了。
+#若要在 Virtual Box 內同時執行兩個以上的系統的話，可能就會發生tap0被佔用的情況而無法開啟第二個系統
+#此時的解決方法為，編輯 vbox.sh , 將此檔內所有的 tap0 的字元全取代為 tap1 另存新檔為 vbox1.sh,執行之
+
+#Virtual Box部份的設定
+#打開 Virtual Box -> 設定 -> 網路 -> 配接卡，Attached to(附掛到) 選 主端介面,
+#在主機介面設定值中的Interface Name(介面名稱)打入tap1
+#這樣就可以同時開啟第二個系統了
+
+

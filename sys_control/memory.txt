@@ -1,0 +1,20 @@
+#!/bin/bash
+# program: 釋放Linux記憶體
+# made by: Engells
+# date: Jan 11, 2012
+# content: kernels 2.6.16以後的版本對vm做了很大的調整，可透過/proc/sys/vm/drop_caches這個檔案來釋放記憶體。
+
+echo 1 > /proc/sys/vm/drop_caches	#釋放Linux記憶體
+echo 2 > /proc/sys/vm/drop_caches	#釋放dentries、inodes所用的 cache memory
+echo 3 > /proc/sys/vm/drop_caches	#釋放pagecache、dentry、inode 所用的 cache memory
+sync					#完全釋放cache memory，先行執行sync，避免錯誤
+echo 0 > /proc/sys/vm/drop_caches	#完全釋放cache memory
+swapoff /dev/cobd1; swapon /dev/cobd1	#釋放Linux swap 記憶體：(此例swap在/dev/cobd1)
+
+#一些觀察記憶體狀況的常用指令：
+#free
+#vmstat
+#ps -aux
+#top
+#watch cat /proc/meminfo
+

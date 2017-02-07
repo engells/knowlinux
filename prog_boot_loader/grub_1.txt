@@ -1,0 +1,139 @@
+# vim:ts=4
+
+
+
+Boot on ISO file
+==============================
+1. 將光碟映像檔裡面的 /casper/initrd.lz 和 /casper/vmlinuz 兩個檔案複製到某個分割區（例如 (hd0,0)）的根目錄。
+	Grub 0.9X 對硬碟的編號從 0 起始，對分割區編號也從 0 起始，其中邏輯分割區從 4 起始。Grub4Dos 的作法亦同。
+	Grub 1.9X 對硬碟的編號從 0 起始，對分割區編號則從 1 起始。新的作法與 Syslinux 相同。
+
+2. 在終端機裡面輸入 sudo gedit /boot/grub/menu.lst　然後會開啟一個檔案，在最下方加入以下文字
+	title Install Ubuntu
+	root (hd0,0)
+	kernel /vmlinuz boot=casper iso-scan/filename=/ubuntu-10.04-desktop-i386.iso
+	initrd /initrd.lz
+
+3. 重開機就會看到新的開機選項「Install Ubuntu」，選取它開始安裝。
+
+
+
+Boot from USB
+==============================
+
+步驟
+-------------------------
+1.利用 WinSetup From USB 在 USB 上建立可安裝的 XP
+2.將所有隨身碟中的檔案移回主機硬碟的資料夾內
+3.將隨身碟用一般的格式化去做格式化
+4.再去找 GRUB 的原始安裝檔將 GRUB 安裝到隨身碟內
+  但利用 WinSetup From USB 建立的 GRUB，在引導 DOS 開機的過程會出現 Command Interpreter 的錯誤。即便替換掉 GRLDR 也是如此。
+5.把原先放在隨身碟中的 XP 安裝檔案放回去。
+6.其他打算用 GRUB 引導開機的東西都給他塞進隨身碟！
+
+
+接下來撰寫 GRUB 中的開機選單 Menu.lst 
+-------------------------
+# 依序為倒數秒數，30 秒後自動載入預設的選項；splashimage 插入背景圖片；default 表示預設的選項
+timeout 30
+splashimage (hd0,0)/splash.xpm.gz
+default /default
+
+# 載入 Win 7 的安裝程式
+title Windows 7 Ultimate Setup
+chainloader /bootmgr
+boot
+
+# 安裝 XP 用的引導
+title Windows XP Pro SP3 Setup
+root (hd0,0)
+configfile /winsetup.lst
+savedefault
+
+# 可開機的 DOS
+title MS-DOS 6.22
+root (hd0,0)/dos
+chainloader /io.sys
+boot
+
+title Free DOS
+root (hd0,0)/live
+kernel=/memdisk
+initrd=/freedos.img
+boot
+
+# 備份系統用的 Clonezilla Linux Live 
+title Clonezilla 1.2.2-14
+kernel /live/vmlinuz1 boot=live union=aufs ocs_live_run="ocs-live-general" ocs_live_extra_param="" ocs_live_keymap="" ocs_live_batch="no" ocs_lang="" ip=frommedia nolocales
+initrd /live/initrd1.img
+boot
+
+# 引導至 CD / DVD 開機
+title Boot From First Optical Disk Device
+root (hd0,0)/isolinux
+kernel /memdisk
+initrd /sbootmgr.dsk
+
+# 開啟 GRUB 的指令列
+title Command Line
+commandline
+
+# 重新開機
+title Reboot
+reboot
+
+# 關機
+title Halt
+halt
+
+
+下列也是一個選單，是安裝 XP 時會用到的
+-------------------------
+timeout 20
+default /windefault
+
+title First  part of Windows XP Professional setup
+root (hd0,0)
+chainloader (hd0,0)/$WIN_NT$.~BT/SETUPLDR.BIN
+savedefault 1
+
+title Second part of Windows XP Professional setup
+root (hd0,0)
+chainloader (hd0,0)/NTLDR
+savedefault
+
+
+BOOT.INI, NTLDR, BootMGR
+-------------------------
+安裝 XP 還需注意 BOOT.INI，是 XP 本身的開機管理 NTLDR 會用到的。BOOT.INI 會影響 Vista / Win7 的 BootMGR 的選單。一般來說 Vista / Win7 的 BootMGR 都要有特定的修改軟體去修改他的開機選單，但若建立 BOOT.INI 並且將 multi(0)disk(0)rdisk(1)partition(1)\WINDOWS= 這一長串都換成 C:\="XXX"，就會出現在 BootMGR 的選單中。
+
+所以將 GRLDR 放在 C:\，然後在 BOOT.INI 裡面輸入 C:\GRLDR="GRUB"，就會在 BootMGR 裡面出現 GRUB 選項，當然 XP 本身的 NTLDR 也會出現。為了避免 Vista / Win7 的安裝會出現選單，就將 "C:\" 都給移除了。
+
+BOOT.INI
+***************
+[Boot Loader]
+Timeout=30
+Default=multi(0)disk(0)rdisk(1)partition(1)\WINDOWS
+
+[Operating Systems]
+multi(0)disk(0)rdisk(1)partition(1)\WINDOWS="Second part of XP Professional setup from hd 0 part 1" /FASTDETECT
+" -------------------------"
+" Try entries below if getting HAL.DLL/NTOSKRNL.EXE not found errors"
+" -------------------------"
+multi(0)disk(0)rdisk(1)partition(2)\WINDOWS="Second part of XP Professional setup from hd 0 part 2" /FASTDETECT
+multi(0)disk(0)rdisk(1)partition(3)\WINDOWS="Second part of XP Professional setup from hd 0 part 3" /FASTDETECT
+multi(0)disk(0)rdisk(1)partition(4)\WINDOWS="Second part of XP Professional setup from hd 0 part 4" /FASTDETECT
+multi(0)disk(0)rdisk(2)partition(1)\WINDOWS="Second part of XP Professional setup from hd 1 part 1" /FASTDETECT
+multi(0)disk(0)rdisk(2)partition(2)\WINDOWS="Second part of XP Professional setup from hd 1 part 2" /FASTDETECT
+multi(0)disk(0)rdisk(2)partition(3)\WINDOWS="Second part of XP Professional setup from hd 1 part 3" /FASTDETECT
+multi(0)disk(0)rdisk(2)partition(4)\WINDOWS="Second part of XP Professional setup from hd 1 part 4" /FASTDETECT
+
+
+於是乎，USB 就可以開機安裝 Win7 / XP 了，也可以開啟 DOS 去做一些事情，例如跑 Win 3.1 ( 無聊 )，或者是 PAL 仙劍奇俠傳 DOS 版 ( 爽 )。當然最主要的功用是作一些緊急救援的動作囉。後面還要再想辦法加入一些有用的東東，例如 Live Linux 與 Win PE，就可以利用 Linux 去對一些品牌筆記型電腦做不影響原廠還原功能的分割動作，以及讀取救援系統檔案。
+
+
+url:
+-------------------------
+http://kevin790121.pixnet.net/blog/post/30275594	Jan 23 Sat 2010 20:51
+
+

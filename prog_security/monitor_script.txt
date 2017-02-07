@@ -1,0 +1,54 @@
+#!/bin/bash
+# Purpose: Monitor Physical Memory & Disk Swap and Checking rTorrent Process
+# Author: Yesican(blog@yesican.tw)
+# Lisence: GPL
+# Date: 2009/12/07
+# Version: 2.0
+#上述程式碼可放在crontab排程之中，以每5分鐘執行=>*/5 * * * * /usr/bin/mon_memory.sh > /dev/null 2>&1
+dev_swap=/dev/cobd1
+set_memory=70
+set_rx=20
+data=`free`
+men_total=`echo $data | awk {'print $8'}`
+men_use=`echo $data | awk {'print $9'}`
+men_buffers=`echo $data | awk {'print $12'}`
+men_cached=`echo $data | awk {'print $13'}`
+Physical_Memory=`echo "($men_use*100/$men_total)" | bc`
+Buffers=`echo "($men_buffers*100/$men_total)" | bc`
+Cached=`echo "($men_cached*100/$men_total)" | bc`
+Kenel_App=`echo "$Physical_Memory-$Buffers-$Cached" | bc`
+echo "Physical Memory is $Physical_Memory %"
+echo "Kernel + applications is $Kenel_App %"
+echo "Buffers is $Buffers %"
+echo "Cached is $Cached %"
+swap_total=`echo $data | awk {'print $19'}`
+swap_use=`echo $data | awk {'print $20'}`
+Disk_Swap=`echo "($swap_use*100/$swap_total)" | bc`
+echo "Disk Swap is $Disk_Swap %"
+#Check rTorrent Process
+rtorrent=`ps ax | grep rtorrent | grep -v grep | wc -l`
+if (("$rtorrent" == "1"))
+then
+  echo "rTorrent is running........"
+  rx=`vnstat  -i eth0 -tr 2 | grep "kB/s" | awk '{print $2}' | head  -n 1 | awk -F. {'print $1'}`
+        echo "rx is $rx"
+        if (("$rx" < "$set_rx"))
+        then
+        echo "rTorrent is not downloading,now to kill rTorrent process..."
+        kill -int $(pidof rtorrent)
+        else
+        echo "rTorrent is downloading..."
+        fi
+else
+  echo "rTorrent is not running,Checking Memory......"
+        if (("$Physical_Memory" > "$set_memory"))
+        then
+          echo "Now Free Memory......"
+          sync
+          echo 3 > /proc/sys/vm/drop_caches
+          /sbin/swapoff $dev_swap;/sbin/swapon $dev_swap
+          echo 0 > /proc/sys/vm/drop_caches
+        else
+          echo "Nothing to do."
+        fi
+fi

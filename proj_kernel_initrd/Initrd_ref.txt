@@ -1,0 +1,602 @@
+
+
+Debian etch 基本系統 initial ram disk 的分析
+http://unixboy.iteye.com/blog/157717
+==============================
+
+最近花時間研究了 linux 的 initial ram disk，然後寫了這篇文章。因為是要給別人看的，寫的時候比較小心，不能放過細節。雖然本文講的是 Debian etch 的 initrd，但是基本原理都是差不多的。希望此文 對大家有所幫助。
+
+
+本文適合的人群
+
+最基本的當然是你正在用或用過 linux。擴展的要求：會一些 shell script，最好還知道一點內核模塊方面東西。關於這兩點只需要知道一點點就可以了，因為這時候你已經知道到哪裏查你不知道的東西了。
+
+
+什麼是 initial ram disk (縮寫 initrd)
+
+它是由 bootloader 初始化的內存盤。在 linux 啟動之前，bootloader 會將它(通常是 initrd.img-xxx...xxx 文件)加載到內存中。內核啟動的時候會將這個文件解開，並作為根文件系統使用。
+設計 initrd 的主要目的是讓系統的啟動分為兩個階段。首先，帶有最少但是必要的驅動的內核啟動。然後，其它需要的模塊將從 initrd 中根據實際需要加載。這樣就可以不必將所有的驅動都編譯進內核，而根據實際情況有選擇地加載。對於啟動較慢的設備如 usb 設備等，如果將驅動編譯進內核，當內核訪問其上的文件系統時，通常設備還沒有准備好，就會造成訪問失敗。所以，通常在 initrd 中加載 usb 驅動，然後休眠幾秒鍾，帶設備初始化完成後，再掛載其中的文件系統。
+
+
+initrd 的具體形式
+
+目前有兩種形式：cpio-initrd 和 image-initrd。
+image-initrd 的制作相對麻煩，處理流程相對複雜(內核空間->用戶空間->內核空間 與初始化越來越多的在用戶空間進行的趨勢不符)，本文不對其進行介紹。
+cpio-initrd 的處理流程(內核空間->用戶空間):
+1． boot loader 把內核以及 initrd 文件加載到內存的特定位置。
+2． 內核判斷 initrd 的文件格式，如果是 cpio 格式。
+3． 將 initrd 的內容釋放到 rootfs 中。
+4． 執行 initrd 中的 /init 文件，執行到這一點，內核的工作全部結束，完全交給 /init 文件處理。
+
+cpio-initrd 的制作:
+1.首先在一個目錄中建立必要的文件及目錄。
+bin、conf、etc、init、lib、modules、sbin、scripts
+2.然後，將這些內容打成 gzip 壓縮過的 cpio 包:
+find . | cpio -o -H newc | gzip -9 > ../initrd.img.gz
+
+
+解包：
+首先建立一個空目錄，然後進入那個目錄，並運行相應的命令。例如
+mkdir tmp
+cd tmp
+gzip -dc ../initrd.img-2.6.18-4-686 | cpio -idm
+
+
+實驗環境
+
+ubuntu 6.10。系統中安裝了 qemu 虛擬機，虛擬機裏網絡安裝了 Debian etch 基本系統
+順便說一下，在用 qemu 的時候，如果從命令行裏指定使用的 kernel 和 initrd，一定也要同時指定硬盤。另外，如果想要運行得更快，要下載並安裝 kqemu。
+
+
+initrd 中 init 腳本的分析
+
+由前面 cpio-initrd 的處理流程可以看到，內核在將其解開並放入 rootfs 後，將要執行 /init 文件，所以我們分析的重點就是這個文件。其它的文件請結合具體的源碼與本文的內容進行理解。
+
+[1] #!/bin/sh
+
+可能有的人在想，這個 init 文件雖然具有可執行權限，但是並不是二進制代碼，而是一個 shell script ，必須要由 shell 進行解釋，那麼為什麼直接調用就可以運行呢？確實，第一行代碼表明了這是一個腳本文件，這與教導我們 shell 編程的書寫的一樣，在文件的第一行要寫上這麼一段特殊的文字。除了我們可以通過這段文字了解腳本的類型之外，還有誰會關心這段文字呢？內核。內核通過文件頭來確定應該怎樣執行，就像 a.out 格式和 elf 格式一樣。我們只需要在 shell 裏輸入具有可執行權限的文件名，並不關心文件的格式，內核會做好一切的。
+那麼對於腳本，內核是怎樣處理的呢？
+不知大家注意到了沒有，不管我們寫什麼樣的腳本，第一行都是這樣的形式:
+#!/path/to/parser
+開頭的 "#!" 會告訴內核要通過調用 /path/to/parser 來解釋當前要運行的文件。這就是我們為什麼可以直接調用 init 腳本就可以執行的原因。
+
+[3] echo "Loading, please wait..."
+
+這一行代碼不懂嗎？如果是真的，我勸你不要讀下去了。因為我不是魔鬼，我的文章不是用來折磨人的。
+
+[5] [ -d /dev ] || mkdir -m 0755 /dev
+[ -d /root ] || mkdir --mode=0700 /root
+[ -d /sys ] || mkdir /sys
+[ -d /proc ] || mkdir /proc
+[ -d /tmp ] || mkdir /tmp
+[10]mkdir -p /var/lock
+mount -t sysfs none /sys
+[12]mount -t proc none /proc
+
+這一部分的代碼很簡單，就是創建相應的目錄，並且掛載相應的文件系統。其中, /root , /tmp 和 /var/lock 文件夾是作為一般的目錄使用，其它的均是作為掛載點。我們系統的根目錄所在分區將先被掛載到 /root 目錄。從第11和12行的代碼中可以看到 sysfs 和 proc 分別被掛載到了 /sys 和 /proc 目錄下。從下面可以看到，這 /sys 目錄主要是給 udev 使用的。udev 在收到 uevent 處理相應的規則的時候需要查找 /sys 目錄。在後面 kill 掉 udevd 的時候，需要通過 /proc 目錄得到 udevd 的 pid，而且內核啟動的參數也需要從 /proc/cmdline 得到。
+
+
+# Note that this only becomes /dev on the real filesystem if udev's scripts
+[15]# are used; which they will be, but it's worth pointing out
+tmpfs_size="10M"
+if [ -e /etc/udev/udev.conf ]; then
+. /etc/udev/udev.conf
+fi
+
+[20]mount -t tmpfs -o size=$tmpfs_size,mode=0755 udev /dev
+
+這裏首先設定了tmpfs的大小為10M，然後判斷文件 /etc/udev/udev.conf 是否存在，若存在則讀取該文件，並執行其中的命令。 /etc/udev/udev.conf 文件設定了 udev_log 的級別(具體參見 man udev)，並設定了tmpfs_size為10M，也就是說，在init裏面設置的tmpfs_size的大小會被 /etc/udev/udev.conf 中的設置覆蓋掉。當然，在此版本中，對tmpfs_size的大小設置均是10M。在這些設置好之後，將 tmpfs 掛載到 /dev 目錄。其中，參數 udev 可以隨便取，因為我們掛載的是 tmpfs。此處取成 udev 應該是為了表明系統是通過 udev 對設備進行管理。
+
+
+[21][ -e /dev/console ] || mknod /dev/console c 5 1
+[ -e /dev/null ] || mknod /dev/null c 1 3
+> /dev/.initramfs-tools
+[24]mkdir /dev/.initramfs
+
+接下來創建 /dev/console 節點，/dev/console 總是代表當前終端，在最後通過 exec 命令用指定程序替換當前 shell 時使用。/dev/null 也是很常用的，凡是重定向到它的數據都將消失得無影無蹤。FIXME: /dev/.initramfs-tools 的作用？ usplash 會使用 /dev/.initramfs 目錄。usplash 會在機器啟動的時候提供類似 windows 的啟動畫面，ubuntu linux 的啟動畫面就是通過 usplash 實現的。由於在 /sbin 目錄當中沒有任何 usplash 相關的文件，所以我們可以忽略這個目錄的存在。
+
+
+[26]# Export the dpkg architecture
+export DPKG_ARCH=
+. /conf/arch.conf
+ 
+# Export it for root hardcoding
+[31]export ROOT=
+
+DPKG_ARCH 表明了當前運行linux的計算機的類型，對一般的pc是大多 i386，也可能是別的比如 powerpc 一類的。在下文中我們將會看到這個變量決定了在 /scripts/init-premount/thermal 中加載的關於cpu溫度傳感器及cpu風扇的內核模塊。
+
+第27行用了export，是為了讓這個變量不僅在此shell環境中有效，而且在它的子 shell環境中仍然有效。而且在第27行export DPKG_ARCH 變量的時候，讓 DPKG_ARCH 變量等於空。這樣，當前運行的計算機的類型就完全由 /conf/arch.conf 決定了。而且，第28行沒有判斷是否存在 /conf/arch.conf 文件就直接引用了，也明確了這一點。
+
+那麼，我們在將這個 initrd.img port到其它類型的計算機時，只需要更改 /conf/arch.conf 文件並不需要對 init 作改動(當然，二進制代碼肯定要是新的)。
+
+ROOT 是你計算機啟動之後的根目錄所在的分區(如: /dev/hda3, UUID=xxx-...-xxx 等)，此處將其export為空，其值將在下面解析跟在內核後面的參數時被賦予。
+
+
+[33]# Bring in the main config
+. /conf/initramfs.conf
+[35]for i in conf/conf.d/*; do
+[ -f ${i} ] && . ${i}
+done
+[38]. /scripts/functions
+
+第34行引入主配置文件 /conf/initramfs.conf。這個配置文件實際上是 mkinitramfs(8) 的配置文件，其中定義了一些變量，並賦予了適當的值，如 BOOT=local 則默認從本地磁盤啟動(可以是可移動磁盤)。BOOT 變量的值實際上是 /scripts 目錄下的一個文件，可以是 local 或是 nfs。
+
+在此 init 腳本掛載將要進入的系統的根目錄所在分區的時候，會先讀取並運行 /scripts/${BOOT} 文件(見此腳本的第150行)。在這個文件中定義了 mountroot 函數，對於 local 啟動和 nfs 啟動此函數的實現不同。這樣通過對不同情況引入不同的文件，來達到同樣名稱的函數行為不同的目的。這就導致了第152行具體掛載的行為和啟動方式相關。
+
+第35到37行，引入 /conf/conf.d 下的所有文件，注意在引入的時候用了 -f 參數判斷，這樣只有普通的文件才會被引入，鏈接(硬鏈接除外)、目錄之類的非普通文件不會被引入，所以，如果要在這個 initrd.img 的基礎上添加自己的配置，不要妄圖通過軟鏈接來引入，除非你把這個init腳本改了。
+
+在 /conf/conf.d 目錄下只存在一個文件 resume, 其中定義了 RESUME 變量，在我這裏 RESUME=/dev/hda5，因為我是在 qemu 裏面裝的 Debian，這個 /dev/hda5 是我的 swap 分區。如果安裝了 uswsusp 包，在計算機上(不是在 initrd.img 裏)就會有 s2disk，s2both，s2ram 這樣的程序，還會有一個 /dev/snapshot 設備節點，其中前面兩個會把計算機的當前狀態通過 /dev/snapshot 保存起來，默認是在 swap 分區。這樣我們就可以實現計算機的休眠了。在喚醒的時候，會通過 initrd.img 裏多出的 /sbin/resume 程序訪問 RESUME 變量所指的分區，恢複調用 s2disk 或 s2both 前的狀態。此版本的 initrd.img 中存在 /bin/resume，但是沒有 /sbin/resume 文件。
+FIXME: 關於以上 resume 的解釋可能不准確。
+第38行引入了要用到的函數，這些函數都在 /scripts/functions 文件中定義。在下文中將對遇到的函數進行解釋。
+
+
+[40]# Export relevant variables
+export break=
+export init=/sbin/init
+export quiet=n
+export readonly=y
+[45]export rootmnt=/root
+export debug=
+export cryptopts=${CRYPTOPTS}
+export ROOTDELAY=
+[49]export panic=
+
+export 一些變量。
+break 由 maybe_break 函數使用。若 break 的值同 maybe_break 的第一個參數相同，則 maybe_break 函數調用 panic 函數(注意 panic 函數和 panic 變量是不同的)。 若 panic 變量為"0"(此處是字符串，其內容是"0"，不是整數)，則 panic 函數將重新啟動機器。其他情況下(包括 panic 變量為空的情況)都將以交互的方式調出shell，此shell的輸入輸出使用已經創建好的節點 /dev/console。
+
+init此變量指定在這個腳本最後要執行的進程。 此處 /sbin/init 是系統上所有進程的父進程，負責開啟其它進程。當然，你也可以把它換成其他的程序，甚至是 ls，不一定非要是 /sbin/init，雖然這樣你的系統啟動之後什麼都不能做。
+
+quiet 指定為非"y"，會顯示一些啟動的狀態信息;若指定為"y"則不顯示這些信息。
+
+rootmnt 最終進入的系統的根目錄所在分區掛載到的目錄。在最終進入系統的時候，這個目錄下的東西將要轉變為你的根目錄(可通過pivot_root 或 chroot 命令，或系統調用。本腳本最後調用的 run-init 是通過 chroot 系統調用的方式實現的。
+
+readonly如果 readonly 等於字符串"y"，則以只讀方式掛載最終要進入的系統的根目錄所在分區到 ${rootmnt} 目錄，其他情況(包括 readonly 為空)以讀寫方式掛載。
+
+debug debug mode，具體見下文對第110行和第115行的分析。
+cryptopts 加密選項? FIXME:這個的用途？
+ROOTDELAY 在 mountroot 函數中使用，root設備在ROOTDELAY時間內必須准備好，否則 mountroot 調用 panic 函數導致進入shell或機器重啟(具體見 break 的說明)。若不指定 ROOTDELAY 的值，其值在 mountroot 函數中默認是180妙。
+panic 描述見 break參數的說明。
+
+
+[51]# Parse command line options
+[52]for x in $(cat /proc/cmdline); do
+case $x in
+init=*)
+[55]init=${x#init=}
+;;
+root=*)
+ROOT=${x#root=}
+case $ROOT in
+[60]LABEL=*)
+ROOT="/dev/disk/by-label/${ROOT#LABEL=}"
+;;
+UUID=*)
+ROOT="/dev/disk/by-uuid/${ROOT#UUID=}"
+[65];;
+/dev/nfs)
+BOOT=nfs
+;;
+esac
+[70];;
+rootflags=*)
+ROOTFLAGS="-o ${x#rootflags=}"
+;;
+rootfstype=*)
+[75]ROOTFSTYPE="${x#rootfstype=}"
+;;
+rootdelay=*)
+ROOTDELAY="${x#rootdelay=}"
+;;
+[80]cryptopts=*)
+cryptopts="${x#cryptopts=}"
+;;
+nfsroot=*)
+NFSROOT="${x#nfsroot=}"
+[85];;
+ip=*)
+IPOPTS="${x#ip=}"
+;;
+boot=*)
+[90]BOOT=${x#boot=}
+;;
+resume=*)
+RESUME="${x#resume=}"
+;;
+[95]noresume)
+NORESUME=y
+;;
+panic=*)
+panic="${x#panic=}"
+[100] ;;
+quiet)
+quiet=y
+;;
+ro)
+[105] readonly=y
+;;
+rw)
+readonly=n
+;;
+[110] debug)
+debug=y
+exec >/tmp/initramfs.debug 2>&1
+set -x
+;;
+[115] debug=*)
+debug=y
+set -x
+;;
+break=*)
+[120] break=${x#break=}
+;;
+break)
+break=premount
+;;
+[125] esac
+done
+
+這一段代碼很簡單，就是解析加在kernel後面的參數。
+
+第52行是從 /proc/cmdline 裏面得到每一個內核參數，並在接下來的case當中進行處理。cat一下你現在的linux系統的 /proc/cmdline 文件，你就會看到當前系統啟動時候的參數。
+
+init=*決定 init 變量的值。在第42行中已經賦予了 "/sbin/init" 的值，可以用 init=your_program 來代替，your_program 理論上可以隨便是什麼可執行的文件，因為沒人限制你做你想做的事情。
+
+root=*顯然是指定即將要進入的系統的根目錄。在其下還有一個case判斷，根據參數形式的不同，對 ROOT 變量賦予不同的字符串。
+
+注意此時 udev 並沒有啟動，目前對 ROOT 賦予的僅僅是字符串而已。待 udev 啟動之後，就可以通過 /dev/disk/* 下面的連接得到 ROOT 適當的具有 /dev/hdxx 等形式的值。現在常用的是 root=UUID=x...x-...-xxx 的形式，如 root=UUID=fa96108d-afa0-45a8-ba28-c80d1673d958。
+
+不建議使用 root=LABEL=* 的形式，自己看一下 /dev/disk/by-label 和 /dev/disk/by-uuid 下面的軟鏈接就知道了，並不是所有的分區都有 label，但是所有的分區都有 uuid。
+
+如果參數是 root=/dev/hdxx 形式的值，其值將保持不變，但是不推薦這樣做，推薦使用 root=UUID=* 的形式。因為，如果分區數目變化或增減機器的硬盤，經常會造成設備節點的變化，/dev/hdxx 就不是原來的 /dev/hdxx 了。
+
+而使用 UUID 的形式，通過 /dev/disk/by-uuid 下面的軟鏈接就可以得到對應的設備節點，無論設備節點怎樣變化。因為 udev 會照顧好這些軟鏈接和設備節點的關系的。
+
+分區的 UUID 可以通過 vol_id (/sbin/vol_id 或 /lib/udev/vol_id) 命令得到。用 UUID 來掛載分區和用 /dev/hdxx 的方式是一樣的。比如說，將 /dev/hdyy 掛載到 /media/hdyy 目錄下用 mount /dev/hdyy /media/hdyy，現在只是將 /dev/hdyy 換成它的 UUID： mount UUID=y...y-...-yyy /media/hdyy。 自己對nfs不熟悉，所以略過 root=/dev/nfs。
+
+rootflags=* 指定將要進入的系統的根目錄所在的分區掛載到 ${rootmnt} 目錄時的參數，並將參數轉化成 mount 命令可識別的形式(就是在前面加了"-o "，具體見 man mount)賦予 ROOTFLAGS 變量。
+
+rootfstype=*指定將要進入的系統的根目錄所在的分區的文件系統的格式(如 vfat, ext3 等)，賦予 ROOTFSTYPE 變量。
+
+rootdelay=* 指定將要進入的系統的根目錄所在的分區必須在多少秒之內准備好，其值賦予 ROOTDELAY 變量。
+
+以上 ROOT, ROOTFLAGS, ROOTFSTYPE, ROOTDELAY 以及上面提到的 rootmnt 變量將在 mountroot 函數(/scripts/local 中定義)中使用，在下文介紹到掛載系統根目錄所在分區的時候將詳細介紹。
+
+cryptopts=* 加密選項?FIXME: 具體用途？
+
+nfsroot=* nfs 相關。略過。
+
+ip=*nfs 相關。略過。
+
+boot=*賦予 BOOT 變量相應的值，即在掛載將要進入的系統的根目錄所在的分區之前要讀取並執行的文件，具體見上文對第34行代碼的說明。
+
+resume=*指明存放 system snapshot image 的分區。具體見對第35行代碼的說明。
+
+noresume賦予 NORESUME 變量字符串"y"。若 NORESUME 變量不為空，則禁止休眠後的喚醒。若在休眠之後的一次啟動使用了 noresume 參數，則在再一次啟動的時候，不會有恢複狀態的過程，而是像普通的啟動一樣進入系統。這是因為正常啟動系統 swap 分區被重新 activate 的緣故。FIXME: 上一句話對嗎？
+
+panic=* 賦予 panic 變量相應的值，具體見對此腳本第41行 break 變量的解釋。
+
+quiet 賦予 quiet 變量相應的值，具體見對此腳本第43行 quiet 變量的解釋。
+
+ro, rw不同選項賦予 readoly 變量相應的值，readonly 變量在 mountroot 函數中控制以只讀或讀寫方式掛載分區。
+
+debug debug 模式。賦予 debug 變量值"y"，並通過 exec 把當前 shell 的 stdout 和 stderr 都重定向到了文件 /tmp/initramfs.debug，這樣平常輸出到終端的文字都被輸出到了那個文件。最後，set -x 相當於在 shell 被調用時添加了 -x 參數，每一條命令在執行之前都被輸出到了 stderr，並且在前面添加了一個'+'，便於debug。
+
+debug=* 除了沒有將 stdout 和 stderr 重定向之外，其餘同上。
+break=* 賦予 break 變量相應的值，具體見對此腳本第41行 break 變量的解釋。
+
+break 賦予 break 變量值"premount"，其餘同上。
+
+
+[128] if [ -z "${NORESUME}" ]; then
+export resume=${RESUME}
+[130] fi
+
+若 NORESUME 變量不為空，則將 RESUME 變量的值賦給 resume 變量，並把 resume 變量 export 出去，使得在子 shell 環境中也可以使用 resume 變量。resume 變量將在 /scripts/local-premount/resume 腳本中使用。具體見下文第148~153行代碼中對 /scripts/local 中定義的 mountroot 函數的分析。
+
+[132] depmod -a
+在下面裝入內核模塊之前生成 initrd.img 裏面的各內核模塊之間的依賴關系。
+
+[133] maybe_break top
+具體件對本腳本第41行 break 的說明。
+
+[135] # Don't do log messages here to avoid confusing usplash
+[136] run_scripts /scripts/init-top
+
+從第136行的代碼中很容易看出來，這裏是在為下面各個過程做准備。
+run_scripts 函數(/scripts/functions 中定義)的唯一一個參數是一個目錄，這個目錄中所有的具有可執行權限的文件都將被執行。
+
+並且，在這些文件被執行之前，它們所要求的必須在它們之前執行的文件會被執行。這就要求這些可執行文件必須按照某一個規則編寫，以便我們可以得到它們的先決條件，這就是：這些文件必須能夠處理 prereqs 參數。有了這個條件，我們就可以帶這個參數調用相應的文件，然後從 stdout 裏得到必須在它們之前執行的命令。
+
+在 /scripts/init-top 目錄當中只存在 framebuffer 這樣一個腳本文件，它負責解析 splash*, vga=* 和 video=* 這樣的參數，並依照處理結果加載適當的內核模塊，設置適當的顯示模式。另外，/dev/tty{0..8} 這8個tty也在這裏被創建。其中，/dev/tty0 代表當前終端(它代表的終端和X下的終端是不同的)。
+
+[138] maybe_break modules
+log_begin_msg "Loading essential drivers..."
+[140] load_modules
+[141] log_end_msg
+
+第138行具體件對本腳本第41行 break 的說明。
+
+log_begin_msg 函數(/scripts/functions 中定義)功能很簡單，就是將其所有的參數輸出。
+
+load_modules 函數(/scripts/functions 中定義)從 /conf/modules 中讀取要加載的內核模塊，在模塊不存在時並不顯示錯誤信息。在 /conf/modules 中只有 unix 模塊，它提供對 Unix domain sockets 的支持。許多程序(如 X Window, syslog 等)即使沒有聯網也需要這些 sockets。但是，在 /lib/modules/2.6.18-4-686 中並不存在 unix.ko 模塊，所以我們可以推斷，其已經被編譯到了內核中。
+
+log_end_msg 函數(/scripts/functions 中定義)僅僅輸出"Done."字符串，表示這一階段已完成。
+
+
+[143] maybe_break premount
+[ "$quiet" != "y" ] && log_begin_msg "Running /scripts/init-premount"
+[145] run_scripts /scripts/init-premount
+[146] [ "$quiet" != "y" ] && log_end_msg
+
+這段代碼從字面上理解是為接下來掛載將要使用的系統的根目錄所在的分區作准備。在 /scripts/init-premount 目錄下存在兩個腳本：thermal 和 udev。
+
+thermal 根據上面介紹過的 DPKG_ARCH 變量決定需要加載的控制 cpu 溫度傳感器和風扇的內核模塊。
+
+udev 以 daemon 的方式啟動 udevd，接著執行 udevtrigger 觸發在機器啟動前已經接入系統的設備的 uevent，然後調用 udevsettle 等待，直到當前 events 都被處理完畢。之後，如果 ROOTDELAY 變量不為空，就sleep ROOTDELAY 秒以等待 usb/firewire disks 准備好。
+
+[148] maybe_break mount
+log_begin_msg "Mounting root file system..."
+[150] . /scripts/${BOOT}
+parse_numeric ${ROOT}
+mountroot
+[153] log_end_msg
+
+第150行讀取並執行 /scripts/${BOOT} 中的命令。由於我們前面並沒有講 nfs 作為將要使用的系統的根目錄，所以我們這裏假定本地啟動 BOOT=local。其它信息請參照對第34行代碼的說明。在這個假定的前提下，第150行的代碼就引入了 /scripts/local 文件，這個文件定義了具有本地啟動行為的 mountroot 函數，這樣在第152行調用 mountroot 就會把將要使用的系統的根目錄所在的分區掛載到 ${rootmnt}。
+
+下面我們來看一下 /scripts/local 中定義的 mountroot 函數是如何工作的。
+
+首先，它通過 run_scripts 函數(見第136行代碼的說明)執行 /scripts/local-top 目錄下所有具有可執行權限的文件。在這個目錄下有3個文件：lvm，mdrun 和 udev_helper。
+
+lvm 是邏輯卷管理方面的腳本，我沒有過(估計一般pc很少有人會用)，而且其中調用的具有可執行權限的文件在此 initrd.img 中也不存在。因為這個腳本在運行的時候會先檢查需要的文件是否存在，若不存在則退出，所以這個腳本相當於什麼也沒做。略過。
+
+mdrun 是 raid 方面的腳本。它要求 udev_helper 先被執行(見第136行代碼的說明)其中用到的具有可執行權限的文件在此 initrd.img 中不存在。這等效於這個腳本不起作用。
+
+udev_helper 腳本 mdrun 的先決條件，根據實際情況 ide-generic 模塊可能會被加載。
+
+在這三個腳本執行過之後，mountroot 函數會查看 ROOT 設備節點是否已經存在，如果不存在將等待 ${ROOTDELAY} 秒。若在這段時間內 ROOT 設備節點沒有出現則調用 panic 函數(見第41行的說明)重啟機器或是生一個交互 shell。
+
+若 ROOT 設備節點已經存在，則查看 ROOTFSTYPE 變量是否為空。若不空，則 FSTYPE 變量的值就是 ${ROOTFSTYPE}；否則通過 eval 調用 fstype 命令得到 ROOT 的分區格式。其中，fstype 命令會輸出 FSTYPE=blabla 類型的字符串，它跟在 eval 後面就相當於作了 FSTYPE=blabla 這樣的賦值操作。如果經過這一步之後 ROOTFSTYPE 的值是 "unknown"(包括通過在 kernel 後添加 rootfstype=unknown 參數和 fstype 輸出的 FSTYPE=unknown)，則 mountroot 函數調用 /lib/udev/vol_id 得到分區的格式。此時，FSTYPE 的值仍有可能是 "unknown"。如果是這樣的話，在最後的 mount 操作就會失敗。或許你會覺得這裏要判斷分區格式是不是很麻煩。是的，確實如此。但是要知道這裏的 mount 不會自己判斷分區格式，所以要在參數中指定。
+
+在得到了 FSTYPE 之後，mountroot 函數調用 run_scripts 函數運行 /scripts/local-premount 下面具有可執行權限的文件。
+
+在 /scripts/local-premount 目錄中只有一個具有可執行權限的腳本 resume。此腳本負責在計算機休眠後恢複休眠前的狀態。若 resume 變量為空或者這個變量所指的設備不存在，則直接退出；否則，運行 /bin/resume 恢複狀態。FIXME: 如果安裝了 uswsusp 包，在 /scripts/local-premount 目錄下會多一個 uswsusp 腳本，它會調用 /sbin/resume 關於這兩個腳本的關系目前不是很清楚。
+
+在這之後，mountroot 函數根據變量 readonly 確定是以只讀還是讀寫的方式掛載，根據 FSTYPE 變量加載適當得內核模塊。在得到了所有必要的參數之後，通過 mount 命令將將要進入的系統的根目錄所在的分區掛載到 ${rootmnt} 目錄下。
+
+最後，mountroot 函數通過 run_scripts 函數執行 /scripts/local-bottom 下具有可執行權限的文件。由於在此目錄下沒有文件，所以這一步什麼都沒有做。
+
+第151行的 parse_numeric 函數( /scripts/functions 中定義)從它的注釋中可以看出，這個是為了和 lilo 兼容而存在的。由於現在一般用 grub 作為 bootloader，我們平常寫的 root=/dev/hdxx，root=LABEL=xx...xx 或 root=UUID=x...x-...-xxx 的形式都會造成此函數的直接返回，相當於什麼都沒有做。由於我沒有用過 lilo，所以對於下面 lilo 的處理，我也不好說什麼。
+
+第152行就是調用 mountroot 函數掛載分區了，具體的細節上面已經說過了，這裏就不再重複。
+
+[155] maybe_break bottom
+[ "$quiet" != "y" ] && log_begin_msg "Running /scripts/init-bottom"
+run_scripts /scripts/init-bottom
+[158] [ "$quiet" != "y" ] && log_end_msg
+
+在 /scripts/init-bottom 目錄下只有一個具有可執行權限的腳本文件 udev。
+
+在這個腳本當中，首先停止 udevd 進程，然後刪除 /dev/.udev/queue/ 目錄。接下來讀取並執行 /etc/udev/udev.conf 文件。在這之後，判斷 no_static_dev 變量是否為空。若是，則建立 /dev/.static/ 及 /dev/.static/dev/ 目錄，並把 ${rootmnt}/dev 目錄通過 mount 命令 bind 到 /dev/.static/dev 目錄。
+
+從一上行為很容易理解 .static/dev 目錄目錄的含義，它就是用來放硬盤上的 ${rootmnt}/dev 當中東西的地方。因為不是動態建立的，所以放在 /dev/.static 目錄下。之後，把 /dev 目錄 move 到 ${rootmnt}/dev 目錄。通過以上操作就把磁盤上 /dev 目錄中的內容和在此腳本動態運行過程中建立的 /dev 目錄中的內容整合了起來，一起放到了 ${rootmnt}/dev 目錄下。
+
+因為此時 /dev 目錄中已經沒有東西了，所以現在刪除這個目錄，然後做一個叫 /dev 的軟鏈接指向 ${rootmnt}/dev 目錄。因為現在的根目錄在 tmpfs 文件系統中，而 ${rootmnt}/dev 目錄在磁盤上的文件系統中(如 ext2, reiserfs 等)，不是同一個文件系統，所以做硬鏈接是不可能的，我們只能做一個軟鏈接。
+
+[160] # Move virtual filesystems over to the real filesystem
+mount -n -o move /sys ${rootmnt}/sys
+[162] mount -n -o move /proc ${rootmnt}/proc
+這段代碼把當前的 /sys 和 /proc 移動到 ${rootmnt}/sys 和 ${rootmnt}/proc 下面。不要忘了，${rootmnt} 才是我們最終要使用的系統的根目錄所在的地方。
+
+[164] while [ ! -x ${rootmnt}${init} ]; do
+[165] panic "Target filesystem doesn't have ${init}"
+[166] done
+這段代碼檢查 ${rootmnt}${init} 是否存在，也就是下面我們把根目錄切換到 ${rootmnt} 下時要執行的 ${init}，在上面 init 變量已經被賦值 "/sbin/init"。如果不存在，則通過 panic 函數生一個交互的 shell，或重啟機器。這取決於 panic 變量。具體見第41行中對 break 變量的說明。
+
+[168] # Confuses /etc/init.d/rc
+if [ -n ${debug} ]; then
+[170] unset debug
+[171] fi
+因為在最終要使用的系統的 /etc/init.d/rc 中通過 debug 變量來顯示要執行的一些命令，其中 debug=echo 那一行是注釋掉的。所以這裏要 unset debug 變量，否則 /etc/init.d/rc 的執行會出問題。
+
+[173] # Chain to real filesystem
+maybe_break init
+[175] exec run-init ${rootmnt} ${init} "$@" <${rootmnt}/dev/console >${rootmnt}/dev/console
+
+這一段代碼是這個 init 腳本的最會部分，第175行把系統的啟動交給了將要進入的系統的 ${init} (上面初始化為 "/sbin/init")，並用 /dev/console 作為輸入與輸出的設備。
+那麼這個 run-init (/bin/run-init) 究竟作了些什麼。我們得到 klibc-utils 源碼包並解開之後，run-init 的源碼在 klibc-1.4.34/usr/kinit/run-init 目錄下。這個程序要完成的功能的核心在 run-init.c 的第88行，run_init(realroot, console, init, initargs) (runinitlib.c 中定義)函數的調用。坐在這個函數中首先通過 chdir 調用將目錄切換到了 realroot。因為此時還沒有改變根目錄，所以 / 和 . 應該不是同一個目錄。然後確認 / 和 . 不在同一個文件系統上(注意，同樣的分區格式，不同的分區，也是不同的文件系統)。接下來確定存在 /init 文件，並且當前的根目錄所在的文件系統類型是 ramfs 或 tmpfs。在這一切都確定之後，通過 nuke_dir("/") (runinitlib.c 中定義)調用刪除當前根目錄下除掛載點以外的內容，以釋放它們所占用的內存。緊接著把當前目錄，也就是 realroot 通過 mount 調用移動到根目錄，並通過 chroot 函數將根目錄設為當前目錄，再通過一個 chdir("/") 調用改變當前工作目錄為根目錄。現在，我們剩下的只是讓 /sbin/init 跑起來。但在開始之前要得到 0, 1, 2 三個文件描述符，用來做我們的 stdin, stdout 和 stderr。在得到這些之後就通過 execv(init, initargs) 調用讓我們的 /sbin/init 跑起來了。
+FIXME: 原以為第175行的代碼也可以用下面的腳本來代替，但是在 qemu(裝的 Debian etch) 以及物理機器(裝的 ubuntu 7.04) 中試驗 pivot_root . initrd 那一行失敗，錯誤信息：pivot_root: Invalid argument. Google 了一下，貌似 2.6.14 及其以後就不行了，好像是和 root_fs 有關。所以不要試圖使用下面形式的代碼了：
+cd /${rootmnt}
+mkdir -p initrd
+pivot_root . initrd
+chroot . ${init} $@ <dev/console >dev/console 2>&1
+
+小結
+好了，上面我已經說了這麼多。那麼，init 腳本究竟都作了什麼呢？
+首先，建立一些必要的文件夾作為程序工作的時候需要的目錄或者必要的掛載點，以及必需的設備節點。
+然後，根據提供的參數建立適當的設備節點並加載適當的內核模塊，啟動適當的進程(udevd)幫助我們完成這一步驟。
+最後，在做完了這些亂七八糟的為掛載根目錄及運行 /sbin/init 進程作准備的事情之後，調用 run-init 來運行 /sbin/init 從而啟動我們的系統。
+
+精簡的 init 腳本
+既然我們已經知道了 initrd.img 到底要做什麼，我們現在就來一個精簡的 init 腳本。
+把幾乎所有的過程都放到一個腳本當中，仍掉了 nfs 啟動的內容，仍掉了從休眠中喚醒的功能，根據需要舍棄了一些文件和文件夾的創建，以及一些變量。這樣我們的腳本只有本地啟動的內容，結構更加緊湊，操作過程可能會更加清楚。這個也難說，具體和個人有關。不要 udev， 雖然很實用。因為我們下邊的這個腳本是個原理性的演示。由於沒有了 udev， /sys 目錄就沒有必要了，同時我們還得自己照顧設備節點。對於我這裏的情況，要手動建立 /dev/hda1, /dev/hda2 和 /dev/hda5 這三個設備節點，其中 hda1 是主分區，它掛載到根目錄，hda2 是擴展分區，hda5 是 swap。如果設備節點創建少了，啟動的時候就會失敗。現在我這裏的情況是比較簡單的，但是如果通過改變啟動參數使用移動存儲設備啟動呢？所以 udev 是一個很有用的東西，同時對於移動的設備你不知道確切的 /dev/sdaxx 這樣的形式，UUID 就變得很重要了。
+一些表示啟動階段的語句被保留以便和原始的 init 腳本相對照。內容如下:
+
+#!/bin/sh
+
+echo "Loading, please wait..."
+
+[ -d /dev ] || mkdir -m 0755 /dev
+[ -d /root ] || mkdir --mode=0700 /root
+[ -d /proc ] || mkdir /proc
+[ -d /tmp ] || mkdir /tmp
+mkdir -p /var/lock
+mount -t proc none /proc
+
+# This should be here, or a fatal error may occur
+# said no modules.dep found
+depmod -a
+
+# Note that this only becomes /dev on the real filesystem if udev's scripts
+# are used; which they will be, but it's worth pointing out
+tmpfs_size="10M"
+mount -t tmpfs -o size=$tmpfs_size,mode=0755 udev /dev
+mknod /dev/console c 5 1
+mknod /dev/null c 1 3
+mknod /dev/hda b 3 0
+mknod /dev/hda1 b 3 1 # root
+mknod /dev/hda5 b 3 5 # swap
+
+
+# Export it for root hardcoding
+export ROOT=
+
+# Only maybe_break, log_begin_msg and log_end_msg are needed
+. /scripts/functions
+
+# Export relevant variables
+export break=
+export init=/sbin/init
+export quiet=n
+export readonly=y
+export rootmnt=/root
+# export ROOTDELAY=
+export panic=
+
+# Parse command line options
+for x in $(cat /proc/cmdline); do
+case $x in
+init=*)
+init=${x#init=}
+;;
+root=*)
+ROOT=${x#root=}
+case $ROOT in
+LABEL=*)
+ROOT="/dev/disk/by-label/${ROOT#LABEL=}"
+;;
+UUID=*)
+ROOT="/dev/disk/by-uuid/${ROOT#UUID=}"
+;;
+esac
+;;
+panic=*)
+panic="${x#panic=}"
+;;
+ro)
+readonly=y
+;;
+rw)
+readonly=n
+;;
+break=*)
+break=${x#break=}
+;;
+break)
+break=premount
+;;
+esac
+done
+
+maybe_break top
+# nothing to be done for top
+
+maybe_break modules
+log_begin_msg "Loading essential drivers..."
+modprobe -q unix
+log_end_msg
+
+maybe_break premount
+log_begin_msg "Running /scripts/init-premount"
+# thermal modules, FOR x86 ONLY
+# If commented here, they will still be loaded when running /sbin/init.
+# I think it should be safe here to comment them off.
+# Think about the situation: no system installed,
+# when powered on, nothing bad should happen.
+# FIXME: Am I right?
+#modprobe -q fan
+#modprobe -q thermal
+# no udev invoked here
+log_end_msg
+
+
+maybe_break mount
+log_begin_msg "Mounting root file system..."
+# Get the root filesystem type
+# fstype should be enough for detecting filesystem type
+eval $(fstype < ${ROOT})
+# if [ "$FSTYPE" = "unknown" ] && [ -x /lib/udev/vol_id ]; then
+# FSTYPE=$(/lib/udev/vol_id -t ${ROOT})
+# [ -z "$FSTYPE" ] && FSTYPE="unknown"
+# fi
+
+if [ ${readonly} = y ]; then
+roflag=-r
+else
+roflag=-w
+fi
+
+# FIXME This has no error checking
+modprobe -q ${FSTYPE}
+
+# FIXME This has no error checking
+# Mount root
+mount ${roflag} -t ${FSTYPE} ${ROOT} ${rootmnt}
+log_end_msg
+
+
+maybe_break bottom
+log_begin_msg "Running /scripts/init-bottom"
+
+if [ -z "$no_static_dev" ]; then
+mkdir -m 0700 -p /dev/.static/
+mkdir /dev/.static/dev/
+mount -n -o bind $rootmnt/dev /dev/.static/dev
+fi
+
+# Now move it all to the real filesystem
+mount -n -o move /dev $rootmnt/dev
+
+# create a temporary symlink to the final /dev for other initramfs scripts
+nuke /dev
+ln -s $rootmnt/dev /dev
+
+log_end_msg
+
+# Move virtual filesystems over to the real filesystem
+#mount -n -o move /sys ${rootmnt}/sys
+mount -n -o move /proc ${rootmnt}/proc
+
+while [ ! -x ${rootmnt}${init} ]; do
+panic "Target filesystem doesn't have ${init}"
+done
+
+# Confuses /etc/init.d/rc
+if [ -n ${debug} ]; then
+unset debug
+fi
+
+# Chain to real filesystem
+maybe_break init
+exec run-init ${rootmnt} ${init} "$@" <${rootmnt}/dev/console >${rootmnt}/dev/console
+
+現在讓我們用上面這個 init 腳本替換原有的腳本(不要忘了作一個備份)，打包之後在 qemu 中運行，命令如下：
+
+ qemu -hda /media/hda5/os/Debian_etch/disk0 -kernel vmlinuz-2.6.18-4-686 -initrd initrd.img.gz -append "root=/dev/hda1 ro" -m 96 -boot c
+
+太好了，一切正常！ Cheers!!
+
+好了，現在這篇文章已經結束了，希望對你有所幫助 :)
+
+
+參考文獻：
+[1] /linux/source/directory/Documentation/initrd.txt
+內容有點老了，但還是有助於理解 initrd
+[2] Linux2.6 內核的 Initrd 機制解析, http://www.ibm.com/developerworks/cn/linux/l-k26initrd/index.html
+從內核源代碼的層面闡述了 linux 2.6 內核的 initrd 機制
+[3] Almesberger, Werner; "Booting Linux: The History and the Future", http://www.almesberger.net/cv/papers/ols2k-9.ps.gz
+從技術層面上闡述了 linux 啟動的曆史及發展趨勢
+[4] 各種各樣的 man 手冊
+[5] /usr/share/doc 下的各種文檔
+[6] 網上五花八門的文章
+
+Trackback: http://tb.blog.csdn.net/TrackBack.aspx?PostId=1748034

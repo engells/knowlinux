@@ -1,0 +1,54 @@
+# vim:ts=4
+
+
+
+kpartx 概說
+==============================
+若將映像檔模擬實體硬碟，切出數個硬碟分割區，kpartx 可以將每一個分割區映射到 /dev/mapper/loop[x]p[y]，而映像檔則是映射到 /dev/loop[x]。如此即可對模擬出的分割區操作。
+
+此種作業邏輯，可與虛擬電腦的虛擬硬碟實作相對照。有可能兩者作法相同。
+
+
+
+
+將映像檔分割成多個分割區並分別掛載
+==============================
+安裝 kpartx 套件，該套件可將映像檔分割區分別對應至 /dev/mapper 目錄內之虛擬 block device
+	apt-get install kpartx
+
+建立映像檔
+	dd if=/dev/zero of=aa.img bs=1M count=100
+
+將映像檔對應至 loop0
+	losetup -f					# 查詢閒置之 loop device
+	losetup /dev/loop0 aa.img
+	losetup -a					# 查詢所有已有對應之 loop device
+	losetup -j aa.img			# 查詢與某映像檔有對應關係之 loop device，查詢結果與 sudo losetup -a 相同
+
+格式化映像檔
+	cfdisk /dev/loop0			
+		# 透過 loop device 對映像檔分割，本例中切出兩個分割區
+		# 離開分割程式後，系統可能斷開原本的映像檔與 loop 裝置映射，另外產生新的映射。需注意提示訊息
+
+解除映像檔與 loop 裝置的映射關係
+	losetup -d /dev/loop0
+
+格式化分割區：注意若先前已經將映像檔映射至 loop 裝置，需先解除映射。kpartx 會先建立映像檔映射並建立分割區映射
+	kpartx -l aa.img			# 查詢映像檔分區可能的映射 loop 裝置
+	kpartx -av aa.img			# 執行 kpartx，產生映像檔分割區之對應 loop device
+	mkfs.ext4 /dev/mapper/loop0p1
+	mkfs.ext3 /dev/mapper/loop0p2
+
+掛載分割區
+	mount -t ext3 /dev/mapper/loop0p1 ~/mnt/usb1
+	mount -t ext3 /dev/mapper/loop0p2 ~/mnt/usb2
+
+卸載分割區
+	umount ~/mnt/usb1
+	umount ~/mnt/usb2
+
+刪除映像檔分割區映射的 loop device
+	kpartx -d aa.img
+		# 實際操作中顯示會同時斷開 loop device。亦即刪除 loop0p1、loop0p2、loop0
+
+

@@ -1,0 +1,348 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Initrd</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body>
+<br>
+
+<h1>Initrd</h1>
+
+<br>
+
+<h3>Init Script</h3>
+
+<hr style="width: 100%; height: 2px;">在 Ubuntu 上安裝一些
+daemon (如 apache、ushare 等) 後，都要靠 init script 來控制。有兩個管理 init script
+的指令一定要會用：service 和 rcconf。<br>
+
+<h4>service</h4>
+
+用來啟動、停止和檢查這些 daemon 的狀態。例如：<br>
+
+* service --status-all =&gt; 列出目前所有 daemon 的狀態<br>
+
+* sudo service XXX start =&gt; 馬上啟動 XXX daemon<br>
+
+* sudo service XXX stop =&gt; 馬上關閉 XXX daemon<br>
+
+* service XXX status =&gt; 檢查 XXX 的狀態<br>
+
+<br>
+
+<h4>rcconf</h4>
+
+用來控制系統開機時是否要執行這些 daemon。例如：<br>
+
+* sudo rcconf --list =&gt; 列出目前所有 daemon 的啟動設定<br>
+
+* sudo rcconf --on XXX =&gt; 設定 XXX daemon 開機時自動啟動<br>
+
+* sudo rcconf --off XXX =&gt; 設定 XXX daemon 開機時不自動啟動<br>
+
+<br>
+
+若你的系統沒有 rcconf 指令，請按以下方式安裝：<br>
+
+sudo apt-get install rcconf<br>
+
+<br>
+
+<h3>Initrd啟動及功能分析</h3>
+
+http://www.inlsd.org/wiki/Initrd，由 kangkang 在 週四, 2007-04-26 18:52 提交
+<hr>Initrd這個設計的初衷是用來載入額外內核模組供啟動的。可以參考 內核文檔
+Documentation/initrd.txt。<br>
+
+在載入完內核後，如果存在initrd，則會執行 initrd 裏的 /init。（文檔裏說的是/linuxrc，在
+init/do_mounts_initrd.c 裏也是這個，在 init/main.c 裏是 /init，具體待考。）<br>
+
+實際解開Ubuntu 10.04 Kernel 2.6.32-36的 initrd 後，在其根目錄下有 init 這隻 script。<br>
+<br>
+
+進入主題：簡單說來，initrd 主要功能就一個：找到根分區，把權力交給主系統。要完成這個功能，涉及的功能主要有：<br>
+
+1.有基本的程式運行環境<br>
+
+2.檢測存儲設備，創建設備節點<br>
+
+3.檢測檔系統，掛載根檔系統<br>
+
+4.將權力交給主系統的init<br>
+
+<br>
+
+一.基本的程式運行環境<br>
+
+initrd 主要有兩種格式：<br>
+
+1. 傳統的 ramdisk<br>
+
+這種格式的好處是還可以返回到 initrd，進行些後繼的處理。缺點是需要內核的檔系統支援，通常會用 ext2，且更改較為麻煩。<br>
+
+製作方法：<br>
+
+dd if=/dev/zero of=initrd bs=1M count=8<br>
+
+mkfs.ext2 -f -m 0 initrd<br>
+
+mount -o loop initrd /path/to/<br>
+
+在/path/to建立好initrd的系統後<br>
+
+umount /path/to<br>
+
+gzip initrd<br>
+
+<br>
+
+2. 較新的initramfs格式，ramfs+cpio+gzip<br>
+
+這種格式的好處是內核原生不需要額外的檔系統支援，製作也比較容易。<br>
+
+製作方法：<br>
+
+cd /path/to<br>
+
+find . | cpio -o -H newc | gzip -c --best &gt; /boot/initrd.gz<br>
+
+<br>
+
+如果沒有特別的需要，通常使用cpio格式。<br>
+
+<br>
+
+找到根檔系統的任務通常是用shell腳本來完成，主要原因是：<br>
+
+1.體積所限，通常initrd不會做很大，因為它功能很明確單一<br>
+
+2.方便修改，針對不同硬體/系統通常會做一定更改，編譯型語言更改起來較麻煩<br>
+
+<br>
+
+通常使用的shell有busybox的ash，klibc的sh等。<br>
+
+busybox提供很多功能，可根據自己的需要編譯，因為要支援udev等，所以推薦編譯成動態鏈結的。<br>
+
+klibc是專門設計為小巧的libc，它自帶了一些程式，體積很小巧，功能相對busybox提供的不會那麼多。還有相關的程式。對於很單一的應用用它是合適的，如果想在initrd裏實現較複雜功能，使用klibc會顯得有些捉襟見肘。<br>
+
+<br>
+
+對於動態鏈結的程式，需要把相應的庫和 helper 放進系統中。可用ldd實現這個功能，如：<br>
+
+$ ldd /bin/busybox<br>
+
+linux-gate.so.1 =&gt; (0xffffe000)<br>
+
+libcrypt.so.1 =&gt; /lib/libcrypt.so.1 (0xb7f30000)<br>
+
+libm.so.6 =&gt; /lib/libm.so.6 (0xb7f0b000)<br>
+
+libc.so.6 =&gt; /lib/libc.so.6 (0xb7de1000)<br>
+
+/lib/ld-linux.so.2 (0xb7f73000)<br>
+
+我們也提供了一個程式來自動完成這個工作，見文後參考。<br>
+
+對於klibc的，一般會有個庫檔，例如
+/usr/lib/klibc/lib/klibc-KC4v-FjcUUw8mDjRL-kY8PS8U3E.so<br>
+
+將此檔放在相對initrd的根目錄的 /lib 目錄下即可。<br>
+
+<br>
+
+需要的設備有：<br>
+
+mknod dev/console c 5 1<br>
+
+mknod dev/null c 1 3<br>
+
+# 如果為ramdisk，最好創建它<br>
+
+mknod dev/ram0 c 1 0<br>
+
+<br>
+
+二.檢測存儲設備<br>
+
+早先有 devfs hotplug等來檢測，或是靜態創建載入模組以支援存儲設備如硬碟，光碟等。<br>
+
+udev的出現使這個過程轉移到用戶空間，靈活性大大增強，使這個過程能自動完成。<br>
+
+對於新版的 udev
+(大概是&gt;098)，完成這一過程只需寫好相應的規則，有相應的模組，執行以下命令即可自動載入模組並創建相應的設備節點：<br>
+
+# 掛載所需檔系統<br>
+
+mount -t proc none /proc<br>
+
+mount -t sysfs none /sys<br>
+
+mount -t tmpfs -o size=10M none /dev<br>
+
+# 關閉內核消息列印<br>
+
+echo '0' &gt; /proc/sys/kernel/printk<br>
+
+# 一些連接<br>
+
+ln -sf /proc/self/fd /dev/fd<br>
+
+ln -sf /proc/self/fd/0 /dev/stdin<br>
+
+ln -sf /proc/self/fd/1 /dev/stdout<br>
+
+ln -sf /proc/self/fd/2 /dev/stderr<br>
+
+ln -sf /proc/kcore /dev/core<br>
+
+# 啟動 udev<br>
+
+/sbin/udevd --daemon<br>
+
+/sbin/udevtrigger<br>
+
+/sbin/udevsettle<br>
+
+<br>
+
+三.檢測檔系統<br>
+
+由於各系統和內核的不同，掛載檔系統有時不像我們平時使用的那樣，會自動探測，可以使用udev或blkid來識別：<br>
+
+udev的方法：<br>
+
+# /lib/udev/vol_id -t /dev/hda5<br>
+
+xfs<br>
+
+blkid的方法：<br>
+
+# blkid<br>
+
+/dev/hda1: TYPE="ntfs"<br>
+
+/dev/hda5: LABEL="Gentoo" UUID="78460951-666e-4d29-9d9b-85e9a9b16b62"
+TYPE="xfs"<br>
+
+/dev/hda6: TYPE="ntfs"<br>
+
+/dev/hda8: UUID="c51d3bb4-caee-4150-ae22-7d5931db31f5" LABEL="ROOT"
+TYPE="reiserfs"<br>
+
+/dev/hda9: LABEL="Home" UUID="89b31278-b2a3-4626-99c5-e6ca77fe60f0"
+TYPE="xfs"<br>
+
+/dev/hda7: LABEL="swap" UUID="8686fb94-560c-4c87-97dd-c5f97bbb6c78"
+TYPE="swap"<br>
+
+<br>
+
+另外，我們也可以使用UUID或者LABEL的方式來掛載檔系統，<br>
+
+mount -U<br>
+
+mount -L<br>
+
+<br>
+
+四.交權給主系統的init<br>
+
+實現方法主要有 pivot_root 和 switch_root與 run-init。<br>
+
+在這之前需要對之前掛載的虛擬檔系統與dev轉移到主系統。<br>
+
+mount --move /dev /root/dev<br>
+
+mount --move /proc /root/proc<br>
+
+mount --move /sys /root/sys<br>
+
+<br>
+
+1.pivot_root<br>
+
+傳統的做法是用 pivot_root，然而 pivot_root不會自動處理很多工作，如釋放initrd所有的記憶體，執行主系統的init。<br>
+
+使用方法如下：<br>
+
+cd /root<br>
+
+mkdir -p initrd<br>
+
+pivot_root . initrd<br>
+
+# 注意 /root 要是合法的設備掛載上的 如 /dev/sda1，如果不是這樣，將可能出現錯誤。<br>
+
+# 目標目錄也需要存在，其他參閱man page<br>
+
+exec chroot . sh -c 'umount /initrd; exec /sbin/init' dev/console
+2&gt;&amp;1<br>
+
+# 如果不需要清理，也可簡單的運行<br>
+
+exec chroot . /sbin/init<br>
+
+<br>
+
+2.switch_root/run-init<br>
+
+這兩者差別不大，前者是busybox提供的，後者是klibc的。有點區別的是後者可接受 - 開頭的參數。<br>
+
+用法：<br>
+
+cd /root<br>
+
+exec switch_root . /sbin/init<br>
+
+或<br>
+
+exec run-init . /sbin/init --debug<br>
+
+<br>
+
+至此，initrd的使命完成。<br>
+
+<br>
+
+<h3>Initrd演變</h3>
+
+譯自: http://linuxdevices.com/articles/AT4017834659.html或點此查看原文<br>
+
+<hr><br>
+
+<table style="text-align: left; width: 600px;" border="1" cellpadding="2" cellspacing="2">
+
+  <tbody>
+    <tr>
+      <td style="vertical-align: top; width: 258px;">底層技術&nbsp; <br>
+      </td>
+      <td style="vertical-align: top; width: 257px;">實際應用 <br>
+      </td>
+      <td style="vertical-align: top; width: 347px;">檔名</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; width: 258px;">ram disk <br>
+      </td>
+      <td style="vertical-align: top; width: 257px;"> initrd</td>
+      <td style="vertical-align: top; width: 347px;">initrd-img</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; width: 258px;">ramfs/tmpfs</td>
+      <td style="vertical-align: top; width: 257px;">initramfs</td>
+      <td style="vertical-align: top; width: 347px;">initrd-img</td>
+    </tr>
+  </tbody>
+</table>
+
+<br>
+
+<br>
+
+</body></html>

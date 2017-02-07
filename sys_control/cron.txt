@@ -1,0 +1,24 @@
+# vim:ts=4
+
+
+
+cron, anacron
+==============================
+
+相關檔案
+-------------------------
+/etc/crontab
+	system level crontab
+/var/spool/cron/crontabs/*
+	account level crontab
+/var/spool/cron/atjobs
+/var/spool/cron/atspool
+
+
+定期執行之排程
+-------------------------
+anacron 的運作方式不同於 crond ，只有在 cron 沒有做排程內的工作時，anacron 才會去完成 cron 沒做的事。通常只有當系統關機一陣子重新開機後才有可能發生。設定檔如下：
+/etc/anacrontab
+anacron 的時間設定有兩個欄位：
+時段(n) 和 延遲時間(m)，其中的時段是以天數為單位，延遲時間以分鐘為單位。anacron 會檢查每一個排程是否在過去 n 天之內被執行，n 就是第一個欄位之設定值。如果已經被執行過，則不再理會；但如果沒被執行，則在 anacron 服務啟動(通常是開機的時候)之後的延遲 m 分鐘就執行該排程。
+

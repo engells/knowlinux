@@ -1,0 +1,301 @@
+
+
+Brief guide
+==============================
+
+登入帳戶
+	*root, 密碼為 root
+	*tux, 無密碼, home is /etc/skel
+
+
+開機參數(cheatmode)
+	*slitaz vga=791 no387 > 内核把启动时传递的参数和信息保存在/proc./cmdline里 > cat /proc/cmdline
+	*home=sda1 => set home directory on /dev/sda1
+	*lang=en => locale
+	*kmap=us => keyboard layout mapping
+	*config=/dev/hda1,slitaz.sh => 開機時執行 /dev/hda1 的 slitaz.sh
+	*screen=1024x768x24
+	*sound=no => 停用內核音效模組
+	*modprobe=module1,module2
+	*laptop => 載入 ac 及 battery 內核模組
+	*previous => 使用以前保存的系統
+
+
+公用程式
+	*Tazpkg manual - SliTaz Package Manager.
+	*Tazlito manual - SliTaz LiveCD utility.
+	*TazUSB manual - SliTaz LiveUSB utility.
+	*Tazwok manual - SliTaz Package Cooker.
+	*Burnbox manual - SliTaz utility to burn CD/DVDs
+
+
+開機光碟
+	光碟上需包括Linux内核(bzImage)，壓縮的檔案系统(rootfs.gz) 和isolinux開機引導檔案。一般的Linux開機檔案為vmlinux 及 initrd.gz
+
+	Method 1:
+		tazlito list-flavors --recharge		# 更新 flavor 來源資訊
+		mkdir -p /home/slitaz/flavors
+		cd /home/slitaz/flavors
+		tazlito get-flavor core			# 下載 core，一個flavor，下載完後可進行需要的修改
+		tazlito gen-distro			# 建立 distribution
+		#tazlito addhacker			# 本行及次一行是取代前一行指令，用 hacker 模式建立 distribution
+		#tazlito gen-initiso			#
+		tazlito clean-distro			# 若需重新建立 distribution，先清理以前建立 distribution 的作業資料
+		tazlito gen-distro
+
+	Method 2:
+		tazlito extract-distro slitaz.iso	# 將 iso 檔案複製出來，預設複製到 /home/slitaz/distro/rootfs 
+		chroot /home/slitaz/distro/rootfs
+		udhcpc -i eth0				# 啟動網卡，實際上是啟動網路介面
+		tazpkg install {pkgname}		# 安裝套件
+		tazpkg remove {pkgname}			# 移除套件
+		tazlito gen-initiso			# 重新建立 distribution
+
+	Method 3:
+		# 預備作業
+		su					
+		$workdir='/home/slitaz/work'
+		mkdir -p $workdir
+		mkdir -p $workdir/mnt		# 用於掛載光碟
+		mkdir -p $workdir/image		# 用於複製光碟內容
+		mkdir -p $workdir/fsdir		# 用於產生rootfs.gz
+		# 將光碟資料複製到作業目錄
+		mount -t iso9660 /dev/cdrom $workdir/mnt
+		cd $workdir/mnt
+		cp -a . $workdir/image
+		ls -R $workdir/image
+		#chmod 777 $workdir/image
+		leafpad $workdir/image/boot/isolinux/isolinux.cfg
+		# 重新製作 rootfs.gz 
+		cd $workdir/fsdir
+		cp $workdir/image/boot/rootfs.gz rootfs
+		lzma -dc -S .gz rootfs.gz | cpio -i
+		#(zcat rootfs.gz 2>/dev/null || lzma d rootfs.gz -so) | cpio -id
+		chroot rootfs /bin/sh --login
+		tazpkg install {pkgname}
+		tazpkg remove {pkgname}
+		leafpad etc/init.d/local.sh		=> 開機時執行的script
+		find . -print | cpio -o -H newc | lzma e -si -so > ../rootfs.gz
+		# find . -print | cpio -o -H newc | gzip -9 > ../rootfs.gz
+		# find . -print | cpio -o -H newc | lzma -z -S .gz > ../rootfs.gz
+		cd ../
+		# 重新產生 iso 檔		
+		cp -a rootfs.gz $workdir/image/boot
+		genisoimage -R -o slitaz-hacked.iso -b boot/isolinux/isolinux.bin \
+		-c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
+		-V "SliTaz-Hacked" -input-charset iso8859-1 -boot-info-table rootcd
+
+
+chroot
+	# 將rootfs.gz複製到工作目錄
+	mkdir /tmp/loop
+	mount -o loop slitaz-cooking.iso /tmp/loop
+	mkdir -p /home/slitaz/chroot-env
+	cp /tmp/loop/boot/rootfs.gz /home/slitaz/chroot-env
+	umount /tmp/loop
+	# 解開rootfs.gz，並切換root目錄
+	cd /home/slitaz/chroot-env
+	(zcat rootfs.gz 2>/dev/null || lzma d rootfs.gz -so) | cpio -id
+	rm rootfs rootfs.gz
+	# 編輯script
+	cat > /home/slitaz/chroot_in_env.sh << "EOF" 
+
+	#!/bin/sh
+	# Chroot in SliTaz to hack.
+	#
+	ROOTFS="/home/slitaz/chroot-env"
+
+	# Mount virtual Kernel file systems and chroot.
+	#
+	#mount --bind /dev $ROOTFS/dev
+	#mount --bind /tmp $ROOTFS/tmp
+	mount -t proc proc $ROOTFS/proc
+	mount -t sysfs sysfs $ROOTFS/sys
+	mount -t devpts devpts $ROOTFS/dev/pts
+	mount -t tmpfs shm $ROOTFS/dev/shm
+
+	echo "Chrooting into $ROOTFS... "
+	chroot $ROOTFS /bin/sh --login
+
+	# Unmount virtual Kernel file systems on exit.
+	#
+	umount $ROOTFS/dev/shm
+	umount $ROOTFS/dev/pts
+	umount $ROOTFS/sys
+	umount $ROOTFS/proc
+	#umount $ROOTFS/tmp
+	#umount $ROOTFS/dev
+
+	echo "Exiting $ROOTFS chroot environment... "
+
+	EOF
+
+	chmod +x /home/slitaz/chroot_in_env.sh
+	sh /home/slitaz/chroot_in_env.sh
+	tazpkg recharge
+	tazpkg get-install slitaz-toolchain		=> optional
+
+
+
+VGA mode
+	Colors | 640x480  800x600  1024x768  1280x1024  1600x1200
+	-------------------------------------------------------
+	256    |  769      771       773       775        796
+	32768  |  784      787       790       793        797
+	65536  |  785      788       791       794        798
+	16,8M  |  786      789       792       795        799
+
+
+
+
+TazUSB - SliTaz LiveUSB utility
+-------------------------
+Syntax
+	tazusb [command] [compression|device|file]
+
+tazusb gen-iso2usb /path/to/slitaz.iso		# same task as gen-liveusb, only copying files from a ISO image
+tazusb gen-liveusb /dev/sdb1			# to install kernel and rootfs.gz onto usb device, data from cd driver
+tazusb writefs [lzma|gzp|none]			# to take the filesystem in current memory and create a "rootfs.gz"
+tazusb writefs lzma				# 以lzma壓縮格式產生rootfs
+tazusb writefs gzip				# 以gz壓縮格式產生rootfs
+tazusb writefs none				# 產生rootfs，不壓縮
+tazusb clean
+
+
+
+
+Tazlito - SliTaz Live Tool
+==============================
+Tazlito is a small utility to extract a LiveCD, rebuild the ISO image and regenerate the root filesystem of the LiveCD. Tazlito can also generate a distribution from a list of packages previously downloaded.
+
+Syntax:
+	tazlito [command] [list|iso|flavor] [dir]
+
+Configuration file:
+	/etc/tazlito/tazlito.conf
+	a tazlito.conf found in the current directory
+
+tazlito stats				# display config variables, and information of iso file
+tazlito gen-config			# to generate a configuration file
+tazlito gen-config /path/to/distro
+tazlito configure			# to configures the system configuration file
+
+tazlito gen-iso
+	# generate a iso file with modified root filesystem, needs a directory containing a distro-tree of Live system
+tazlito gen-initiso
+	# to do the same work as 'gen-iso', but to rebuilds the initramfs compressed system prior.
+
+tazlito gen-distro			# to generate the distro-tree and an ISO image via a list of packages
+tazlito gen-distro --cdrom
+tazlito gen-distro --iso=slitaz.iso
+tazlito gen-distro package-list
+
+tazlito extract-distro
+
+tazlito clean-distro
+tazlito check-distro
+
+
+
+Flavor files, a file to build a derivate version of SliTaz
+-------------------------
+.flavor檔案應該是只是文字檔，敘述如何建立一個可字型開機的 slitaz 系統。使用者可以下載flavor檔案使用或自行產生。
+
+tazlito list-flavors			# to download and display a list of the different flavors available.
+tazlito list-flavors --recharge
+
+tazlito show-flavor a-flavor		# to display the description of the flavor and its size after regeneration
+tazlito show-flavor a-flavor --brief
+tazlito show-flavor a-flavor --brief --noheader
+
+tazlito get-flavor a-flavor		# to download and prepares the files for 'gen-distro' to generate a favor
+tazlito gen-flavor new-flavor		# to creates a new flavor from the results of generating a distro (gen-distro).
+tazlito gen-liveflavor			# to creates a new flavor based on the current system
+tazlito gen-liveflavor --help
+
+tazlito extract-flavor a-flavor		# to extract a flavor file into a tree structure in /home/slitaz/flavors
+tazlito pack-flavor a-flavor		# to convert a tree structure in /home/slitaz/flavors into a flavor file
+
+tazlito upgrade-flavor this-flavor	# to refresh a flavor file by updating packages to latest versions available
+
+
+
+
+TazPkg
+==============================
+.tazpkg是 SliTaz 的套件，採用 cpio 及 gzip 製作。
+
+Install and remove packages
+-------------------------
+tazpkg recharge						# to download latest 'packages.list', like apt-get update
+tazpkg get-install package				# to get a package from internet and install that package
+tazpkg get-install-list a.list --forced
+tazpkg set-release package				# to upgrade the packages to the latest release
+tazpkg upgrade						# to update all installed packages
+tazpkg block package					# to block installed package versions
+tazpkg unblock package
+
+tazpkg install package					# to install a local package with the .tazpkg extension
+tazpkg install path/to/package --forced
+tazpkg install path/to/package --root=/mnt/rootfs
+tazpkg install-list a.list				# to install a set of packages listed in a file
+tazpkg link openoffice /media/usbdisk			# allow to install a package from another media device
+
+tazpkg remove package
+
+tazpkg clean-cache
+tazpkg setup-mirror
+
+
+
+Display package information
+-------------------------
+tazpkg info package
+tazpkg desc package
+
+tazpkg check package					# to check dependencies on installed packages
+tazpkg depends package					# to displays a dependency tree for a package
+tazpkg rdepends package					# to displays a reverse dependency tree for a package
+
+tazpkg reconfigure package				# to display the post-install script from the package
+
+tazpkg list-config					# to list the system config files, ref "tazpkg repack-config"
+tazpkg list-config --box				# --box option displays in table format
+tazpkg list-files package				# list all files installed with a package
+
+tazpkg search package					# search for packages by owner or package name
+tazpkg search-file package				# to search for files installed by the packages, in full path
+
+
+
+list packages in system or mirror site
+-------------------------
+tazpkg list						# to display the packages which's been installed
+tazpkg list categories					# to siaplay a category, ex base-system, 
+tazpkg list blocked
+tazpkg xhtml-list					# to create a XHTML list of all the packages installed
+tazpkg xhtml-list xxxx.html
+tazpkg list-mirror
+tazpkg list-mirror --diff				# --diff, to show the diff between the last and current list
+
+
+
+Extract and repack packages
+-------------------------
+tazpkg get package					# to get a pkg and stored in current directory without install
+tazpkg extract package.tazpkg
+tazpkg extract package.tazpkg target/dir
+
+tazpkg pack package-version				# to create a package from a directory prepared in advance
+tazpkg repack package					# to recreate a package from a system where it was installed
+tazpkg repack-config					# to recreate a package of the system configuration files,
+							# ref the command "tazpkg list-config"
+
+tazpkg convert alien-package	# to converts .deb, .rpm, .tgz or .pkg.tar.gz) package into a SliTaz package (.tazpkg)
+
+
+
+
+Tazwok
+==============================
+Tazwork is a tool to creat Slitaz packages.

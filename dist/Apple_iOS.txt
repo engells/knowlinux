@@ -1,0 +1,57 @@
+# vim:ts=4
+
+
+
+Create New Virtual Machine
+====================
+	Name: macOS 10.12 Sierra
+	Type: Mac OS X
+	Version: Mac OS X 10.11 El Capitan (64 bit) or 10.12 Sierra
+	Memory size is 4 GB( 70% of Full RAM)
+	Virtual disk file: macOS 10.12 Sierra.vmdk
+	CPU: 2 CPU (my CPU is core i3) and Enable PAE/NX
+	System: Enable EFI, Disable Floppy, Chipset is PIIX3 or IHC9
+	Graphics: Set 128 vRam
+
+
+
+
+Add Code to VirtualBox with Command Prompt (cmd)
+====================
+	cd "C:\Program Files\Oracle\VirtualBox\"
+	VBoxManage.exe modifyvm "VM Name" --cpuidset 00000001 000106e5 00100800 0098e3fd bfebfbff
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/efi/0/Config/DmiSystemProduct" "iMac11,3"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/efi/0/Config/DmiSystemVersion" "1.0"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/efi/0/Config/DmiBoardProduct" "Iloveapple"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/smc/0/Config/DeviceKey" "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRealSMC" 1
+	VBoxManage setextradata "VM Name" "VBoxInternal2/EfiGopMode" 4 => «ü©w¿Ã¹õžÑªR«×¬° 1600x900
+	VBoxManage setextradata "VM Name" "VBoxInternal2/EfiGopMode" 5 => «ü©w¿Ã¹õžÑªR«×¬° 1920x1080
+		# Šp»Ý§ó§ïµêÀÀŸ÷žÑªR«×¬°¡G1440¡Ñ900; 0 => 640¡Ñ480	1 => 800¡Ñ600	2 => 1024¡Ñ768	3 => 1280¡Ñ1024	4 => 1440¡Ñ900
+
+
+Code for Virtualbox 4.x.x:
+	cd "C:\Program Files\Oracle\VirtualBox\"
+	VBoxManage.exe modifyvm "VM Name" --cpuidset 00000001 000306a9 04100800 7fbae3ff bfebfbff
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/efi/0/Config/DmiSystemProduct" "MacBookPro11,3"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/efi/0/Config/DmiSystemVersion" "1.0"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/efi/0/Config/DmiBoardProduct" "Iloveapple"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/smc/0/Config/DeviceKey" "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"
+	VBoxManage setextradata "VM Name" "VBoxInternal/Devices/smc/0/Config/GetKeyFromRealSMC" 1
+
+
+
+
+Install Mac OS X 10.10 Yosemite AMD On Windows On VirtualBox
+====================
+https://techsviewer.com/install-mac-os-x-10-10-yosemite-amd-on-windows-on-virtualbox/
+Niresh
+
+
+
+File Manager
+==============================
+i-FunBox
+iTools 2012
+
+

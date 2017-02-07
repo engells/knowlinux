@@ -1,0 +1,301 @@
+# vim:ts=4
+
+
+vim plugin
+url:	http://rickey-nctu.blogspot.com/2009/02/make-vim-more-powerful-cont-and-prolog.html
+	http://www.vim.org/scripts/index.php
+====================
+TagLists
+ctags
+cscope
+CCTree, 將CCTree.vim移至vim/plugin/，使用CCTree之前，請先產生cscope.out
+SrcExpl	分割一個視窗來預覽源碼
+QuickFix	將編譯時的輸出訊息導入到QF
+
+
+十個必用的 Vim Plugin
+http://www.openfoundry.org/en/tech-column/2244
+Friday, 22 January 2010 08:00
+Written by Cornelius
+◎ The NERD Tree
+
+操作 Vim 時，通常都在 Terminal 底下作用，無法像一般的 GUI應用程式可以以樹狀目錄來瀏覽檔案。 The NERD Tree是一將檔案目錄以文字模式方式繪製出來的 Plugin。讓使用者可以不必跳出 Vim編輯器 而可進行檔案目錄的瀏覽、開啟等動作。新版的 NERD Tree還另外支援了書籤 (Bookmark) 功能，使用者可將路徑節點存成書籤，以便下次載入時直接回到該路徑上。
+
+※ 安裝
+
+將下載回來的 zip 檔解壓縮之後，使用 rsync 將目錄同步複製到 ~/.vim 底下。
+複製完，NERD_tree.vim 檔案應該要在 ~/.vim/plugin/ 裡頭。
+
+※ 使用
+
+:NERDTree [path|bookmark]
+
+可直接以 NERD Tree 開啟一路徑，或一書籤。
+
+:NERDTreeToggle [path|bookmark]
+
+同上，但若 NERD Tree 已經被開啟，則會自動關閉開 NERDTree 。
+
+通常可自己在 .vimrc 內 map 到 <leader>e 的快捷鍵:
+
+nmap <leader>e  :NERDTreeToggle<CR>
+
+如此，按下 \e 即可將 NERD Tree 開啟或關閉。
+
+:NERDTreeMirror
+
+此指令用於分享一個已經存在的 NERD Tree Buffer，
+假設於一分頁中已經開啟了 NERD Tree ，那麼可在另外一個分頁中
+將前一分頁的 NERD Tree Buffer 同步開啟於目前分頁。
+
+:NERDTreeFind
+
+開啟 NERD Tree 並且找尋目前編輯的檔案。
+若找到目前檔案則會自動將游標位置放至於該檔案節點上。
+
+※ NERDTree 瀏覽操作
+
+如同操作一般的 Vim 文字檔案一樣，所有的 motion 指令都可使用。
+
+於資料夾節點上:
+
+o- 展開資料夾節點
+C-j  - 跳至下一節點
+C-k  - 跳至上一節點
+
+於檔案節點:
+
+o - 開啟檔案
+<Tab> - 開於水平分割視窗
+t - 開於分頁
+T - 開於分頁 (背景)
+
+其他詳細資訊可參考 :help NERDTree.txt
+
+◎ Taglist
+
+Taglist plugin 可使用 ctags 來產生程式碼的變數、函數、類別、標頭檔等等資訊的索引。並且可以左邊開啟分割視窗，將這些資訊分類別顯示出來，也可在 Taglist Buffer 內直接跳躍至該項目定義的位置。
+
+※ 安裝
+
+同 NERDTree 安裝方式，安裝完，taglist.vim 應該要在 ~/.vim/plugin/ 內。
+
+同時你需要啟用 filetype 功能，請在 ~/.vimrc 內加上:
+
+filetype on
+
+來啟用 filetype 的機制。
+
+另外系統需要安裝 ctags :
+
+於 Debian, Ubuntu 平台，可使用 apt-get 安裝 ctags 套件:
+
+$ sudo apt-get install ctags
+
+於 Mac 底下可使用 MacPorts 安裝 ctags 套件:
+
+$ sudo port install ctags
+
+※ 使用
+
+:TlistToggle
+
+對目前檔案使用 ctags 產生標籤檔 (tag file)，並且開啟/關閉 TagList 視窗。
+
+:TlistAddFiles {file(s)} [file(s) ...]
+
+加入其他檔案的索引到目前的 TagList 視窗。
+
+:TlistAddFilesRecursive {directory} [ {pattern} ]
+
+同上，不過可對一目錄底下的所有檔案做索引。
+
+:TlistSessionSave {filename}
+
+可將目前 TagList 的資訊存到一特定檔案內，以便於下次開啟 Vim 時載入回來。
+
+:TlistSessionLoad {filename}
+
+將 Session 檔案載入回來。
+
+:TlistUpdate
+
+更新 Tag 資訊
+
+詳細資訊請參考 :help taglist.txt
+
+◎ SnipMate
+
+為模仿 TextMate 一自動補完程式碼的功能而實做的 plugin。在 SnipMate 之前為SnippetsEmu ，但有 Place Holder 以及和 Autocomplpop 互相衝突的問題，SnipMate 則改進了這項問題，並且同名稱的 Place Holder 可以同步內容，也可反向跳躍至上一個 PlaceHolder。
+
+※ 安裝
+
+同上 plugin 安裝方法，將對應的 Runtime 路徑裡頭的檔案複製到 ~/.vim/ 內。
+
+另外要注意的是，需要在 ~/.vimrc 內啟用 filetype plugin:
+
+filetype on
+filetype plugin on
+
+※ 使用
+
+Snipmate 為不同類型的檔案提供了多種程式碼樣板，在編輯程式時，可以由特定的關鍵字來延展
+該程式碼樣板。
+
+舉例來說，編輯一 C 程式:
+
+$ vim test.c
+
+進入 insert mode ，輸入 "for" ，接著按下 <Tab> 鍵，此時 "for" 會被延展成完整的 for 迴圈
+片段，游標會跳至第一個 place holder ，輸入文字後，可按下 <Tab> 跳至下一個 place holder。
+
+Snippet 的樣板可在 ~/.vim/snippets 內找到，該樣板檔案名稱是以檔案類型作為區別，例如:
+c.snippets , java.snippets , javascript.snippets
+
+你也可以延伸自訂自己的 Snippet 樣板，舉例來說，為 C 程式碼撰寫樣板，可寫:
+
+c-ext.snippets 
+c-cairo.snippets
+c-x11.snippets
+
+那麼在編輯 C 程式碼時，這些 Snippet 都會被自動載入。
+
+◎ FuzzyFinder
+
+FuzzyFinder plugin 提供了一個快速搜尋檔案、Buffer、書籤、指令、標籤的一個介面。
+搜尋時，可以即時預覽搜尋結果，並且支援 wildcard 的模糊搜尋
+
+※ 安裝
+
+同上 plugin 安裝方法，將對應的 Runtime 路徑裡頭的檔案複製到 ~/.vim/ 內。
+
+※ 使用
+
+FuzzyFinder 提供下列命令:
+
+FufBuffer  -  Buffer mode (fuf-buffer-mode)
+FufFile-  File mode (fuf-file-mode)
+FufDir -  Directory mode (fuf-dir-mode)
+FufMruFile -  MRU-File mode (fuf-mrufile-mode)
+FufMruCmd  -  MRU-Command mode (fuf-mrucmd-mode)
+FufBookmark-  Bookmark mode (fuf-bookmark-mode)
+FufTag -  Tag mode (fuf-tag-mode)
+FufTaggedFile  -  Tagged-File mode (fuf-taggedfile-mode)
+FufJumpList-  Jump-List mode (fuf-jumplist-mode)
+FufChangeList  -  Change-List mode (fuf-changelist-mode)
+FufQuickfix-  Quickfix mode (fuf-quickfix-mode)
+FufLine-  Line mode (fuf-line-mode)
+FufHelp-  Help mode (fuf-help-mode)
+
+你可將常用命令 map 至快捷鍵，例如:
+
+nnoremap <leader>ff  :FufFile<CR>
+nnorempa <leader>fb  :FufBuffer<CR>
+...
+
+以此類推。
+
+呼叫 FuzzyFinder 搜尋視窗之後，操作方式如下:
+
+Ctrl-n , Ctrl-p 上下選擇項目
+Ctrl-j  開啟該檔案到水平分割視窗
+Ctrl-k  開啟該檔案到垂直分割視窗
+Ctrl-l  開啟檔案至新分頁
+
+Ctrl-\ Ctrl-\   切換搜尋模式 ( fuzzy matching 或 partial matching )
+
+◎ AutoComplPop
+
+AutoComplPop Plugin 為一可自動偵測目前程式碼的語境，自動呼叫相關對應的補齊函式 (Completion Function)而省去手動觸發補齊功能的 Plugin。
+
+安裝之後，AutoComplPop 就會自動啟用，輸入片段程式碼即可見效。要注意的是，Vim 的版本需要在 7.2 才有支援。
+
+安裝方式同以上 Plugin 。
+
+◎ NeoComplCache
+
+大多數補齊函式，需要另外掃描外部檔案以獲得補齊資訊，耗費的時間依情況而定，但大多數補齊資訊都大同小異，因此 NeoComplCache Plugin 針對特定的樣式 (Pattern) 所回傳的補齊資訊做了快取，以增加補齊速度。
+
+安裝方式同以上 Plugin 。
+
+◎ Fakeclip
+
+為了解決於 Terminal 以及 GUI 之間複製貼上的問題，FakeClip利用了虛擬的暫存器來解決多種平台上 Termianl 複製文字至剪貼簿的問題。
+
+同時支援:
+
+Cygwin
+Mac OS X
+X Window System (使用 xclip)
+
+◎ BufExplorer
+
+Vim 缺乏一個良好的 Buffer 管理介面，只能利用簡單的 :buffers , :[n]buf ,[n]bufwipe , [n]bufdo 指令來做操作。BufExplorer 提供了一個介面將所有 Buffer 的資訊整理出來，你也可透過該介面喚回、刪除該 Buffer。
+
+安裝方式同以上 Plugin。
+
+◎ Surround.vim
+
+Surround plugin 可針對包含在文字外的括號、引號、XML 標籤等等做快速的修改。
+
+舉例來說:
+
+於下字串內，按下 cs"' 時
+
+"Hello world!"
+
+可改為:
+
+'Hello world!'
+
+此時若按下 cs'<q>
+
+則可改為
+
+<q>Hello world!</q>
+
+Surround plugin 也支援 Visual Mode ，選擇後，可使用大寫 S 對該區塊修改包圍的文字
+
+安裝方式同以上 Plugin。
+
+◎ GSession.vim
+
+GSession.vim 是一處理 Vim Session Plugin 。一般建立 Session 可使用:mksession [filename] 指令，來將目前所有的分頁、開啟的檔案狀態儲存起來，在下次
+載入 Vim 時可以將狀態喚回。 但缺點就在 Session File 會被存在工作目錄內，GSession 可自動將 Session File 集中放置在 ~/.vim/session 內，並且可以是匿名 Session ，也就是，你不需要花時間想 Session 的名稱。
+
+存 Session 之後，在同一個路徑開啟 Vim 時便會自己載入 Session，省去輸入指令再去載入的時間。若要儲存為命名的 Session ，載入時，也同時支援自動補齊，不需自己記住當時所存的 Session 名稱。
+
+安裝方式同以上 Plugin。
+
+※ 使用
+
+<leader>ss   建立匿名 global session file
+
+<leader>sS   建立匿名 local session file
+
+<leader>se   刪除目前的 session file
+
+<leader>sE   刪除所有的 session file
+
+<leader>sn   建立命名的 global session file
+
+<leader>sl   建立命名的 local session file
+
+附錄:
+
+以上 plugin 皆可使用 Vimana 來安裝。
+Vimana 為一可以偵測 vim.org 上 plugin 檔案，來自動安裝 plugin 檔案之模組。
+
+安裝 Vimana :
+
+使用 cpan 來安裝 Vimana，若是初次使用 cpan，只需要採用預設的 cpan 設定即可。
+
+$ sudo cpan Vimana
+
+搜尋 plugin :
+
+$ vimana s [keyword]
+
+安裝 plugin :
+
+$ vimana i [plugin name]

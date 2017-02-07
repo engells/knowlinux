@@ -1,0 +1,155 @@
+# vim:ts=4
+
+
+
+進入視窗環境過程摘要
+==============================
+GDM 登錄，進入視窗環境
+	GDM + $HOME/.dmrc + $HOME/.xprofile
+
+文字終端機登錄，以 startx 進入視窗環境
+	startx => xinit + { $HOME/.xsession | $HOME/.xinitrc | /etc/X11/xinit/xinitrc } => window manager
+
+
+
+
+X configures
+==============================
+
+startx to xinit
+-------------------------
+xinit [cliet options] -- [server or display options]
+xinit xterm -geometry +1+1 -n login -display :0 -- X :0		<= original xinit command
+
+
+server arguments sequences
+-------------------------
+startx 指令後面接的參數
+若無上述參數，則 $HOME/.xserverrc							=> not found in Ubuntu
+若無上述兩者，則 /etc/X11/xinit/xserverrc					=> found
+若無上述三者，則單純執行 /usr/bin/X (此即 X server 執行檔)	=> found 
+
+
+client arguments sequences - classic
+-------------------------
+startx 指令後面接的參數
+若無上述參數，則 $HOME/.xinitrc			=> not found in Ubuntu, use $HOME/.xsession if need to creat user own file.
+若無上述兩者，則 /etc/X11/xinit/xinitrc	=> found
+若無上述三者，則單純執行 xterm				=> found
+
+
+client arguments sequences - modern
+http://newtoypia.blogspot.tw/2012/06/xinitrc-xsession-xprofile.html#more
+-------------------------
+
+.xinitrc /.xsession
+(GDM | KDM | startx) => .xinitrc /.xsession => window manager
+.xinitrc /.xsession 不論是由 (GDM | KDM | startx) 呼叫起來，控制權不會再交回。所以 .xinitrc 或 .xsession 裡面的最後一行指令通常是 exec gnome-session 或 exec startkde 或 exec enlightenment 或 exec icewm 等。總之就是確認最後有啟動視窗管理員程式。
+
+.xprofile
+(GDM | KDM) => ~/.xprofile => window manager
+.xprofile 相較於 .xinitrc /.xsession 有什麼差別呢? .xprofile 是由 GDM / KDM 呼叫起來，裡面就只放你要加的命令就好。.xprofile 執行結束之後, 控制權會回到 GDM/KDM，並啟動視窗管理員程式。
+
+
+
+
+石頭閒語
+http://blog.roodo.com/rocksaying/archives/19886616.html
+==============================
+
+GDM 自動登入
+-------------------------
+
+Debian 6 編輯 /etc/gdm3/daemon.conf 。
+----------
+[daemon]
+	AutomaticLoginEnable = true	# Enable auto login.
+	AutomaticLogin = rock       # Which account will login.
+
+Ubuntu 10.04 編輯 /etc/gdm/gdm.schemas
+----------
+	<key>daemon/AutomaticLoginEnable</key>
+	<default>true</default>
+	<key>daemon/AutomaticLogin</key>
+	<default>rock</default>
+
+Ubuntu 12.04 預設使用 lightdm ，其組態文件為 /etc/lightdm/lightdm.conf 。 自動登入組態如下:
+----------
+[SeatDefaults]
+	autologin-user=rock
+	autologin-user-timeout=0
+
+
+
+GDM 如何決定 X 使用環境 (X session)
+-------------------------
+GDM 在自動登入時，由 $HOME/.dmrc 決定登入後的 X 使用環境(X session)。 內容如下:
+
+	[Desktop]
+	Session=gnome
+
+.dmrc 中的 Session 名稱，指的是 /usr/share/xsessions 下的 .desktop 文件。 例如 Session=gnome 表示根據 /usr/share/xsessions/gnome.desktop 文件的內容載入 X 使用環境 (文件名稱相配)。
+
+.desktop 文件的內容以 gnome.desktop 為例說明:
+
+	[Desktop Entry]
+	Name=GNOME
+		# GDM 登入畫面中，顯示給使用者選擇的 X 使用環境名稱
+	Exec=gnome-session
+		# 負責啟動 X 使用環境的執行檔
+	Type=Application
+		# 規定項目
+
+注意，當 .dmrc 中指定的 Session 為 default 時，則 GDM 將會根據系統指定的 /usr/bin/x-session-manager 或 $HOME/.xsession 載入 X 使用環境。 這一部份與 startx 的機制相同，詳細後述。
+
+
+
+startx
+-------------------------
+修改 /etc/default/grub 內容如下後，執行 update-grub 指令，可取消 GDM 登入行為。
+	#GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+	GRUB_CMDLINE_LINUX_DEFAULT="text"
+
+取消 GDM 登入行為後，系統將不再顯示 GDM 的登入畫面。取而代之則是文字終端機的登入提示，登入後可以再執行 startx 啟動 X 視窗環境。
+
+startx 將會先找 $HOME/{.xsession | $HOME/.Xsession}，若找無前述檔案，則再找 /usr/bin/x-session-manager 以載入 X 視窗環境。
+
+使用者可以在自己的家目錄下，編寫一個專屬 .xsession 完全客製自己喜好的 X 視窗環境。 但大部份使用者不會這麼大費周章，通常只需要建立 .xsession 的符號連結指向自己偏好的 X 視窗環境執行檔。 例如:
+
+	$ ln -s /usr/bin/openbox-session $HOME/.xsession
+
+可以參考 /usr/share/xsessions 下的 .desktop 文件，了解系統中安裝了哪些可用的 X 視窗環境執行檔。
+
+若使用者的家目錄下不存在 .xsession ，startx 就會嘗試執行 x-session-manager 載入系統預設的 X 視窗環境。
+
+而 x-session-manager 基本上是由 update-alternatives 維護的符號連結。 update-alternatives 會建立一個候選者資料庫，記錄哪些執行檔可以做為 x-session-manager 的候選者。
+
+update-alternatives 的操作指令示範如下:
+
+	註冊新的候選者
+		update-alternatives --install /usr/bin/x-session-manager x-session-manager /usr/bin/my-x-session 90
+	列出可用的候選者
+		udpate-alternatives --list x-session-manager
+	顯示目前選擇的候選者
+		udpate-alternatives --display x-session-manager
+	指定使用的候選者
+		udpate-alternatives --set x-session-manager /usr/bin/my-x-session
+
+當然，使用者也可以無視 update-alternatives ，直接修改 /usr/bin/x-session-manager 指向自己偏好的 X 使用環境。
+
+
+
+
+openvt
+-------------------------
+使用 openvt ，可以開機後直接進入 X 視窗環境，且不經過 GDM 。
+
+openvt 是一個虛擬終端機程式，可以將使用者指定的程式直接啟動在新的終端機上。
+
+虛擬終端機(virtual terminal)是一組模擬的鍵盤與螢幕組合，藉由虛擬終端機程式，可以在一台實體電腦主機上，模擬多組終端機，讓使用者可以在不同的終端機上以不同的使用身份執行不同的程式。
+
+傳統上， Linux 作業系統啟動後，都會一併啟動 6 個虛擬終端機執行 login 程式。 Linux 作業系統啟動後，使用者看到的 Login: 提示，就是由虛擬終端機程式叫起的。使用者可以利用鍵盤的 Ctrl+Alt+F1 到 Ctrl+Alt+F6 的組合鍵切換這 6 個虛擬終端機。
+
+叫起 login 程式的虛擬終端機程式是 getty 。而 openvt 則是另一種較少用的虛擬終端機程式。 但是在此，它可以幫助我們於開機後跳過 GDM 而直接進入 X 視窗環境。
+
+

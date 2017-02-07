@@ -1,0 +1,237 @@
+# vim:ts=4
+
+
+tails linux
+xrandr
+xrandr --output LVDS1 --off # 關閉筆電上的螢幕
+xrandr --output VGA1 --mode 1680x1050 --rate 60	# 指定螢幕的解析度及更新頻率
+https://github.com/plans > Create a free account > engells/kt99.... > new repository
+lsb_release -sr	顯示 Ubuntu 之數字版本
+
+dtrx(un-compress); di(disk info); iftop(interface top)
+
+NVIDIA CUDA 技術是利用顯示卡的 GPU 進行高效能平行運算
+UKMS(Ultra KSM(Kernel Samepage Merging))：消除記憶體( ram )中的資料重覆（Data Deduplication），可以大幅節省記憶體，如果經常用虛擬機的話，UKSM 的效果會更明顯
+
+troff: 
+rxvt: terminal
+screen:	windows manager
+
+SDL: Simple SirectMedia Layer
+
+R-project + RKward : 統計軟體	，http://blog.lyhdev.com/2008/09/r-project-rkward.html
+
+
+
+
+Install with UEFI mode
+==============================
+dd if=path/to/file.iso of=/dev/sdx bs=1M
+choose entries like "UFI: ..." to boot computer
+choose "try Ubuntu without installing ..." 
+
+Hybrid ISO
+Ubuntu family Desktop/Alternate/Server, but not mini.iso
+Linux Mint 13+
+Clonezilla
+Debian stable
+
+url:
+-----
+UEFI: https://help.ubuntu.com/community/UEFI
+
+
+
+
+以 USB 安裝 Server 或 Alternate
+=============================
+將光碟映像檔複製一份至隨身碟
+安裝過程出現找不到光碟的錯誤訊息時，按下 ALT+F2 切換到終端機。錯誤訊息是因為 /cdrom 目錄掛載的不是光碟映像檔
+若隨身碟裝置 /dev/sdXy 掛載在 /cdrom 目錄，則卸載 /cdrom 目錄
+將隨身碟裝置 /dev/sdXy 另行掛載在如 /mnt 的目錄
+將隨身碟上的光碟映像檔掛載在 /cdrom 目錄，mount -t iso9660 -o loop /mnt/ubuntu-12.04.2-server-amd64.iso /cdrom
+
+
+
+
+Ubuntu 的 X
+==============================
+使用套件：xorg
+	該套件提供 Server、Client 及 Lib 等。預設不產生 xorg.conf。
+	網路資料，使用 service lightdm stop + Xorg -configure 指令產生 xorg.conf.new，再複製成 /etc/X11/xorg.conf
+
+搜尋時發現的其他套件：
+	x-window-system-core：似乎就是 xorg
+	xserver-xorg：未安裝
+	xserver-xorg-core：未安裝
+	xserver-xorg-video-radeon：驅動程式，未安裝。以指令 lspci | grep VGA 得知 HD 3300 的對應型號為 RS780D。
+
+在 server 版本安裝桌面環境
+	sudo apt-get install ubuntu-desktop
+		安裝完整桌面環境
+	sudo apt-get install --no-install-recommends ubuntu-desktop
+		僅安裝基本桌面環境
+
+
+
+
+查詢使用目錄的程序
+==============================
+fuser -m /path
+	# 單純查詢佔用目錄的程序，其回報資料類似：process 25023(pid)
+	# 可用 kill -9 25023 指令釋放資源，此外 ps aux | grep 25023 應可看到程序
+fuser -m -v -i -k /media/share
+	# 會問是否把 25023 這個 kill 掉, 選 y 就會 kill 掉。訊息如下:
+	#	USER				PID			ACCESS COMMAND
+	#	/meida/share: root	25023 ..c..	bash
+	#	Kill process 25023 ? (y/N) y
+
+
+
+
+kexec
+==============================
+Linux 中的引導過程有兩個階段：引導裝載程序階段和內核階段。
+
+引導裝載程序階段主要包括硬體階段、韌體階段、第一級引導裝載程序和第二級引導裝載程序。引導過程從硬體加電啟動開始。一些初始化工作完成後，控制轉到韌體。韌體在一些體系結構中也稱為「BIOS」，它去檢測系統上的各種設備，包括內存控制器、存儲設備、總線橋和其他硬體。韌體基於設置將控制移交給一個最小化的引導裝載程序，即大家所知的主引導記錄（master boot record），這個主引導記錄可能在磁盤驅動器上，或者在可移動媒體上，或者在網絡上。將控制移交給操作系統的實際工作由第二階段引導裝載程序（通常被簡單地認為是「引導裝載器（boot loader）」 ）執行。這個引導裝載程序讓用戶可以選擇要裝載的內核，將內核和相關參數裝載到內存，初始化內核，設置需要的環境變量，並最終「運行」內核。
+
+引導的下一個階段是 內核階段，此時內核已經獲得控制權。它設置需要的數據結構，檢測當前在系統上的設備，裝載需要的設備驅動程序，並初始化設備。引導過程的最後階段包括用戶級初始化。在這個階段，內核檢查文件系統的完整性，掛載文件系統，設置交換分區（或者交換文件），啟動系統服務，設置系統終端，並完成所有其他設置。
+
+kexec 跳過了整個引導裝載程序階段（第一部分）並直接跳轉到新的內核。
+
+
+
+
+E17
+==============================
+安裝
+	sudo add-apt-repository ppa:hannes-janetzek/enlightenment-svn
+	sudo apt-get update
+	sudo apt-get install e17
+移除
+	sudo apt-get remove e17 e17-data libecore* libedbus1 libedje-bin libedje1 libeet1 libefreet1 libembryo1 libeina1 libevas* libembryo-bin
+	sudo apt-get purge e17 e17-data libecore* libedbus1 libedje-bin libedje1 libeet1 libefreet1 libembryo1 libeina1 libevas* libembryo-bin
+
+
+
+
+各項程式安裝
+==============================
+
+terminator 視窗可切割多個畫面的終端機
+-------------------------
+sudo apt-get install terminator
+
+
+nautilus-gksu
+url:http://xubuntugeek.blogspot.tw/2012/08/how-to-install-nautilus-gksu-extension.html
+	http://fvalinux.pixnet.net/blog/post/27793225-%E4%BD%BF%E7%94%A8gpg%E9%A9%97%E8%AD%89%E6%AA%94%E6%A1%88%E7%9A%84%E6%96%B9%E6%B3%95
+-------------------------
+if [[ $(lsb_release -sr) == "12.04" ]]; then echo 'deb http://packages.linuxmint.com/ maya main upstream import' | sudo tee /etc/apt/sources.list.d/linuxmint.list && key=3EE67F3D0FF405B2 && gpg --keyserver subkeys.pgp.net --recv-keys $key && gpg --armor --export $key | sudo apt-key add - && sudo apt-get update; fi && sudo apt-get install nautilus-gksu -y && sudo sed -i 's/Thunar/nautilus/' /etc/xdg/xfce4/helpers.rc
+
+GPG：驗證 file integrity，驗證檔案的方式最常見的還有用 hash 的方法，像 MD5、sha1、sha256、sha384、sha512。但 MD5 和 sha1 已經可以很容易的被找到 collision，因此比較安全的作法是使用 sha256 以上的 hash algorithm。
+
+
+Joy Stick
+-------------------------
+modprobe joydev, load kernel module
+apt-get install joystick
+jstest /dev/input/js0
+#xserver-xorg-input-joystick, xserver-xorg-input-joystick-dev 避免搖桿與滑鼠衝突
+
+~/.config/supertuxkart/challenges.xml
+sed -i 's/false/true/g' ~/.config/supertuxkart/challenges.xml
+
+
+java-openjdk
+-------------------------
+sudo apt-get purge openjdk*
+rm /var/lib/dpkg/info/oracle-java7-installer*
+sudo apt-get purge oracle-java7-installer*
+sudo rm /etc/apt/sources.list.d/*java*
+sudo apt-get update
+
+java-oracle apt
+-------------------------
+add-apt-repository ppa:webupd8team/java
+apt-get update
+apt-get install oracle-java7-installer
+
+java-oracle bash / http://www.arthurtoday.com/2012/05/ubuntu-11-oracle-sun-jdk-6.html#.UMlvjeCvhv9
+-------------------------
+to download jdk-xxxx.bin
+sudo chmod u+x jdk-xxxx.bin
+./jdk-xxxx.bin
+sudo mkdir /usr/lib/jvm
+sudo mv jdk1.x.0_xx /usr/lib/jvm
+cd /usr/lib/jvm/jdk1.x.0_xx
+sudo update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/jdk1.x.0_xx/bin/java" 1
+sudo update-alternatives --install "/usr/lib/mozilla/plugins/libjavaplugin.so" "mozilla-javaplugin.so" "/usr/lib/jvm/jdk1.x.0_xx/jre/lib/i386/libnpjp2.so" 1
+sudo update-alternatives --config java	# 將 JVM 切換成 Sun JDK
+sudo update-alternatives --config mozilla-javaplugin.so
+java  -version	# 查詢 Sun JDK 的版本資訊
+
+
+
+
+Unity
+==============================
+移除掛載磁碟的圖示，請開啟終端機，並輸入「gsettings set com.canonical.Unity.Devices devices-option "Never"」指令即可移除。
+若想全部顯示可輸入「gsettings set com.canonical.Unity.Devices devices-option "Always"」
+經201207測試，上述指令似無效果
+
+Ubuntu登入時發生：「您的登入鑰匙圈並未在登入時自動解鎖」
+killall -9 gnome-keyring-daemon
+rm -fr ~/.gnome2/keyrings
+
+ubuntu desktopcouch-service CPU loading 100%
+sudo cp /usr/lib/desktopcouch/desktopcouch-service /usr/lib/desktopcouch/desktopcouch-service.bak
+sudo rm /usr/lib/desktopcouch/desktopcouch-service
+
+先按住 super 鍵（win鍵）不要放，unity 那一行上面的軟體圖案就會顯示號碼，然後 super + 號碼，就可以直接啟動該軟體
+http://blog.longwin.com.tw/2012/01/unity-keyboard-shortcut-2012/
+http://wowubuntu.com/unity-shortcut.html
+
+Ctrl + Shift + 箭頭 切換虛擬桌面
+
+
+url:
+-------------------------
+http://askubuntu.com/questions/28086/what-are-unitys-keyboard-and-mouse-shortcuts
+http://wowubuntu.com/unity-shortcut.html
+
+
+
+
+一些 Ubuntu 的使用技巧
+==============================
+
+一、執行init.d(開機)時讓多核心或hyper-threading(超執行緒)的CPU發揮同步處理功能
+	修改/etc/init.d/rc這個檔案，將在第一到二頁看得到的「CONCURRENCY=none」改成 「CONCURRENCY=shell」
+	# Ubuntu 9.04 以後的版本，安裝後似乎就是使用多核心了，應該是不用改吧！在系統 →管理 →系統監控 →資源中就可看 到雙 CPU 在工作中
+
+
+二、RAM 夠大(比方說 2GB)時，直接利用 RAM 不使用 swap
+	對內核(kernel)參數 vm.swappiness 作修改，預設值是 60，數字訂得越小就越不使用 swap。
+
+	即時性修改： 
+		sudo sysctl -w vm.swappiness=0 (預設值60)
+		sudo swapoff -a
+			# 釋放目前已用的 swap 到記憶體中
+		sudo swapon -a
+			# 把swap開啟，這時候 vm.swappiness 已經是 0 了，所以系統幾乎不會使用到swap
+			# 如果正看著記憶體使用量，會發現用量變高了，代表 swap 已經移動到記憶體中。
+
+	永久性修改： 
+		sudo gedit /etc/sysctl.conf
+		在會記得、找得到的空白處(別放在有一大堆程式碼的地方，可以放在 最前面或最後面)增加一行 
+			vm.swappiness=0
+		下次開機生效。
+
+
+三、安裝 preload 套件
+	preload 會在開機時將常用到的程式如 firefox，載入記憶體，如此要用這些程式的時候 啟動速度會變快。(警告！會多少增加開機時間) 
+
+	sudo apt-get install preload
+	# 這樣就可以了，preload會自動執行。 
+

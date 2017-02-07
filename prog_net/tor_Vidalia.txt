@@ -1,0 +1,49 @@
+
+
+
+
+Tor & vidalia 翻牆軟體
+==============================
+
+# install tor
+sudo add-apt-repository "deb http://deb.torproject.org/torproject.org/ precise main"
+gpg --keyserver keys.gnupg.net --recv 886DDD89
+gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install tor tor-geoipdb torsocks
+
+
+# install polipo(代理伺服器)
+sudo apt-get install polipo
+sudo sed -i 's/# socksParentProxy/socksParentProxy/g ; s/# socksProxyType/socksProxyType/g' /etc/polipo/config
+
+
+# disable startup of tor and polipo(每次升級tor後需重做一遍）
+sudo rm -f /etc/rc?.d/*tor
+sudo rm -f /etc/rc?.d/*polipo
+sudo shutdown -h now
+
+
+# install vidalia(圖形介面軟體)
+sudo apt-get install vidalia
+ -安裝過程中用空白鍵選取要加入「debian-tor」群組的用戶。
+ -裝好後啟動Vidalia，若出現「Tor沒有運作」的警告不必理會。
+ -接著在Vidalia控制面板按「設定」
+ 「一般」頁面 > 勾取「在Vidalia啟動時一併啟動Tor軟體」，並在下一行填入「/usr/sbin/tor」，若已有就不必自行填入
+ 「一般」頁面 > 勾取「在Vidalia啟動時一併啟動一個代理伺服器的應用程式」，並在下一行填入「/usr/bin/polipo」
+ 「外觀」頁面 > 將「風格」選為「GTK+」
+ 「進階」頁面 > 點選「Use TCP connection (ControlPort)」 > 然後按「確定」結束設定
+ -接著「退出」Vidalia　便大功告成！以後啟動Vidalia就開啟了「經由Tor網路的HTTP代理伺服器服務」
+
+
+#瀏覽器設定
+HTTP代理伺服器網址為 127.0.0.1:8123，請自行在網頁瀏覽器等等裡，設定HTTP代理伺服器網址。
+
+
+#設定「排除節點」與「出口節點」（並非必要）
+Vidalia控制面板 > 設定 > 進階 >　按「Edit current torrc」 
+ -加入 ExcludeNodes {cn},{hk},{mo},{tw} =>　即不經過中國、香港、澳門、台灣　請視需求更改區域
+ -加入 ExitNodes {jp} =>　即出口為日本　請視需求更改區域
+
+
+設定從下次啟動Vidalia起生效。如想幫忙Tor網路的運作，可以在Vidalia「設定」視窗的「Sharing」頁面　點選「幫助用戶訪問Tor網路」。

@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Virtual Machines</title>
+  
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+  
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=utf-8">
+
+  
+  <meta name="GENERATOR" content="OpenOffice.org 3.0 (Unix)">
+
+  
+  <style type="text/css">
+<!--
+@page { margin: 0.79in }
+P { margin-bottom: 0.08in }
+-->
+  </style>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8"></head><body style="direction: ltr;">
+<br>
+
+<h1>Virtual Machines</h1>
+
+<br>
+
+<h3>虛擬機器概述</h3>
+
+<hr>
+<ul>
+
+  <li>虛擬機的模擬，其中有關虛擬網路的部份，資料置放在
+~/ktws/0.linux.doc/net-virtual-tuntap.txt 文件<br>
+  </li>
+  <li>常見的虛擬機器</li>
+  <ul>
+    <li>DOSBox</li>
+    <li>Bochs<br>
+可利用附帶的 bximage 製作映像檔，參 http://dosbox.blog125.fc2.com/</li>
+    <li>QEMU<br>
+    </li>
+    <li>Virtual Box</li>
+    <li>KVM</li>
+    <li>Vmware</li>
+    <li>Virtual Floppy Drive<br>
+參 http://blog.752club.com/virtual-floppy-drive/</li>
+  </ul>
+</ul>
+
+<br><br>
+<h3>VMware Server虛擬</h3>
+
+<hr>
+<ul>
+
+  <li>How to install vmware 2.x, following the commands below:
+    <p class="command">sudo apt-get install
+linux-headers-`uname -r` build-essential xinetd<br>
+sudo ./vmware-install.pl<br>
+sudo passwd root</p>
+  </li>
+  <li>How to manage vmware Server 2.0, through web interface
+with
+url:<br>
+    <ul>
+      <li>https://127.0.0.1:8333</li>
+      <li>http://127.0.0.1:8222</li>
+    </ul>
+  </li>
+  <li>最佳化VMWare<br>
+    <ul>
+      <li>將預設虛擬網卡從AMD PCNet PCI換成Intel
+Pro1000，傳輸速度可由400kpbs提高至3Mpbs</li>
+      <li>關閉虛擬機器後，進入虛擬機器檔所在目錄，以文字編輯器打開.vmx檔</li>
+      <li>在.vmx檔的Ethernet節段第一行前插入ethernet0.virtualDev = e1000</li>
+      <li>下載Intel網卡驅動程式</li>
+      <li>存檔後重新啟動虛擬機器，在虛擬機器中刪除AMD網卡，並安裝Intel網卡。</li>
+      <li>再度關閉虛擬機器並重新啟動一次，在虛擬機器中進入Windows的設定&gt;網路連線&gt;
+區域
+連線
+&gt;內容&gt;一般&gt;網卡的進階設定，將連結速度及雙工選項設為自動偵測</li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<br>
+
+</body></html>

@@ -1,0 +1,177 @@
+# vim:ts=4
+
+
+
+How to install ATI driver in Debian - Method 2
+==============================
+Debian 預設使用 radeon 當作 driver。對於 ATI 的使用者而言，radeon 雖然是 open source 的 driver，可是效能不太理想(不太理想是好聽話...大部分時候是 X window 整個起不來)，因此建議還是安裝 propriotary 的 driver--fglrx
+
+自 Squeeze (目前的 stable 版本)起才有 fglrx 的支援；如果剛好是 Squeeze，則可以透過安裝 kernel headers 以及 fglrx-driver 來達成，Wheezy 則需要到 AMD 官方網站下載符合自己顯卡的 driver。
+
+由於 radeon 與 fglrx 衝突，因此需要把 radeon.blacklist=1 寫入到 /etc/grub.d/10_linux ，再更新 grub 設定。
+	在 /etc/grub.d/10_linux 檔案大約 114-116 行之間是定義 kernel 參數的部份：
+		linux ${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
+	請在上行最後面附加 nouveau.blacklist=1，然後把設定寫入到grub裡：
+		update-grub
+
+關於 fglrx 與 Debian 的相關資料，請參閱 ATIPropriotary(http://wiki.debian.org/ATIProprietary/)。
+
+目前的 12.6 版本的 AMD Catalyst™ 驅動對 xserver 版本支持至 1.12，linux 內核支持到 3.4。因此升級時需注意相關套件版本。另外，准備升級 xserver 前，應先將 AMD Catalyst™ 驅動卸載後重啟，升級 xserver 後再重裝 ATI 官方驅動，卸載 script 在 /usr/share/ati 目錄。若直接升級 xserver，下次開機時可能無法進入系統。且升級 linux 內核後，需將該顯卡重新編譯進內核。否則新內核將不會使用該驅動，至少Debian 目前還不會自動將 ATI 官方的驅動自動編進內核。建議不要卸載開源的驅動，萬一哪次不小心升級了內核卻又沒能將驅動編進內核，就進不去桌面了。
+
+URL:
+	http://maxubuntu.blogspot.tw/2012/09/debian-gnome3.html
+
+
+
+
+How to install ATI driver in Debian - Method 2
+==============================
+安裝編譯所需套件
+	sudo apt-get install build-essential fakeroot module-assistant linux-header-$(uname -r)
+		# 部份貼文還安裝 dh-make debconf libstdc++5，似乎是為了產生 deb 檔
+
+產生 deb 檔
+	sudo /path/to/ati-driver-installer-x-x-x86.x86_64.run --buildpkg Debian/xxxx
+		# xxxx 表示 Debian 版本代號，如 Debian/testing
+		# 也可直接安裝 sudo /path/to/ati-driver-installer-x-x-x86.x86_64.run --install
+
+安裝 deb 檔
+	sudo dpkg -i xxx.deb
+		# 會出現升級 fglrx 的訊息，實際上是降級為 Debian 套件庫內的 fglrx
+
+檢查是否有載入 fglrx 模組
+	modprobe -l | grep fglrx
+
+備份後修改 /etc/X11/xorg.conf
+	在 Section "Module" 中加入 load "fglrx'，將 Section "Device" 中的 Driver 改成 "fglrx"
+
+重啟 X
+
+檢查驅動程式
+	功能表 → ATI Catalyst Control Center → Information → OpenGL 
+	# 如果出現顯卡型號的話，那就安裝上了，如果是 MESA，則還沒有用上閉源驅動
+
+	執行 fglrxinfo，結果類似： 
+		display: :0.0 screen: 0 OpenGL vendor string: ATI Technologies Inc. 
+		OpenGL renderer string: ATI Radeon 9550 / X1050 Series OpenGL version string: 2.1.7537 Release
+
+	執行 fgl_glxgears，檢視運行幀數
+		驅動安裝不成功的話，fgl_glxgears將無法運行
+
+URL:
+	http://www.linuxdiyf.com/bbs/thread-98216-1-1.html,	2008-07-10
+
+
+
+
+How to install ATI driver in Ubuntu - Method 1
+==============================
+
+Install
+-------------------------
+到官方網站下載適合的驅動程式到家目錄。
+
+執行 "sudo sh *.run"（*.run代表你下載回來的檔案）
+	安裝過程請使用 automatic 的設定值
+
+安裝完成後，重新開機
+	在 ubuntu 的開機選單中選擇用 recovery mode 進入 ubuntu
+	選擇 root，並執行以下指令
+		aticonfig --initial
+		aticonfig --overlay-type=Xv
+		exit
+	選擇 resume，回到 GNOME 桌面
+
+
+Uninstall
+-------------------------
+開機時進入 recovery mode
+	選擇使用 root 模式
+		輸入 sh /usr/share/ati/fglrx-uninstall.sh ← 安裝 ATI 官方顯示卡驅動程式後出現
+		輸入 apt-get remove --purge fglrx*
+		輸入 apt-get remove --purge xserver-xorg-video-ati xerver-xorg-video-radeon
+
+
+URL
+-------------------------
+	http://wiki.ubuntu-tw.org/index.php?title=HowtoInstallGraphicsDriver
+	http://wiki.cchtml.com/index.php/Main_Page
+
+
+
+
+How to install ATI driver in Ubuntu - Method 2
+==============================
+Download ATI drivers with version >= 9.6, url: http: //wiki.cchtml.com/
+
+Run the commands below:
+	sudo apt-get update
+	sudo apt-get install build-essential cdbs fakeroot dh-make debhelper debconf libstdc++5 dkms
+	sudo apt-get install linux-headers-$(uname -r)  <=optional, incase the packages needed
+	sh ati-driver-installer-9-6-x86.x86_64.run --buildpkg Ubuntu/jaunty  
+	sudo dpkg -i xorg-driver-fglrx_*.deb fglrx-kernel-source_*.deb fglrx-amdcccle_*.deb
+	sudo aticonfig --initial -f
+
+Reboot
+
+Edit xorg.conf if necessary
+	Section "Device"
+		Identifier "Configured Video Device"
+		Option "RenderAccel" "on"
+		Option "AccelMethod" "XAA"
+		Option "AGPMode" "4"
+	End Section
+
+If smplayer can't play video, set up mplayer configuration
+	Edit file of ~/.mplayer/gui.conf, change vo_driver = "x11" form vo_driver = "xv" 
+	SMplayer > options > preference > general > video > output driver, change the value to "x11" form "xv"
+
+Disable default fglrx if necessary
+	Editfile of  /etc/default/linux-restricted-modules-common
+	Change DISABLED_MODULES="fglrx" form DISABLED_MODULES=""
+
+
+
+
+How to remove ATI driver(fglrx)
+==============================
+Run the commands below:
+	sudo dkms build -m fglrx -v 8.632 -k `uname -r` => dkms stands for Dynamic Kernel Module Support
+	fglrx info
+	sudo apt-get autoremove xorg-driver-fglrx
+	exit
+
+Resume Normal Boot
+
+
+
+
+X with ATI Chip
+==============================
+sudo cp /etc/X11/xorg.conf /etc/X11/xorg.conf.back
+sudo aticonfig --initial -f
+Reboot, if necessary
+sudo gedit /etc/X11/xorg.conf
+	...
+	Section "ServerFlags"
+		Option	"DontZap" "no"	# 這個區塊就是把 " crl + alt + ← " 強制重啟桌面環境的功能開起來。
+	EndSection
+
+	Section "Monitor"
+		Identifier	"Configured Monitor"
+		HorizSync	31.5-67.5	#水平頻率範圍
+		VertRefresh	60-75		#垂直頻率範圍
+	EndSection
+	...
+	Section "Screen"
+		Identifier	"Default Screen"
+		Device	"Configured Video Device"
+		Monitor	"Configured Monitor"
+		DefaultDepth	24
+		SubSection	"Display"
+		Depth	24		#很眼熟對吧，在之前修改gdm解析度時也有出現這東西。
+		Modes	"1360x768"	# Modes 後面就是要強制的解析度。
+		EndSubSection
+		EndSection
+
+

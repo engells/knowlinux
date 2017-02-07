@@ -1,0 +1,93 @@
+# vim:ts=4
+
+
+
+Howto Install QEMU With Accelerator
+url: http://wiki.ubuntu-tw.org/index.php?title=Howto_Install_QEMU_With_Accelerator
+==============================
+
+下載 QEMU 及加速模組(KQEMU,QEMU Accelerator Module)
+
+
+安裝 QEMU Binary distribution
+-------------------------
+cd /
+sudo tar zxvf /tmp/qemu-0.8.2-i386.tar.gz
+sudo apt-get build-dep qemu (optional)
+sudo apt-get install gcc-3.4 checkinstall (optional)
+cd /tmp
+tar zxvf qemu-0.8.2.tar.gz
+cd qemu-0.8.2
+./configure --cc=gcc-3.4
+make
+sudo checkinstall (如果是 AMD64 平台，請用 sudo checkinstall -A amd64)
+
+
+
+安裝 QEMU 加速模組，,QEMU 从0.11版本已经不再支持 KQEMU
+-------------------------
+sudo apt-get install linux-headers-`uname -r` build-essential
+cd /tmp
+tar zxvf kqemu-1.3.0pre9.tar.gz
+cd kqemu-1.3.0pre9
+./configure && make && sudo make install
+
+
+
+掛載 KQEMU 模組
+-------------------------
+sudo modprobe kqemu
+sudo cp /etc/rc.local /etc/rc.local.backup
+sudo gedit /etc/rc.local
+	# Config RTC timer
+	echo 1024 > /proc/sys/dev/rtc/max-user-freq
+
+	# Create the kqemu device. No special priviledge is needed to use kqemu.
+	device="/dev/kqemu"
+	rm -f $device
+	mknod $device c 250 0
+	chmod 666 $device
+	modprobe kqemu
+
+
+
+使用 QEMU
+-------------------------
+qemu-img create [-f format] filename size
+	# 支援的檔案格式有 raw、qcow、cow、vmdk、cloop。如果不指定，則預設為 raw
+
+qemu-img create w32.img 4GB
+	# 建立 4GB，raw 格式，名為 w32.img 的映像檔。
+
+qemu-img create -f qcow u606.img 8GB
+	# 建立 8GB，qcow 格式，名為 u606.img 的映像檔。
+
+qemu [options] [disk_image]
+	-hda/-hdb file	使用 'file' 作為 IDE 硬碟 0/1 的映像檔。
+	-hdc/-hdd file	使用 'file' 作為 IDE 硬碟 2/3 的映像檔。
+	-cdrom file	使用 'file' 作為 IDE CD-ROM 映像檔(不可以跟 -hdc 參數同時使用)。
+	-cdrom /dev/hdX	使用實體光碟機作為IDE CD-ROM，X為實際上光碟機從系統取得的代號（a,b,c or d）
+	-boot [a|c|d]	從'軟碟'(a)，'硬碟'(c)或'光碟'(d)開機。
+	-m memorysize	設定虛擬機器使用多少記憶體(預設為 128MB)。
+	-soundhw c1,...	開啟音效支援，使用 -soundhw ? 列出可用的音效卡，若要開啟全部，請使用 -soundhw all。
+	-kernel-kqemu	開啟 KQEMU 完全加速模式，預設則為 User Mode。
+			(AMD64 用戶如果是自行編譯 QEMU，必須使用 qemu-system-x86_64 才能帶此參數)
+
+
+
+
+直接以硬碟分割區開機
+==============================
+系統裝有 QEMU 模擬器，可以不必重開機，直接這樣測試：
+	qemu -usb /dev/sdz
+
+假設 grub 的相關檔案已先裝入 /dev/sdz4 且 /dev/sdz4 已掛載在 /mnt/sdz4 底下
+	gunzip bootcd-i486-7.0.iso.gz
+	mount -o loop bootcd-i486-7.0.iso /mnt/ttylinux
+	cd /mnt/ttylinux
+	mkdir /mnt/sdz4/boot/ttylinux
+	cp -a . /mnt/sdz4/boot/ttylinux    #不要用 cp -a /mnt/ttylinux/* /mnt/sdz4 之類的指令，這樣會漏掉隱藏檔。
+	cd -
+	umount /mnt/ttylinux
+
+

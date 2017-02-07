@@ -1,0 +1,133 @@
+# vim:ts=2
+
+
+
+以 syslinux 製作可開機硬碟
+==============================
+
+linux 指令
+-------------------------
+mount /dev/sdXy /path/to/point
+cd /path/to/point; mkdir -p /boot/syslinux/
+cd /home; umount /path/to/point
+syslinux --directory /boot/syslinux/ --install /dev/sdXy	# 在 /dev/sdXy 安裝 syslinux，設定擋在 /boot/syslinux/
+cat /usr/lib/syslinux/mbr.bin > /dev/sdX	# 覆寫 /dev/sdXy 的 mbr
+dd bs=440 conv=notrunc count=1 if=/usr/lib/syslinux/mbr.bin of=/dev/sdX
+
+
+windows 指令
+-------------------------
+syslinux -d /boot/syslinux/ -ma z:	# 在 z: 分區安裝 syslinux
+
+
+USB 裝置可開機後，將下列檔案複製到 USB 裝置的 /path/to/usb/boot/syslinux
+-------------------------
+chain.c32
+memdisk
+menu.c32 (optional)
+reboot.c32
+syslinux.cfg
+vesamenu.c32
+
+
+
+
+以 extlinux 製作可開機硬碟
+=============================
+mount /dev/sdXy /path/to/point
+extlinux -i /path/to/point
+ls /path/to/point
+umount /path/to/point
+done!
+
+
+
+
+syslinux 概說
+==============================
+
+syslinux 預設在 fat 檔案系統運作，若要在 ext4 等檔案系統運作，可改採 extlinux。
+
+開機過程
+-------------------------
+mbr
+	→ active partitionl
+		→ volume boot record (VBR)，相當於 Primary Boot Sector
+			→ dlinux.sys
+				→ syslinux.cfg
+					→ 指定內核及開機映像檔
+						→ 最終檔案系統
+
+
+相關檔案
+-------------------------
+ldlinux.sys
+	為開機檔案(Boot File)，預設在開機分區之根目錄。可使用 -d /path/to/dir 的參數將 ldlinux.sys 安裝到分區的指定目錄。
+
+預設的組態檔，依序為：
+	/boot/syslinux/syslinux.cfg
+	/syslinux/syslinux.cfg
+	/syslinux.cfg
+
+syslinux.bin
+	Linux 系統下製作可開機裝置之程式
+
+syslinux.exe
+	Win 系統下製作可開機裝置之程式
+
+
+
+
+syslinux 以光碟檔開機
+==============================
+經實際測試，可用 memdisk 模組導引光碟擋開機。組態檔內容如下：
+
+KERNEL /path/to/memdisk
+INITRD /path/to/xxx.iso
+APPEND iso raw
+
+
+
+
+syslinux comboot
+==============================
+基本上是用 chain.c32 模組作 chainload。該模組可以導引 Linix 及 Win 作業系統內核。
+
+syslinux.cfg on comboot mode
+------------------------- 
+PROMPT 0
+TIMEOUT 90
+UI /boot/vesamenu.c32
+#INCLUDE /boot/clonezilla.cfg
+#MENU BACKGROUND /boot/slax.png
+
+LABEL Slitaz
+	MENU LABEL SliTaz
+	KERNEL /slitaz/bzImage
+	INITRD /slitaz/rootfs.gz
+	APPEND rw root=/dev/null vga=normal autologin
+
+MENU BEGIN
+	MENU TITLE Ubuntu
+
+	LABEL Ubuntu_32
+		MENU LABEL Ubuntu 32
+		KERNEL /boot/syslinux/chain.c32
+		APPEND hd0 2
+
+	LABEL Ubuntu_64
+		MENU LABEL Ubuntu 64
+		KERNEL /boot/syslinux/chain.c32
+		APPEND hd0 3
+
+MENU END
+
+
+
+
+syslinux & live usb
+==============================
+在 VirtualBox 引用 USB 開機，若 USB 的檔案曾修改過，需抽出 USB 並重新插入插槽，才會讀入修改後的內容。
+因此將 ISO 檔內容複製到 USB 並對 USB 執行 syslinux 後，即使重新載入 VirtualBox，也無法以 USB 開機。
+
+

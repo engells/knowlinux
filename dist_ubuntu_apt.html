@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>APT Mechanism</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body style="direction: ltr;">
+<br>
+
+<h1>APT Mechanism</h1>
+
+<br>
+
+<h3>APT Trouble Shoot</h3>
+
+<hr>cd /path/to/xxx.deb<br>
+
+sudo dpkg -i xxx.deb<br>
+
+sudo apt-get -f install # 如果有套件相依問題，執行這個指令。此指令不是針對個別套件，所以後面不能再加套件名稱<br>
+
+sudo dpkg --configure -a # 完成設定<br>
+
+sudo apt-get check # 檢查<br>
+
+sudo dpkg -i xxx.deb # 重新安裝 deb 檔，應可成功安裝<br>
+
+<br>
+
+<br>
+
+<h3>APT-KEY</h3>
+
+<hr>
+<ul>
+
+<li>方法一：<br>
+sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com [輸入錯誤的公鑰]
+</li>
+<li>方法二：<br>
+gpg --keyserver keyserver.ubuntu.com --recv [輸入錯誤的公鑰]<br>
+gpg --export --armor recv [輸入錯誤的公鑰] | sudo apt-key add -
+</li><li>
+顯示錯誤訊息類似：「不是信任的憑證」，可以嘗試把公鑰加入信任的清單：<br>
+gpg --no-default-keyring -a --export [keycode] | gpg --no-default-keyring --keyring ~/.gnupg/trustedkeys.gpg --import -</li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>Edit Repository</h3>
+
+<hr style="width: 100%; height: 2px;">
+<ul>
+
+  <li>sudo gedit /etc/apt/sources.list, entering the following
+wording:&nbsp;</li>
+  <ul>
+deb http://tw.archive.ubuntu.com/ubuntu/ jaunty main restricted
+universe multiverse<br>
+deb http://archive.ubuntu.com/ubuntu/ jaunty-updates main restricted
+universe multiverse<br>
+deb http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-backports main
+restricted universe multiverse<br>
+deb http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-security main
+restricted universe multiverse<br>
+deb http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-proposed main
+multiverse restricted universe<br>
+deb-src http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-updates main
+restricted universe multiverse<br>
+deb-src http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-backports main
+restricted universe multiverse<br>
+deb-src http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-security main
+restricted universe multiverse<br>
+deb-src http://ubuntu.csie.ntu.edu.tw/ubuntu/ jaunty-proposed main
+restricted universe multiverse
+  </ul>
+  <li>Some source lists:</li>
+  <ul>
+deb http://ppa.launchpad.net/ubuntu-x-swat/xserver-no-backfill/ubuntu
+jaunty main<br>
+deb-src
+http://ppa.launchpad.net/ubuntu-x-swat/xserver-no-backfill/ubuntu
+jaunty main<br>
+deb http://ppa.launchpad.net/xorg-edgers/ppa/ubuntu jaunty main
+=&gt; Could provide new kernel in synaptic.<br>
+deb http://ppa.launchpad.net/ubuntu-x-swat/xserver-no-backfill/ubuntu
+jaunty main<br>
+http://kernel.ubuntu.com/~kernel-ppa/mainline/ =&gt; this is not a
+true source, just to get new kernel.
+  </ul>
+  <li>We can split source into some segments
+    <ul>
+      <li>deb, deb-src, the later means source code</li>
+      <li>http://tw.archive.ubuntu.com/ =&gt; </li>
+      <li>ubuntu/ =&gt; rember there is a space key after "/"</li>
+      <li>jaunty, jaunty-updates, jaunty-backports,
+jaunty-security, jaunty-proposed =&gt; version of ubuntu</li>
+      <li>main restricted universe multiverse =&gt; </li>
+      <ul>
+        <li>main stand for standard reponsitoty</li>
+        <li>restricted stand for non-opensource driver</li>
+        <li>universe means the software not supported officerly</li>
+        <li>multiverse means the software is woth copyright</li>
+      </ul>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<h3>APT Command</h3>
+
+<hr style="width: 100%; height: 2px;">
+<ul>
+
+  <li>sudo apt-get update</li>
+  <li>sudo apt-get dist-upgrade</li>
+  <li>sudo apt-get update "package name"</li>
+  <li>sudo apt-get install "package name"</li>
+  <li>sudo apt-get remove "package name"
+=&gt; unstall package, wothout related package together</li>
+  <li>sudo apt-get autoremove "package name"
+=&gt; install package, with related package together</li>
+  <li>sudo apt-get purge "package name"
+=&gt; unstall package, with configuration together</li>
+  <li>sudo apt-get purge --remove "package name"</li>
+  <li>audo apt-get clean / autoclean</li>
+  <li>ls /var/cache/apt/archives/partial</li>
+  <li>sudo apt-get check</li>
+  <li>apt-catch search "package name"</li>
+  <li>apt-catch search "package name" | more</li>
+  <li>apt-catch showpkg "package name" =&gt;
+show package detail</li>
+  <li>apt-catch stats</li>
+  <li>apt-catch pkgname |more / |grep "package name"</li>
+  <li>apt-catch show "package name"</li>
+  <li>apt-catch depends "package name"</li>
+  <li>ls /etc/apt/sources.list</li>
+  <li>sudo apt-key add ooo.gpg<br>
+  </li>
+</ul>
+
+<br>
+
+<h3>APT-Build</h3>
+
+<hr>
+<ul>
+
+  <li>概論<br>
+APT-Build an apt-get front-end for compiling software optimized for
+your
+architecture by create repository with build packages. It can manage
+system upgrades too.<br>
+使用 APT-Build 可以專對硬體，特別是 CPU 作最佳化處理，讓軟體執行效率最佳化。 </li>
+  <li>組態配置檔案<br>
+位置在 /etc/apt/apt-build.conf，如果對安裝 apt-build 時選用的設定不滿意，可以在這邊更改。
+在下的設置檔
+    <hr class="cfg"> build-dir = /var/cache/apt-build/build <br>
+repository-dir = /var/cache/apt-build/repository <br>
+Olevel = -O3 <br>
+mtune = -mtune=prescott <br>
+options = "-mmmx -msse -msse2" <br>
+make_options = "-j2" <br>
+    <hr class="cfg">安裝 apt-build 時詢問的問題，主要是設置 Olevel 與 mtune
+這兩個項目，options 與 make_options
+的預設都是空白。其實可
+以加以設置讓最佳化跑的更好些。
+options由於我的cpu有sse2，因此將這些功能加上去，讓最佳化編譯時可以使用。其次為
+make_option參數，-j2表示我有兩個cpu可以同時執行編譯動作。 <br>
+&nbsp;<br>
+apt-build.conf 的修改資料來源請參考如下網址，如果用 -O3 會不穩定的人，請用 -O2。<br>
+    <cite>http://www.linuxquestions.org/questions/debian-26/apt-build.conf....file-options-294569/</cite><br>
+    <br>
+如果不確定自己的CPU，請下以下的指令 cat /proc/cpuinfo， 然後察看下列網址
+，最底下有超連結，針對您的 CPU 做選擇之後進入，就可以查了。 <br>
+    <cite>http://en.gentoo-wiki.com/wiki/Safe_Cflags</cite><br>
+    <br>
+我的 CPU 為 intel 系列，察看 cpuinfo 時顯示的是
+    <hr class="cfg">cpu family : 15 <br>
+model : 4 <br>
+model name : Genuine Intel(R) CPU 3.40GHz (我的cpu是工程開發ES版，所以沒有正式名稱，其他P4
+HT的朋友不要以為有問題)
+    <hr class="cfg">因此查詢上面的網頁，顯示的是可以用 Pentium 4 (Prescott) / Celeron D
+的選擇，其最穩定 cflags 參數也列出，這可以參考使用。 <br>
+    <br>
+另外，想了解 -O2 -O3等參數的意義是什麼，請參考
+：<br>
+    <cite>http://en.gentoo-wiki.com/wiki/CFLAGS</cite><br>
+    <cite>http://www.mail-archive.com/debian-user@lists.debian.org/msg127988.html</cite><br>
+    <cite>http://forum.ubuntu.org.cn/viewtopic.php?f=56&amp;t=104071</cite><br>
+    <br>
+  </li>
+</ul>
+
+<div class="ref">
+參考資料：
+<hr class="ref"><cite>http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=3495&amp;forum=7</cite></div>
+
+<br>
+
+<br>
+
+</body></html>

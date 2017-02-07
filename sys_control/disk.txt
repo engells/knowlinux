@@ -1,0 +1,192 @@
+# vim:ts=4
+
+
+
+GPT disk
+==============================
+經 2012-01-17 以 VirtualBox + gdisk + grub2 測試，使用傳統 BIOS 加 GPT 格式硬碟的分割配置為：
+	Primary GPT + BIOS boot partition + Linux Partitions
+
+若要兼容 EFI BIOS 硬碟的分割配置為：
+	Primary GPT + ESP + BIOS boot partition + Linux Partitions
+
+注意，上述分割區位置起始自 LBA 34，在 LBA 0 之 Protective MBR、LBA 1 之 Headers 及 LBA 2~33 之 Entries(分割表)之後。
+
+
+MBR/GPT Mixed in Linux style
+-------------------------
+ESP(EFI System Partition)：
+	分割區大小：100~250MB，需在 EF02 / BIOS boot partition 之前。
+	分割類型(hex code)：「EF00」
+	標誌(flag)：「boot」
+	檔案系統格式(FS type)：「FAT32、VFAT」
+
+BIOS boot partition：1MB(> 31 KB)
+	Grub2：
+		gdisk
+			hex code：「EF02」或「21686148-6449-6e6f-744e656564454649」
+			flag：「bios_grub」
+		parted
+			flag：「bios_grub」
+			command：parted /dev/disk set partition-number bios_grub on
+			menu：裝置 > 進階 > 選取新的分割表類型 > gpt > gpt over msdos(MBR) default partitioning
+		ref url:
+			http://www.gnu.org/software/grub/manual/grub.html#BIOS-installation
+			http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?viewmode=compact&topic_id=58378&forum=1
+	Syslinux：
+		the partition containing /boot/syslinux/ldlinux.sys to be marked as "Legacy BIOS Bootable" GPT attribute
+		「legacy_boot」 flag in GNU Parted
+
+Data Partition 1：128MB ~ 256MB?，mountes as /boot
+
+Data Partition 2：XXXG: mounted as /
+
+example by gdisk:
+	Number  Start (sector)    End (sector)  Size       Code  Name
+	   1            2048          411647   200.0 MiB   EF00  EFI System
+	   2          411648          415743     2.0 MiB   EF02  BIOS boot partition
+	   3          415744         2097118   821.0 Mib   8300  Ubuntu
+	...
+
+
+Win style
+-------------------------
+ESP：128MB
+MSR(Microsoft System Recovery)：32MB~128MB(>16TB)
+...
+
+
+
+
+硬碟切割程式
+==============================
+fdisk
+cfdisk
+sfdisk
+gdisk
+	# GPT fdisk, for gpt style partitioning tool
+parted
+	# parted /dev/sdX
+	# mklabel
+	# mkpart primary 0 100 → 產生主要分區，自 0 MB ~ 100 MB
+	# mkpart primary 101 2T → 產生主要分區，自 100 MB ~ 2 TB
+	# print
+	# quit
+	# rm [#] →  刪除指定編號的分區
+
+
+
+
+分割區格式化
+==============================
+mkfs -t ext4 /dev/sda1
+	# 實際上是呼叫 mkfs.ext4 指令，而 mkfs.ext4 是呼叫 mke2fs 指令
+	# mkfs.msdos
+	# mkfs.vfat
+	# mkfs.ntfs
+	# mkinitrd，產生 initrd 檔案
+
+e2label /dev/sda1 "System"
+	# 將第一顆硬碟第一個分割區取名為 System，前述分割區格式為 ext[234]
+	# xfs-admin -L label device
+	# ntfslabel -f
+
+
+fsck -t ext4 -C /dev/sda1
+	# 需在卸載第一顆硬碟第一個分割區後執行檢查，實際上是呼叫 e2fsck 指令
+
+badblocks -sv /dev/sda1
+	# 檢查硬碟或軟碟磁區有沒有壞軌
+
+resize2fs
+	# 調整分割區大小
+
+tune2fs -l /dev/sda1
+	# -l ,類似 dumpe2fs -h 的功能; -j, ext2 轉 ext3 的檔案系統; -L, 類似 e2label 的功能
+
+dumpe2fs -h /dev/sda1
+	#列出第一顆磁碟第一分割區superblock內的資料
+
+
+
+
+掛載分割區
+==============================
+mount -a
+	# 將/etc/fstab上未掛載的分割區掛上
+
+mount -t ext4 /dev/sda1 /mnt/sda1
+	# 若是 ext[234] 格式可省略 t 參數
+	# -t fat | vfat 掛載 FAT 格式
+
+mount -n -o remount,rw,auto /
+	# 遇系統問題需重新掛載根目錄
+
+mount --bind /home/vb /mnt/vb
+	# 將/home/vb掛載至/mnt/vb
+
+
+
+
+查尋硬碟分割區使用情形
+==============================
+df -h
+	# disk partition free status
+
+ls -l /dev/disk/by-uuid
+	# check uuid of disk partition
+
+vol_id device
+	vol_id -t device, vol_id -u device
+
+
+
+
+Ubuntu + Win8
+==============================
+
+Method 1
+-------------------------
+sudo mkdir /path/to/mount && sudo mount /dev/sdaX /path/to/mount
+cd /path/to/mount && sudo cp EFI/ubuntu/grubx64.efi EFI/Boot/
+cd EFI/Boot && sudo mv bootx64.efi bootx64.efi.old && sudo mv grubx64.efi bootx64.efi
+cd .. && sudo mv Microsoft/boot/bootmgfw.efi Microsoft/boot/bootmgfw.efi.old
+sudo cp ubuntu/grubx64.efi Microsoft/boot/bootmgfw.efi
+
+
+Method 2
+-------------------------
+Debian Wheezy + Win 8
+1.在預裝 Win 8 的機器上，以磁碟管理員將部份分割區縮小，供安裝 Linux 之用
+2.以裝有 Debian Wheezy 安裝程式的隨身碟開機，安裝 Debian。建議 /boot 掛載獨立的分割區。注意安裝完的 Grub 尚未支援 UEFI 開機。
+	必要時 UEFI BIOS 設定如下：
+		選 Advanced / Boot Mode / [CSM Boot] 改爲 [UEFI Boot]	# 注意 這個先改
+		選 Security / Secure Boot / [Disabled] 改爲 [Enabled]	# 這個 才會出現
+3.以裝有支援 UEFI 開機的 Linux 隨身碟再次開機，進入 Grub 救援模式
+	set prefix="(hdX,gptX)/grub" # 若 /boot 未掛載在獨立的分割區，則本列為 set prefix="(hdX,gptX)/boot/grub"
+	set root="(hdX,gptX)"
+	insmod normal
+	normal
+4.進入先前安裝的 Debian Wheezy，使 Grub 支援 UEFI 模式開機
+	apt-get install grub-efi-amd64 efibootmgr
+	mkdir /boot/efi
+	mount /dev/sdaX /boot/efi	# 掛載 GPT 模式的 EFI 分割區
+	modprobe efivars	# 載入 Grub EFI 模組
+	grub-install /dev/sda	# 重新安裝 Grub
+	update-grub
+5.完成
+
+
+
+
+Memo
+==============================
+linux 之 /boot 目錄可置於單獨分割或與 / 目錄處於同一分割
+	可能出現之情形，/boot 置於單獨分割，而 /boot/efi 掛載 ESP 分割區
+	Ubuntu 安裝後在 ESP 分割區的檔案系統為 mount_dir/EFI/ubuntu/
+	
+
+Windows 安裝後在 ESP 分割區的檔案系統
+	mount_dir/EFI/Boot
+	mount_dir/EFI/Microsoft/boot/
+

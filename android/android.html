@@ -1,0 +1,497 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+
+  
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style><title>Financial Position</title></head><body>
+<br>
+
+<h1>Android cell phome</h1>
+
+<br>
+
+<h3>Android cell phone customization</h3>
+
+<hr>
+<ul>
+
+  <li>概說<br>
+手機剛出廠時，手機廠商已經將 BootLoader 以及 Android 作業系統安裝完畢。此時的手機的 ROM
+已分割為數個分區(Partition)，分別掛載為 /system、/cache、/data、/mnt/sdcard 等。然而
+BootLorder 有檢查 CIS 的機制，且使用者在 Android 作業系統中沒有 root 權限。造成使用者難以隨意安裝
+app，如果簡單用非官方 recovery 映像檔複寫 /system，又會通不過 BootLorder 開機檢查。因此需要破解
+BootLorder 檢查機制，再以 FastBoot 或 Recovery 模式重灌作業系統。如果重灌的作業系統沒有配置 root
+權限，則還需取得新系統的 root 權限。</li>
+  <li>PC 與手機連接<br>
+    <ul>
+      <li>安裝 lib32ncurses5 lib32stdc++6 → to build environment for adb</li>
+      <li>自 Android SDK 取出 adb 及 fsatboot 程式 </li>
+      <li>建立 PC 端偵測手機的 udev 機制</li>
+      <ul>
+        <li>列出 usb 裝置<br>
+lsusb<br>
+        </li>
+        <li> 列出
+/dev/bus/usb/001/003 裝置的資訊<br>
+udevadm info -q all -n /dev/bus/usb/001/003<br>
+        </li>
+        <li> 將裝置資訊輸出到檔案<br>
+udevadm info -a -p $(udevadm info -q path -n
+/dev/bus/usb/001/003) &gt; ~/output</li>
+        <li> 產生 udev 監測規則<br>
+gksu gedit /etc/udev/rules.d/71-android.rules<br>
+SUBSYSTEM=="usb", ATTR{idVendor}=="0bb4", ATTR{idProduct}=="0c03",
+ATTR{product}=="ZP900S", MODE="0666", SYMLINK+="9300plus",
+GROUP="plugdev"<br>
+        </li>
+        <li> 測試 udev 監測規則是否正確<br>
+udevadm test --action="SUBSYSTEM=="usb",
+ATTR{idVendor}=="0bb4", ATTR{idProduct}=="0c03",
+ATTR{product}=="ZP900S", MODE="0666", SYMLINK+="9300plus"" $(udevadm
+info -q path -n /dev/bus/usb/001/003)</li>
+        
+        <li>
+重新啟用 udev 機制納入新增的規則<br>
+sudo service udev restart 或 udevadm control --reload-rules<br>
+          <br>
+        </li>
+
+      </ul>
+      <div class-="ref">參考資料：
+      <hr class="ref"><cite class="ref">http://ubuntuforums.org/showthread.php?t=1918512</cite>
+      </div>
+      <br>
+      <li>手機選取 設定 &gt; 開發者選項 &gt; USB 裝置除錯，進入偵錯偵測模式。然後將手機與 PC 用 USB
+接線連接，PC 應可偵測到手機，出現 /dev/9300plus 裝置檔</li>
+      <li>使用 adb 操作手機<br>
+        <ul>
+          <li>查看手機裝置是否連接<br>
+adb devices<br>
+</li>
+          
+          <li>啟用或中止 adb 程序<br>
+adb start-server<br>
+adb kill-server</li>
+          <li>
+進入手機的 shell，可以指令修改手機資料，然後以「exit」離開<br>
+adb shell</li>
+          <li>重新以讀寫模式掛載手機的 /system<br>mount -o rw,remount /system<br>
+          </li>
+
+          <li>執行 adb 之 shell command<br>
+adb push android123.txt /tmp/android123.tx → 將 android123.txt 上傳到手機的
+/tmp/android123.txt<br>
+adb pull /tmp/android123.txt android123.txt → 將手機的 /tmp/android123.txt
+下載為&nbsp; android123.txt</li>
+          <li>手機重開機進入 FastBoot 模式<br>
+adb reboot bootloader<br>
+          </li>
+        </ul>
+      </li>
+      <li>掛載手機 /system 之後，可將不需使用的 app 自 /system/app/ 搬移至外接 SD
+Card。如此，可精簡核心的系統，<br>
+      </li>
+    </ul>
+  </li>
+  <li>取得 root 權限<br>
+Android 預設可編譯成三種模式： eng, userdebug, user。一般使用者拿到的機器多是 user
+版，如果是開發人員，可能會使用 eng 或 userdebug 版 進行 debug。<br>
+使用者自行 root 機器，
+簡言之，就是替換在 /system/bin 或 /system/xbin 的 su 執行檔。Android 原版的 su 只允許
+AID_ROOT 及 AID_SHELL 兩種身份登入，破解後的 su 取消了這個限制。注意，實務上破解後的 su
+置放於/system/xbin，/system/bin/su 是 /system/xbin/su 的軟連結。<br>
+    <ul>
+      <li>approach 1:</li>
+      <ul>
+        <li>adb shell mv /system/xbin/su /system/xbin/osu → 備份原 su 文件</li>
+        <li>adb push su /system/xbin → 把 PC 端已破解的 su 程式複製到 手機的
+/system/xbin</li>
+        <li>adb shell rm /system/bin/su → 移除Android 原版的 su</li>
+        <li>adb shell ln -s /system/xbin/su /system/bin/su → 軟連結</li>
+        <li>adb shell chmod 6755 /system/xbin/su → 變更權限</li>
+        <li>adb shell sync → 同步所有緩存中的文件</li>
+        <li>adb shell reboot → 重啟 android 設備</li>
+      </ul>
+      <li>approach 2, with Superuser and busybox:</li>
+      <ul>
+        <li>adb shell mount /system　</li>
+        <li>adb push su /system/bin/</li>
+        <li>adb shell chmod 4755 /system/bin/su</li>
+        <li>adb push Superuser.apk /system/app/</li>
+        <li>chmod 644 /system/appp/Superuser.apk</li>
+        <li>adb push busybox /system/bin</li>
+        <li>chmod 755 /system/bin/busybox<br>
+        </li>
+        <li>adb shell reboot<br>
+        </li>
+      </ul>
+      <li>另參夢見草部落格 http://dominic16y.world.edoors.com/Cfq3W8EV6ExA</li>
+    </ul>
+  </li>
+  <li>解鎖 Bootloader | http://govfate.iteye.com/blog/1637443<br>
+make sure you have ADB installed and configured on your computer.<br>
+    <ul>
+      <li>Unlock Bootloader</li>
+      <ul>
+        <li>adb reboot bootloader</li>
+        <li>fastboot oem unlock</li>
+        <li>使用音量鍵選取 'yes, unlock bootloader'</li>
+        <li>按下電源鍵表示執行解鎖<br>
+        </li>
+        <li>完成<br>
+        </li>
+      </ul>
+      <li>Lock Bootloader:</li>
+      <ul>
+        <li>adb reboot bootloader</li>
+        <li>fastboot oem lock</li>
+        <li>完成<br>
+        </li>
+      </ul>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>Android SDK Tools</h3>
+
+<hr>
+<ul>
+
+  <li>adb<br>
+    <ul>
+      <li>adb shell mount -r -o remount /system → 將 /system 重掛載為唯讀模式</li>
+      <li>adb shell mount -o rw,remount /system → 將 /system 重掛載為讀寫模式</li>
+      <li>adb install xxx.apk</li>
+      <li>adb shell pm setInstallLocation 2 → 設定 apk 安裝路徑為外接 SD 卡</li>
+      <li>adb shell pm setInstallLocation 0 → 設定 apk 安裝路徑為內建 ROM</li>
+      <li>adb backup [-system|-nosystem] -all [-apk|-noapk]
+[-shared|-noshared] -f /path/to/file_name<br>
+[-system|-nosystem]：是否連同系統一起備份，刷機後建議選擇 -nosystem 參數，以免未來重裝後成為原廠系統<br>
+[-apk|-noapk]：是否連 apk 檔一起備份，若選擇 -noapk 則僅備份程式的資料檔。為避免程式版本衝突，可選擇 -apk 參數。<br>
+[-shared|-noshared]：否連手機儲存空間或是 SD 卡的檔案一起備份</li>
+      <li>adb restore /path/to/file_name</li>
+      <li>adb backup -apk com.imangi.templerun -f /path/to/file_name →
+只備份單一 apk 檔</li>
+      <li>adb shell pm list packages -f → 列出 app 英文名稱與對應的 apk 檔案路徑與檔名</li>
+      <li>adb root → 取得 root 權限</li>
+      <li>adb bugreport → 擷取系統內的各種資訊，產生 bug report </li>
+    </ul>
+    <div class="ref">參考資料：
+    <hr class="ref"><cite class="ref">http://huenlil.pixnet.net/blog/post/23271843-android-adb-tool-%E5%8A%9F%E8%83%BD%E6%95%B4%E7%90%86</cite><br>
+    <cite>http://www.mobile01.com/topicdetail.php?f=566&amp;t=3019116</cite>
+    </div>
+  </li>
+  <li>fastboot<br>
+  </li>
+  <ul>
+    <li>fastboot flash partition_ref image_file<br>
+將分區映像檔複寫進 ROM<br>
+    </li>
+    <ul>
+      <li>fastboot flash recovery recovery.img → to dump recovery image
+to cell phone</li>
+      <li>fastboot flash system system.img<br>
+      </li>
+      <li>分區代號：boot =&gt; /boot；system =&gt; /system；userdata =&gt;
+/data；cache =&gt; /cache；recovery =&gt; recovery program；splash1 =&gt;
+boot animation</li>
+    </ul>
+    <li>fastboot erase partition_ref<br>
+清除分區資料</li>
+    <li>fastboot reboot<br>
+手機正常重開機<br>
+    </li>
+    <li>fastboot reboot-bootloader<br>
+手機重開機進入工程模式 <br>
+    </li>
+    <li>fastboot boot image_file<br>
+測試映像檔是否可開機<br>
+    </li>
+  </ul>
+  <li>ddms, /path/to/sdk/tools/ddms<br>
+在執行過 adb 後接上手機，直接跑 ddms，會出現圖形介面。ddms
+有幾項好用的功能(這邊講的都完全不需要root,原廠完全不用做修改就可以了)。<br>
+    <ol>
+      <li>看 log﹍可以看到系統運作的 log</li>
+      <li>瀏覽手機裡的所有檔案，不只sdcard上面的。沒 root 權限的話只能看看，不能砍。</li>
+      <li>截圖，抓手機畫面。這大概是最常用的。</li>
+    </ol>
+打開 ddms 後，主畫面左邊 Name 底下，點選看到的裝置名稱。如果沒有的話，就是先前沒有以 root 權限跑 adb，或是手機沒成功接上
+usb。<br>
+截圖在 device &gt; screen capture，壓 reflash 就會更新畫面了。接下來大家請自行摸索吧。</li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>Android APP</h3>
+
+<hr>
+<ul>
+
+  <li>App2SD<br>
+    <ul>
+      <li>app2sd<br>
+soft link approach, link file of /data/app to a another
+directory which is mounted a partition on it.</li>
+      <li>app2ext<br>
+mount approach, mount a partition on /data/</li>
+    </ul>
+  </li>
+  <li>一鍵 Root<br>
+    <ul>
+      <li>DooMLoRD’s Easy Rooting Toolkit<br>
+      </li>
+      <li>安機網一鍵ROOT</li>
+      <li>z4root</li>
+      <li>Universal Androot<br>
+      </li>
+      <li>SuperUser<br>
+需手機本身已經 root，或是未鎖定 root 的 recovery image。 </li>
+    </ul>
+  </li>
+  <li>**</li>
+  <li>**</li>
+  <li>**</li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>Android FS</h3>
+
+<hr>
+<ul>
+
+  <li>/META-INF/<br>
+內含升級腳本及 ROM 的 CID</li>
+  <li>/boot.img<br>
+android內核文件</li>
+  <li>/dev/<br>
+    <ul>
+      <li>/dev/block/mmcblk0<br>
+內接 SD Card 的裝置代號，Patition Table 顯示 mmcblk0p6 掛載在 /mnt/sdcaed2<br>
+      </li>
+      <li>/dev/block/mmcblk1<br>
+外接 SD Card 的裝置代號，Patition Table 顯示 mmcblk1p1 掛載在 /mnt/sdcaed </li>
+      <li>/dev/block/vold/xxx:yy<br>
+&nbsp;SD Card 的裝置代號，9300+ 的 mount 指令顯示 /dev/block/vold/179:97 同時掛載在
+/mnt/sdcard 與 mnt/secure/asec。而 /dev/block/vold/179:6 掛載在
+/mnt/sdcard2</li>
+      <li>/dev/block/dm-x<br>
+使用 App2SD 將 App 轉移至 外接 SD Card，每一個程式都會對應到一個裝置</li>
+    </ul>
+  </li>
+  <li>/mnt/<br>
+    <ul>
+      <li>/mnt/sdcard/<br>
+原本是內接 SD Card 扣除作業系統使用的空間後，剩餘空間的掛載點。但加入外接 SD Card 後，成為外接 SD Card 的掛載點<br>
+      </li>
+      <li>/mnt/sdcard2/<br>
+加入外接 SD Card 後，內接 SD Card 剩餘空間的掛載點<br>
+      </li>
+      <li>/mnt/asec/<br>
+可能是 App2SD 將 App 轉移至 外接 SD Card，每一個程式都會對應到一個目錄，包括 apk 檔案以及函式庫。<br>
+      </li>
+      <li>/mnt/secure/asec<br>
+轉移至外接 SD Card 的 App 加密資料<br>
+      </li>
+    </ul>
+  </li>
+  <li>/sdcard/<br>
+soft link to /mnt/sdcard/<br>
+    <ul>
+      <li>/sdcard/.android_secure/<br>
+some app install here</li>
+    </ul>
+  </li>
+  <li>/data/<br>
+使用者資料儲存的目錄<br>
+    <ul>
+      <li>/data/app/&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; # app bin</li>
+      <li>/data/data/&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; # lib and
+xml files of apps installed in /system/app/, /data/app/ and /mnt/asec/</li>
+      <li>/data/dalvik-cache</li>
+    </ul>
+  </li>
+  <li>/system/<br>
+系統文件夾，包括以下文件或文件夾：<br>
+    <ul>
+      <li>/system/app/<br>
+放置系統層級 app 的目錄，所以內建軟件就是在制作 ROM 包的時候把 apk 檔案放入此目錄<br>
+      </li>
+      <li>/system/bin/<br>
+android 系統程式，主要是 Linux 系統的程式<br>
+      </li>
+      <li>/system/xbin/<br>
+user space 系統程式 </li>
+      <li>/system/etc/<br>
+android 系統配置文件，如 apn 檔案等<br>
+      </li>
+      <li>/system/fonts/<br>
+字型檔，包含標准字體和粗體、斜體、中文、英文等<br>
+      </li>
+      <li>/system/framework/<br>
+android 系統平台框架文件及布局控制</li>
+      <li>/system/lib/<br>
+系統底層庫及運行庫文件</li>
+      <li>/system/media/<br>
+系統鈴聲音樂文件夾及開機動畫文件，需要說明一下開機動畫其實是多張靜態圖片的幀動畫效果</li>
+      <li>/system/tts/<br>
+放置手機的語音文件</li>
+      <li>/system/usr/<br>
+放置用戶文件，包含共享、鍵盤布局、時間區域文件等<br>
+      </li>
+      <li>/system/vendor/<br>
+放置 ROM 廠商定制內容</li>
+      <li>/system/build.prop<br>
+系統屬性配置文件，如我們在設置-關於裏看到的內容 </li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>智慧型手機 ROM 分區</h3>
+
+<hr>Android 一般把 ROM 分成數個 partition，若有剩餘空間則模擬為内建 SD 卡。相關查詢指令有：cat
+/proc/emmc
+以及 /proc/dumchar_info。後者結果如下：
+<ul>
+
+  <li>ebr1 → mmcblk0p1 </li>
+  <li>sec_ro → mmcblk0p2 </li>
+  <li>android → mmcblk0p3 → /system </li>
+  <li>cache → mmcblk0p4 → /cache<br>
+  </li>
+  <li>userdata → mmcblk0p5 → /data<br>
+  </li>
+  <li>fat → mmcblk0p6 → /mnt/sdcard2<br>
+  </li>
+  <li>mbr, pmt, nvram, seccfg, uboot, bootimg, recovery, misrc, logo,
+expdb, bmtpool → mmcblk0</li>
+</ul>
+
+<br>
+
+<br>
+
+<h3>智慧型手機硬體</h3>
+
+<hr>
+<dl>
+
+  <dt>MAP (Multimedia Application Processor)</dt>
+  <dd>翻譯為「應用處理器」。將電腦的核心零組件全都包在一起的高度整合晶片，包含 CPU、GPU，還有許多控制器：如 RAM、USB、SD
+記憶卡。整合度更高的，還能納進 GPS、Wi
+-Fi、藍牙、通訊數據機。是 SoC(System on Chip) 的一種。<br>
+  </dd>
+  <dt>ROM</dt>
+  <dd>指整合進應用處理器的嵌入式 SD 記憶卡，智慧型手機把 ROM 當成硬碟使用。ROM 在 Android 通常是
+/dev/block/mmcblk0</dd>
+  <dt>SD</dt>
+  <dd>指符合 SD 規格的記憶體，其容量規格包括 SD、SDHC(高容量)、SDXC(超容量)。速度規格則有 Class 2、Class
+4、Class 8 等。記憶卡規格包括 Full SD、MiniSD、MicroSD </dd>
+  <dt>MTD (Memory Technology Devices)</dt>
+  <dd>泛指 Flash Memory 裝置</dd>
+  <dt>RAM</dt>
+  <dd>指整合進應用處理器的隨機記憶體，其作用與 PC 上的記憶體相同。</dd>
+  <dt>Baseband，Radio</dt>
+  <dd>手機中負責無線通訊的硬體模組，通常已經整合進應用處理器。</dd>
+</dl>
+
+<br>
+
+<br>
+
+<h3>智慧型手機軟體</h3>
+
+<hr>
+<dl>
+
+  <dt>IPL (Initial Program Loader)</dt>
+  <dd>負責主機板，電源、硬體的初始化程序、並把 SPL 載入 RAM。個人以為，IPL 才是相當於 PC 的 BIOS，且可能存在
+EEPROM。<br>
+  </dd>
+  <dt>SPL (Second Program Loader)</dt>
+  <dd>負責將作頁系統載入
+RAM，包括檢測手機硬體、尋找系統啟動分區、啟動操作系統為系統的基本維護提供操作界面、可以通過數據線與操作終端（如：
+PC）建立連接，並接受和執行相應命令。一般所稱 BootLoader 為 SPL。</dd>
+  <dt>BootLoader</dt>
+  <dd>啟動管理器，相當於 Grub 或 Syslinux 之類軟體。早期的智慧型手機廠商刻意讓 BootLoader 檢查手機 ROM
+的 CID 是否合乎規定，因此造成刷機的系統無法通過檢查而無法開機。<br>
+網路上常提及的 Uboot 和 Hboot 就是 BootLoader。後者為 HTC 產品。<br>
+BootLoader 開機過程中，會經過 FastBoot 及 Recovery 階段。若在 FastBoot 階段停住，則為
+FastBoot 開機模式。同理，在 Recovery 階段停住，就是 Recovery 開機模式。 </dd>
+  <dt>FastBoot</dt>
+  <dd>有兩種意義。第一：指 Android 手機的開機模式。第二：在 Android 手機的 FastBoot
+開機模式下，與電腦連線的通訊協定。注意，相較 Recovery 模式，FastBoot 模式是在更底層運作。</dd>
+  <dt>Recovery</dt>
+  <dd>有數個意義。第一：指 Android 手機的開機模式。第二：指 Android
+手機刷機的工具軟體。第三：指回復成出廠預設安裝狀態的備份回復檔案，一般是取名為 recovery.img，內中包括
+kernel、recovery
+工具程式以及其他像是 SD 卡驅動程式等必要的檔案。有部份人稱此模式為工程模式。<br>
+9300+ 進入 Recovery
+模式是同時按住「開機鍵」加「音量鍵上」，大約 10-15 秒。</dd>
+  <dt>CID (Customer IDentity)</dt>
+  <dd>指手機的平台(Platform)版本。破解限制之後的 CID 稱為 SuperCID。刷機過程中 SPL 需要根據 CID 效驗
+ROM
+是否可用，並決定是否刷入。一般情況下要求要對應 CID 的 ROM Image 才可以用， CID 不同的 ROM Image是刷不上去的。 <br>
+&nbsp;一般有兩個限制：一、不能刷入低版本的的 ROM；二、不能刷入不同平台的 ROM，如：在台版機上刷歐版 ROM、跨型號刷 ROM 等。</dd>
+  <dt>WIPE</dt>
+  <dd>簡單說就是恢復出廠設置，包括聯系人、短信、安裝的軟件等全部刪除。俗稱硬啟，恢複出廠設置。</dd>
+  <dt>Image</dt>
+  <dd>實際上是 SD 記憶體的分區映像檔。依照來源及映像檔內容的不同，可分為：<br>
+基包：指手機廠商官方釋出的映像檔，如：Moto 所提供的映像檔通常為 xxx.sbf<br>
+升級包：通常指非官方提供的加強型作業系統映像檔，一般包括 Boot、System 及 Cache 分區，有時也包括 Recovery
+分區。升級
+包常取名為 xxx.zip。<br>
+最常見的刷機方式就是利用 Recovery 開機模式，將升級包覆寫進 ROM。<br>
+  </dd>
+</dl>
+
+<br>
+
+<br>
+
+<h3>Linux with iPad</h3>
+
+<hr>
+<ul>
+
+  <li>連接至 iPad 設備<br>
+apt-get install libimobiledevice-utils ifuse<br>
+idevicepair unpair &amp;&amp; idevicepair pair<br>
+    <div class="ref">參考資料：
+    <hr class="ref"><cite>http://www.mguhlin.org/2012/05/upgrading-to-ubuntu-1204-and-mounting.html</cite><br>
+    <cite>https://github.com/mkorenkov/ipad_charge</cite></div>
+  </li>
+  <li>對  iPad 設備充電<br>
+sudo apt-get install libusb-1.0-0 libusb-1.0-0-dev git<br>
+git clone https://github.com/mkorenkov/ipad_charge.git<br>
+cd ./ipad_charge<br>
+make<br>
+sudo make install
+    <div class="ref">參考資料：
+    <hr class="ref"><cite>http://peterlee0127.blogspot.tw/2012/04/charge-ipad-in-ubuntu.html</cite></div>
+  </li>
+</ul>
+
+<br>
+
+<br>
+
+</body></html>

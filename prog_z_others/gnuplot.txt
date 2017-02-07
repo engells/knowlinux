@@ -1,0 +1,12 @@
+# vim:ts=4
+
+
+
+gnuplot / Dr.Geo(幾何博士)
+==============================
+gnuplot demo script: 畫直方圖 histogra
+ms
+
+
+tar [-j|-z] [xv] [-f 建立的檔名] [-C 目錄] 
+

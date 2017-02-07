@@ -1,0 +1,141 @@
+# vim:ts=2
+
+
+
+/boot/grub/grub.cfg 詳解
+==============================
+
+grub.cfg 檔案預設由 update-grub 指令產生，且為唯讀屬性，要修改前先設為可寫：sudo chmod +w /boot/grub/grub.cfg。內容如下：
+
+set default=0
+	# 設定預設選單選項，選項可以是數字或是"saved"。預設為 0，即第一個選項。"saved" 設定預設選項為上一次選擇的項目。
+
+insmod jpeg
+	# 添加 jpg 支援，如要使用 png 或 tga 檔做背景，加上 insmod png 或 insmod tga
+
+insmod ext2
+	# 加入ext2 支援，除了用作啟動的分割區外，其他分割區格式可在 menu 底下再添加
+
+set root=(hd0,7) 
+	# 以/dev/sda7 為 root 分割區，硬碟編號從 0 開始，分割區編號從 1 開始，推測 0 可能保留給 MBR，另外編號 4 可能保留給延伸分割區
+
+search -no-floppy –fs-uuid –set f255285a-5ad4-4eb8-93f5-4f767190d3b3
+	# 設定 root 在 uuid=**** 的硬碟分割區，和上句功能重複，可任選一種即可。
+
+if loadfont /usr/share/grub/unicode.pf2 ; then	
+	# 開始終端機配置，首先設置終端字體，unicode.pf2支援中文顯示
+
+	set gfxmode=640×480
+		# 設置解析度，默認為 640×480，可用 800×600，1024×768，建議跟設定的背景圖片大小一致
+
+	insmod gfxterm
+		# 加入模組 gfxterm，支援中文顯示，及 24 位元圖像
+
+	insmod vbe
+		# 加入 vbe 模組，GRUB 2 引入很多模組的東西，需要 vbe 模組
+
+	if terminal_output gfxterm; then
+		true
+	else
+		terminal gfxterm	#設置 GRUB 2 終端為 gfxterm
+	fi
+fi
+
+set timeout=10
+
+background_image (hd0,7)/boot/images/1.jpg
+	# 設置背景圖片
+
+
+
+
+/etc/default/grub
+==============================
+「GRUB_DEFAULT=0」：第一個選項為預設值； 「GRUB_DEFAULT=saved」：前次開機選項為預設值
+
+「#GRUB_HIDDEN_TIMEOUT=0 」： 加上 「#」 表示開機時顯示開機選單
+
+「GRUB_HIDDEN_TIMEOUT_QUIET=true」
+
+「GRUB_TIMEOUT=10」：選單顯示 10 秒鐘
+
+「GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`」
+
+「GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"」：「quiet」表示不顯示開機訊息，「splash」表示顯示開機動畫
+
+「GRUB_CMDLINE_LINUX="" 」：開機時加入作業系統核心參數
+
+「GRUB_GFXMODE=800x600 」：自訂解析度
+
+「GRUB_DISABLE_OS_PROBER=true」：停用 os-prober，也就是往後使用 update-grub 指令時將不會自動列入其他作業系統
+
+
+
+
+/etc/grub.d/05_debian_theme
+==============================
+set menu_color_normal=white/black
+set menu_color_highlight=cyan/black
+
+# 這兩行為 Debian 下的功能表顏色設置，如果默認的話，背景會完全被藍色擋住，需要修改 blue 為 black，這樣背景就會出現
+
+
+
+
+/etc/grub.d/10_linux
+==============================
+用來偵測當前 root 分割區的 linux 引導項，亦即 /boot 目錄下檔案。
+
+可自行加入開機選項，注意選項標題包括 menuentry 字串、雙引號“ ” 和大括弧 { }才完整，否則不會顯示該選項。選項項範例為：
+menuentry “Ubuntu, Linux 2.6.31-9-386” {
+	insmod ext2
+	set root=(hd0,7)
+	search -no-floppy -fs-uuid -set f255285a-5ad4-4eb8-93f5-4f767190d3b32
+	linux /boot/vmlinuz-2.6.31-9-386 root=UUID=f255285a-5ad4-4eb8-93f5-4f767190d3b33 ro quite splash
+	initrd /boot/initrd.img-2.6.31-9-386
+}
+
+
+
+
+etc/grub.d/20_memtest86+
+==============================
+menuentry “Memory test (memtest86+)” {
+	linux16 /boot/memtest86+.bin
+}
+
+
+
+
+/etc/grub.d/30_os-prober
+==============================
+用來偵測其他作業系統，例如 windows：
+menuentry “Windows Vista (loader) (on /dev/sda1)” {
+	insmod ntfs4
+	set root=(hd0,1)
+	search –no-floppy –fs-uuid –set ece067d2e067a1965
+	drivemap -s (hd0) ${root}6
+	chainloader +1
+}
+
+或是位於其他分割區，即非現行 root 所在分區的 Linux：
+menuentry “Ubuntu karmic (development branch) (9.10) (on /dev/sda3)” {
+	insmod ext2
+	set root=(hd0,3)
+	search –no-floppy –fs-uuid –set 4d893970-0685-44ed-86b3-1de45b2db84a
+	linux /boot/vmlinuz-2.6.31-9-generic root=/dev/sda3
+	initrd /boot/initrd.img-2.6.31-9-generic
+}
+
+
+
+
+/etc/grub.d/40_custom
+==============================
+使用者字型添加的開機項目，可用小型系統開機來偵錯或排除問題，如：
+menuentry “CDLinux”{
+	set root=(hd0,8)
+	linux /CDlinux/bzImage root=/dev/ram0 vga=791 CDL_LANG=zh_CN.UTF-8
+	initrd /CDlinux/initrd
+}
+
