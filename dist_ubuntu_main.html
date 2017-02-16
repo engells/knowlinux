@@ -1,38 +1,31 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="zh-tw"><head>
 
-
-
-
-  
   <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Ubuntu Notes Main</title>
-  
 
-  
-  
   <style type="text/css">
 @import url(/home/engells/mnt/MyDefaultType.css);
+
   </style></head><body style="direction: ltr;">
 <br>
 
-<h1>My Ubuntu Notes</h1>
-
-<br>
+<h1>My Ubuntu Notes</h1><br>
 
 <a href="#user_config">設定使用者環境</a><br>
-
-<a href="#x_crash">X視窗崩潰
-處理</a><br>
+<a href="#x_crash">X視窗崩潰處理</a><br>
 
 <br>
-
 <br>
 
 <h3>安裝方式</h3>
 
-<hr>原則上用光碟或隨身碟方式開機，然後載入安裝專用的內核以及虛擬檔案系統，接著就進入安裝程序。安裝程序或者是在網路上下載套件，或者是以分區上
+<hr>
+
+原則上用光碟或隨身碟方式開機，然後載入安裝專用的內核以及虛擬檔案系統，接著就進入安裝程序。安裝程序或者是在網路上下載套件，或者是以分區上
 的 iso 檔案作為套件來源。在 Ubuntu 官網上可下載前述的內核以及虛擬檔案系統，搭配自行設置的可開機光碟或隨身碟，即可完成安裝用媒介。<br>
+<br>
 可開機隨身碟的製作方式：<br>
+
 <ul>
   <li>切分隨身碟，第一分區設為可開機分區，並覆寫隨身碟 MBR<br>
 fdisk /dev/sdX<br>
@@ -50,58 +43,43 @@ syslinux 或 grub<br>
   <li>隨身碟兼作工具碟以及安裝碟，不同版本的 linux 可共用分區者，集中到第一個分區，其餘的 linux 各自放入獨立分區。<br>
 詳細資料參閱 /home/engells/ktws/0_linux_docs/prog_boot_loader/syslinux-guide.txt<br>
 </li>
-  <li>隨身碟安裝官網的 initrd.gz 以及 vmlinuz
-  </li>
+  <li>隨身碟安裝官網的 initrd.gz 以及 vmlinuz</li>
 
   <ul>
-    <li>自
-http://archive.ubuntu.com/ubuntu/dists/版本代號/main/installer-平台種類
-/current/images/hd-media/ 下載 initrd.gz 以及 vmlinuz</li>
-    <li>自
-http://releases.ubuntu.com/12.04.1/ 下載
-ubuntu-12.04.1-alternate-amd64.iso<br>
-    </li><li>將 initrd.gz 以及 vmlinuz 複製到可開機隨身碟</li>
+    <li>自 http://archive.ubuntu.com/ubuntu/dists/版本代號/main/installer-平台種類/current/images/hd-media/ 下載 initrd.gz 以及 vmlinuz</li>
+    <li>自 http://releases.ubuntu.com/12.04.1/ 下載ubuntu-12.04.1-alternate-amd64.iso<br></li>
+	<li>將 initrd.gz 以及 vmlinuz 複製到可開機隨身碟</li>
     <li>編輯 syslinux.cfg 增加開機選項：<br>
-default vmlinuz ← 若採網路安裝，核心為檔名 linux 的檔案<br>
-append initrd=initrd.gz 或 append initrd=initrd.gz video=vesa:ywrap,mtrr
-vga=788 ← 後者為啟用圖形界面參數<br>
-    </li>
-    <li>將 ubuntu-12.04.1-alternate-amd64.iso 複製到 /path/to/mount，也就是複製到
-/dev/sdX；</li>
-    <li>實作經驗，除了抓不到 iso 檔案外，其餘有正常開機。可能是兩者的內核版本不同所致。<br>
-    </li>
-
-    
+		default vmlinuz ← 若採網路安裝，核心為檔名 linux 的檔案<br>
+		append initrd=initrd.gz 或 append initrd=initrd.gz video=vesa:ywrap,mtrr
+		vga=788 ← 後者為啟用圖形界面參數<br></li>
+    <li>將 ubuntu-12.04.1-alternate-amd64.iso 複製到 /path/to/mount，也就是複製到 /dev/sdX；</li>
+    <li>實作經驗，除了抓不到 iso 檔案外，其餘有正常開機。可能是兩者的內核版本不同所致。<br></li>
   </ul>
+  
   <li>將官網的 boot.img 映像檔複寫至隨身碟，製成可開機隨身碟安裝<br>
     <ul>
-      <li>準備好可開機隨身碟，第一區分區保留 800MB 或以上的容量。注意，第一分區必須設定 bootable 標誌。<br>
-</li><li>自
-http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/
-下載 boot.img.gz</li>
-      <li>將 boot.img.gz 複寫至開機分區：zcat boot.img.gz /dev/sdX1<br>
-      </li>
+      <li>準備好可開機隨身碟，第一區分區保留 800MB 或以上的容量。注意，第一分區必須設定 bootable 標誌。<br></li>
+	  <li>自 http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/ 下載 boot.img.gz</li>
+      <li>將 boot.img.gz 複寫至開機分區：zcat boot.img.gz /dev/sdX1<br></li>
       <li>經分析，boot.img 檔案是 syslinux 開機方式的映像檔，預設分區大小為 783MB，實際使用約 35MB。</li>
       <li>實作經驗，可順利開機。 </li>
     </ul>
   </li>
+  
   <li>將官網的 mini.iso 燒錄為可開機光碟安裝</li>
   <ul>
-    <li>自
-http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/
-下載 mini.iso </li>
+    <li>自 http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/ 下載 mini.iso </li>
     <li>燒錄 mini.iso 或 複製到 usb 隨身碟</li>
     <li>開機後從 isolinux 選單選取安裝方式，預設安裝基本系統。</li>
-    <li>實作經驗，可順利開機。<br>
-    </li>
+    <li>實作經驗，可順利開機。<br></li>
   </ul>
+
 </ul>
 
 <br>
 
-<h3>採用 Alternate 模式安裝<br>
-</h3>
-
+<h3>採用 Alternate 模式安裝<br></h3>
 
 <hr style="width: 100%; height: 2px;">
 <ul>
@@ -110,7 +88,7 @@ http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/imag
   <li>按下「Alt + F2」組合鍵，在按下「Enter」 鍵，進入終端機。</li>
   <li>在終端機將含有 Alternate 光碟內容的分割區掛載到 「/cdrom」。</li>
   <li>按下「Alt + F1」組合鍵，回到主安裝畫面，進入掛載光碟選項。此時安裝程式應可取得光碟內容資訊。<br>
-注意，若分割區是 ext2，直接用 mount /dev/sdXY /cdrom，不需要指定 -t ext2 參數。<br>
+      注意，若分割區是 ext2，直接用 mount /dev/sdXY /cdrom，不需要指定 -t ext2 參數。<br>
 </li>
   <li>若採用 Alternate 光碟檔開機方式，則需將光碟檔 (***.iso) 掛載到 「/cdrom」。</li>
   <li>按照上述模式，可推測 Ubuntu 開機光碟或隨身碟開機後，Linux 核心會將光碟機內的光碟片掛載到 「/cdrom」，以進行後續安裝作業。</li>
@@ -118,34 +96,32 @@ http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/imag
 <br>
 <br>
 
-<h3><a name="user_config"></a>設定使用者環境<br>
-</h3>
+<h3><a name="user_config"></a>設定使用者環境<br></h3>
 
 <hr style="width: 100%; height: 2px;">
-<ul>
 
+<ul>
   <li>Set to local time<br>
-Edit /etc/default/rcS: "UTC=yes" =&gt; "UTC=no"</li>
-  <li>Set usr directories, now freedesktop.org define some directories
-in $Home, those directories could be re-defined<br>
+      Edit /etc/default/rcS: "UTC=yes" =&gt; "UTC=no"</li>
+  <li>Set usr directories, now freedesktop.org define some directoriesin $Home, those directories could be re-defined<br>
     <ul>
       <li>Edit ~/.config/user-dirs.dirs<br>
-XDG_DESKTOP_DIR="$HOME/桌面" =&gt;
-XDG_DESKTOP_DIR="$HOME/Desktop"<br>
-XDG_DOCUMENTS_DIR="$HOME/文件" =&gt;
-XDG_DOCUMENTS_DIR="$HOME/"<br>
-XDG_DOWNLOAD_DIR="$HOME/下載 =&gt;
-XDG_DOWNLOAD_DIR="$HOME/downloads"<br>
+          XDG_DESKTOP_DIR="$HOME/桌面" =&gt;
+          XDG_DESKTOP_DIR="$HOME/Desktop"<br>
+          XDG_DOCUMENTS_DIR="$HOME/文件" =&gt;
+          XDG_DOCUMENTS_DIR="$HOME/"<br>
+          XDG_DOWNLOAD_DIR="$HOME/下載 =&gt;
+          XDG_DOWNLOAD_DIR="$HOME/downloads"<br>
       </li>
       <li>Run command as below:</li>
       <p class="command">xdg-user-dirs-update</p>
-Choose "Keep old name", "Don't Ask Again" and "Login Again"<br>
+          Choose "Keep old name", "Don't Ask Again" and "Login Again"<br>
       <li>Another commands:</li>
       <p class="command">export LANG=en_US; xdg-user-dirs-gtk-update</p>
     </ul>
   </li>
   <li>fonts<br>
-To ref the file: ~/ktws/scripts/fonts.sh<br>
+      To ref the file: ~/ktws/scripts/fonts.sh<br>
   </li>
 </ul>
 
@@ -154,27 +130,25 @@ To ref the file: ~/ktws/scripts/fonts.sh<br>
 <h3><a name="x_crash"></a>X視窗崩潰處理</h3>
 
 <hr>
+
 <ul>
 
   <li>tty<br>
-以Ctrl + Alt + [F1~F6] 登錄tty<br>
-top <br>
-pkill / kill / killall </li>
+      以Ctrl + Alt + [F1~F6] 登錄tty<br>
+      top <br>
+      pkill / kill / killall</li>
   <li>Ctrl + Alt + BackSpace<br>
-System &gt; Preferences &gt; Keyboard &gt; Layouts(T)&nbsp; &gt;
-Options(B) &gt; Key sequence to kill the X server &gt; Control + Alt +
-Backspace </li>
+      System &gt; Preferences &gt; Keyboard &gt; Layouts(T)&nbsp; &gt;
+      Options(B) &gt; Key sequence to kill the X server &gt; Control + Alt + Backspace</li>
   <li>Alt+sysrq+{reisub}<br>
-系统启动时执行：echo "1" &gt; /proc/sys/kernel/sysrq 或者修改 /etc/sysctl.conf
-文件，设置 kernel.sysrq = 1<br>
-/etc/sysctl.conf 檔案在 Ubuntu 中被移至 /etc/sysctl.d/ 目錄中，且切成數個子檔案，有關
-kernel.sysrq = 1 的設定在 10-console-messages.conf 檔案<br>
-  </li>
+      系统启动时执行：echo "1" &gt; /proc/sys/kernel/sysrq 或者修改 /etc/sysctl.conf 文件，设置 kernel.sysrq = 1<br>
+      /etc/sysctl.conf 檔案在 Ubuntu 中被移至 /etc/sysctl.d/ 目錄中，且切成數個子檔案，有關
+      kernel.sysrq = 1 的設定在 10-console-messages.conf 檔案<br></li>
 </ul>
 
 <div class="ref">
-參考資料：
-<hr class="ref"><cite class="ref">http://linuxtoy.org/archives/how-to-determine-the-freeze-under-linux.html&nbsp;</cite>
+    參考資料：
+    <hr class="ref"><cite class="ref">http://linuxtoy.org/archives/how-to-determine-the-freeze-under-linux.html&nbsp;</cite>
 </div>
 
 <br>
@@ -182,32 +156,28 @@ kernel.sysrq = 1 的設定在 10-console-messages.conf 檔案<br>
 <h3><a name="system_clean"></a>系統清理</h3>
 
 <hr>
-<ul>
 
+<ul>
   <li>清除快取檔、暫存檔<br>
-BleachBit，需以 apt 安裝，沒有 X 圖形界面時，也可以用 bleachbit_cli 指令列。<br>
-  </li>
+      BleachBit，需以 apt 安裝，沒有 X 圖形界面時，也可以用 bleachbit_cli 指令列。<br></li>
   <li>清理 apt 快取
     <ul>
       <li>清除語系資料
         <ul>
-          <li>localepurge，需以 apt 安裝<br>
-          </li>
+          <li>localepurge，需以 apt 安裝<br></li>
         </ul>
       </li>
       <li>清除不需要的 deb 安裝套件
         <ul>
           <li>apt-get autoclean</li>
-          <li>apt-get clean<br>
-          </li>
+          <li>apt-get clean<br></li>
         </ul>
       </li>
       <li>清除軟體孤兒
         <ul>
           <li>apt-get autoremove 軟體孤兒</li>
           <li>deborphan，需以 apt 安裝</li>
-          <li>GtkOrphan，需以 apt 安裝，為 deborphan 圖形界面<br>
-          </li>
+          <li>GtkOrphan，需以 apt 安裝，為 deborphan 圖形界面<br></li>
         </ul>
       </li>
     </ul>
@@ -218,15 +188,14 @@ BleachBit，需以 apt 安裝，沒有 X 圖形界面時，也可以用 bleachbi
   <li>查詢硬碟容量使用情形
     <ul>
       <li>du --max-depth=1 -x | sort -n</li>
-      <li>Baobao 軟體，具圖形化操作界面<br>
-      </li>
+      <li>Baobao 軟體，具圖形化操作界面<br></li>
     </ul>
   </li>
 </ul>
 
 <div class="ref">
-參考資料：
-<hr class="ref"><cite class="ref">http://www.openfoundry.org/en/foss-programs/8307--debianubuntu-</cite>
+    參考資料：
+    <hr class="ref"><cite class="ref">http://www.openfoundry.org/en/foss-programs/8307--debianubuntu-</cite>
 </div>
 
 <br>
@@ -234,37 +203,32 @@ BleachBit，需以 apt 安裝，沒有 X 圖形界面時，也可以用 bleachbi
 <h3><a name="boot_autorun"></a>Ubuntu開機自動執行</h3>
 
 <hr>
-<ul>
 
+<ul>
   <li>開機自動執行的程式有2種類型<br>
-xwindow登入後自動執行 ←白話一點說就是：進入桌面後才自動執行<br>
-ubuntu開機後自動執行&nbsp;&nbsp;&nbsp; ←白話一點說就是：系統一開機就自動執行<br>
-  </li>
+      xwindow登入後自動執行 ←白話一點說就是：進入桌面後才自動執行<br>
+      ubuntu開機後自動執行&nbsp;&nbsp;&nbsp; ←白話一點說就是：系統一開機就自動執行<br></li>
   <li>xwindow登入後自動執行<br>
-System (M) &gt; Preference (M) &gt; Starup Applications (M) &gt;
-Startup Programs (T)，自行新增即可<br>
-請參閱 ~/ktws/0_linux_doc/contents/gnome-xdg.html，有關 XDG 章節<br>
-  </li>
+      System (M) &gt; Preference (M) &gt; Starup Applications (M) &gt;
+      Startup Programs (T)，自行新增即可<br>
+      請參閱 ~/ktws/0_linux_doc/contents/gnome-xdg.html，有關 XDG 章節<br></li>
   <li>ubuntu開機後自動執行<br>
-有下列幾種方式<br>
+      有下列幾種方式<br>
     <ul>
       <li>編輯 /etc/init.d/rcS ，在檔案最後面添加指令</li>
-      <li>編輯 /etc/rc.local或
-/etc/init.d/rc.local，在檔案最後面添加指令<br>
-例如在/etc/init.d/rc.local尾端寫入後續指令bash
-/opt/security/iptables/iptables.rule</li>
-      <li>編寫 script 檔後，放到 /etc/init.d目錄下，如果在 /etc/init.d 中加入一個
-script，例如lampp，當作服務來啟動<br>
-手動啟用: sudo /etc/init.d/lampp start 或 sudo invoke-rc.d lampp start<br>
-手動關閉: sudo /etc/init.d/lampp stop 或 sudo invoke-rc.d lampp stop</li>
+      <li>編輯 /etc/rc.local或 /etc/init.d/rc.local，在檔案最後面添加指令<br>
+          例如在/etc/init.d/rc.local尾端寫入後續指令bash /opt/security/iptables/iptables.rule</li>
+      <li>編寫 script 檔後，放到 /etc/init.d目錄下，如果在 /etc/init.d 中加入一個 script，例如lampp，當作服務來啟動<br>
+          手動啟用: sudo /etc/init.d/lampp start 或 sudo invoke-rc.d lampp start<br>
+          手動關閉: sudo /etc/init.d/lampp stop 或 sudo invoke-rc.d lampp stop</li>
       <li>使用update-rc.d 指令</li>
     </ul>
   </li>
 </ul>
 
 <div class="ref">
-參考資料：
-<hr class="ref"><cite class="ref">http://dominic16y.world.edoors.com/Cuf9UVglg1a0</cite>
+    參考資料：
+    <hr class="ref"><cite class="ref">http://dominic16y.world.edoors.com/Cuf9UVglg1a0</cite>
 </div>
 
 <br>
@@ -272,66 +236,59 @@ script，例如lampp，當作服務來啟動<br>
 <h3><a name="network_config">網路設定</a></h3>
 
 <hr>
-<ul>
 
+<ul>
   <li>在同一張卡上多設定一組IP<br>
-sudo gedit /etc/network/interfaces<br>
+      sudo gedit /etc/network/interfaces<br>
     <div style="margin-left: 20px;">auto lo<br>
-iface lo inet loopback<br>
-    <br>
-auto eth0 : 0<br>
-iface eth0:0 inet static<br>
-address 192.168.61.195<br>
-netmask 255.255.255.0<br>
-gateway 192.168.61.246<br>
-    <br>
-auto eth0 : 1<br>
-iface eth0:1 inet static<br>
-address 192.168.61.194<br>
-netmask 255.255.255.0<br>
-gateway 192.168.61.246<br>
-    <br>
+        iface lo inet loopback<br><br>
+        auto eth0 : 0<br>
+        iface eth0:0 inet static<br>
+        address 192.168.61.195<br>
+        netmask 255.255.255.0<br>
+        gateway 192.168.61.246<br>
+        <br>
+        auto eth0 : 1<br>
+        iface eth0:1 inet static<br>
+        address 192.168.61.194<br>
+        netmask 255.255.255.0<br>
+        gateway 192.168.61.246<br>
+        <br>
     </div>
   </li>
   <li>設定DNS<br>
-sudo gedit /etc/resolv.conf <br>
+      sudo gedit /etc/resolv.conf <br>
     <div style="margin-left: 20px;">nameserver 168.95.192.1<br>
-nameserver 168.95.1.1<br>
+        nameserver 168.95.1.1<br>
     <br>
     </div>
   </li>
   <li>設定NAT<br>
-sudo vim /etc/sysctl.d/10-network-security.conf<br>
+        sudo vim /etc/sysctl.d/10-network-security.conf<br>
     <div style="margin-left: 20px;">將其中 net.ipv4.ip_forward=0 改成
-net.ipv4.ip_forward=1,下次開機時便自動設定完成了<br>
-將其中 net.ipv4.conf.all.rp_filter=0 改成
-net.ipv4.conf.all.rp_filter=1,下次開機時便自動設定完成了<br>
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE<br>
+        net.ipv4.ip_forward=1,下次開機時便自動設定完成了<br>
+        將其中 net.ipv4.conf.all.rp_filter=0 改成 net.ipv4.conf.all.rp_filter=1,下次開機時便自動設定完成了<br>
+        iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE<br>
     </div>
   </li>
 </ul>
 
 <div class="ref">
-參考資料：
-<hr class="ref"><cite class="ref">https://wiki.edubuntu.org/Ubuntu_10.04_LTS</cite>
+    參考資料：
+    <hr class="ref"><cite class="ref">https://wiki.edubuntu.org/Ubuntu_10.04_LTS</cite>
 </div>
 
 <br>
 
-<h3><a name="disk_fsck"></a>磁碟檢查<br>
-</h3>
+<h3><a name="disk_fsck"></a>磁碟檢查<br></h3>
 
 <hr>
-<ul>
 
-  <li>View file of /var/log/message to check ih there are any warning
-message </li>
+<ul>
+  <li>View file of /var/log/message to check ih there are any warning message </li>
   <li>Reboot with Linux Live CD, run fsck to check disk.</li>
-  <li>Install smartmontool, run command of "smartctl --all
-/dev/sda" in
-console</li>
-  <li>Install gsmartcontrol to run smartcontrol in GUI, "sudo
-gsmartcontrol" </li>
+  <li>Install smartmontool, run command of "smartctl --all /dev/sda" in console</li>
+  <li>Install gsmartcontrol to run smartcontrol in GUI, "sudo gsmartcontrol" </li>
 </ul>
 
 <br>
@@ -339,117 +296,107 @@ gsmartcontrol" </li>
 <h3><a name="input_method"></a>輸入法</h3>
 
 <hr>
-<ul>
 
+<ul>
   <li>gcin<br>
-/usr/bin/gcin-gb-toggle &lt;= config file<br>
-/usr/lib/gtk-2.0/2.10.0/immodule-files.d/gcin.immodules<br>
-"gcin" "gcin Input Method" "gcin" "/usr/share/locale" "*" =&gt;
-"gcin" "gcin Input Method" "gcin" "/usr/share/locale" ""<br>
-    <p class="command">m-switch -s gcin &lt;= command to switch to
-gcin: </p>
+      /usr/bin/gcin-gb-toggle &lt;= config file<br>
+      /usr/lib/gtk-2.0/2.10.0/immodule-files.d/gcin.immodules<br>
+      "gcin" "gcin Input Method" "gcin" "/usr/share/locale" "*" =&gt;
+      "gcin" "gcin Input Method" "gcin" "/usr/share/locale" ""<br>
+    <p class="command">m-switch -s gcin &lt;= command to switch to gcin: </p>
   </li>
   <li>ibus<br>
-/usr/lib/gtk-2.0/2.10.0/immodule-files.d/ibus-gtk.immodules<br>
-"ibus" "IBus (Intelligent Input Bus)" "ibus" "" "ja:ko:zh:*"&nbsp;</li>
-  <li>進入 X 視窗時，自動載入輸入法<br>
-  </li>
+      /usr/lib/gtk-2.0/2.10.0/immodule-files.d/ibus-gtk.immodules<br>
+      "ibus" "IBus (Intelligent Input Bus)" "ibus" "" "ja:ko:zh:*"&nbsp;</li>
+  <li>進入 X 視窗時，自動載入輸入法<br></li>
 </ul>
 
 <br>
 
-<h3><a name="Tips"></a>Tips<br>
-</h3>
+<h3><a name="Tips"></a>Tips<br></h3>
 
 <hr style="width: 100%; height: 2px;">
-<ul>
 
+<ul>
   <li>清除回收筒內無法刪除的檔案<br>
-cd ~/.local/share/Trash &amp;&amp; sudo rm -rf *<br>
-cd /media/sdc1/.Trash-1000 &amp;&amp; sudo rm -rf *</li>
+      cd ~/.local/share/Trash &amp;&amp; sudo rm -rf *<br>
+      cd /media/sdc1/.Trash-1000 &amp;&amp; sudo rm -rf *</li>
   <li>將/bin/sh/bin/sh連結從/bin/dash，恢復為/bin/bash<br>
-sudo dpkg-reconfigure dash</li>
+      sudo dpkg-reconfigure dash</li>
   <li>刪除特定目錄下的空目錄<br>
-find /tmp -depth -empty -type d<br>
-find /tmp -depth -empty -type d -exec rmdir -v {} \;<br>
+      find /tmp -depth -empty -type d<br>
+      find /tmp -depth -empty -type d -exec rmdir -v {} \;<br>
   </li>
   <li>刪除NTFS檔案複製到Ubuntu時產生之多餘檔案<br>
-find . -name "*encryptable*" -exec rm {} \;<br>
-find . -name "*Identifier*" -exec rm {} \;<br>
-find /mnt/disk640/ -type f -name "*\$DATA" -exec rm {} \;<br>
-#-exec 要執行的指令<br>
-#{} 每個使用find找到的檔案<br>
-#\; 表 -exec 指令結束,但分號 ; 為特殊字元,故前置倒斜線</li>
+      find . -name "*encryptable*" -exec rm {} \;<br>
+      find . -name "*Identifier*" -exec rm {} \;<br>
+      find /mnt/disk640/ -type f -name "*\$DATA" -exec rm {} \;<br>
+      #-exec 要執行的指令<br>
+      #{} 每個使用find找到的檔案<br>
+      #\; 表 -exec 指令結束,但分號 ; 為特殊字元,故前置倒斜線</li>
   <li>停止自動掛載<br>
-gconf-editor<br>
-找到:<br>
-　　/apps/nautilus/preferences/media_automount<br>
-　　/apps/nautilus/preferences/media_automount_open<br>
-  </li>
+      gconf-editor<br>
+      找到:<br>
+        /apps/nautilus/preferences/media_automount<br>
+        /apps/nautilus/preferences/media_automount_open<br></li>
   <li>使用DVD-RAM<br>
-/dev/scd1 代表光碟裝置名稱,內建的是/dev/scd0<br>
-sudo apt-get install udftools<br>
-sudo mkudffs --utf8 --media-type=dvdram /dev/scd[#]<br>
-  </li>
+      /dev/scd1 代表光碟裝置名稱,內建的是/dev/scd0<br>
+      sudo apt-get install udftools<br>
+      sudo mkudffs --utf8 --media-type=dvdram /dev/scd[#]<br></li>
   <li>Add kernels<br>
-url:http://kernel.ubuntu.com/~kernel-ppa/mainline/<br>
-Header all =&gt; Header amd64 =&gt; Image amd64<br>
-  </li>
+      url:http://kernel.ubuntu.com/~kernel-ppa/mainline/<br>
+      Header all =&gt; Header amd64 =&gt; Image amd64<br></li>
   <li>Config sudo<br>
-/etc/sudoers<br>
-ex:
-%engells ALL=(root)NOPASSWD: command1, command2; ALL means all host,
-root means play role, commandx means privileged commands</li>
+      /etc/sudoers<br>
+      ex:
+      %engells ALL=(root)NOPASSWD: command1, command2; ALL means all host,
+      root means play role, commandx means privileged commands</li>
   <li>九宮格數字鍵盤控制滑鼠游標<br>
-gnome-keyboard-properties</li>
+      gnome-keyboard-properties</li>
   <li>顯示Xwindow下事件的代碼<br>
-xen</li>
+      xen</li>
   <li>選擇更新速度最快伺服器<br>
-System (M) &gt; Administration (M) &gt; Synaptic Package Manager (M)
-&gt; <br>
-Settings&nbsp; (M) &gt; Software Sources (M) &gt; Ubuntu Software (T)
-&gt; <br>
-Download from: (B) &gt; Other... (I) &gt; Select Best Server (B)<br>
-從全球伺服器中選擇回應速度最快的伺服器，選出的伺服器會自動取代 /etc/apt/sources.list 裡的更新伺服器</li>
+      System (M) &gt; Administration (M) &gt; Synaptic Package Manager (M) &gt; <br>
+      Settings&nbsp; (M) &gt; Software Sources (M) &gt; Ubuntu Software (T) &gt; <br>
+      Download from: (B) &gt; Other... (I) &gt; Select Best Server (B)<br>
+      從全球伺服器中選擇回應速度最快的伺服器，選出的伺服器會自動取代 /etc/apt/sources.list 裡的更新伺服器</li>
   <li>設定root密碼，以便以root身份登入<br>
-sudo passwd root</li>
+      sudo passwd root</li>
   <li>在64位元環境強制安裝32位元程式<br>
-sudo dpkg -i <strong>--force-architecture</strong>
-skype-debian_2.0.0.72-1_i386.deb</li>
+      sudo dpkg -i <strong>--force-architecture</strong>
+      skype-debian_2.0.0.72-1_i386.deb</li>
   <li>Kernel 升級<br>
-從 http://kernel.ubuntu.com/~kernel-ppa/mainline/ 下載所需kernel檔案，安裝順序亦同<br>
-linux-headers-...all.deb<br>
-linux-headers-...-generic...deb<br>
-linux-image-...deb</li>
-  <li>Peripheral Support 週邊支援<br>
-  </li>
+      從 http://kernel.ubuntu.com/~kernel-ppa/mainline/ 下載所需kernel檔案，安裝順序亦同<br>
+      linux-headers-...all.deb<br>
+      linux-headers-...-generic...deb<br>
+      linux-image-...deb</li>
+  <li>Peripheral Support 週邊支援<br></li>
 </ul>
 
 <br>
 
-<h3>Some commands raraly run:<br>
-</h3>
+<h3>Some commands raraly run:<br></h3>
 
 <hr>tasksel&nbsp; #套裝軟體安裝程式<br>
 
 update-alternatives&nbsp; #套件版本管理程式，用來管理套件的多個版本，常用於java、桌面登入程式<br>
 
-debootstrap&nbsp; #在根目錄以下的目錄建立基本的 debian 系統，debootstrap本身其實只是一些 shell
-scripts<br>
+debootstrap&nbsp; #在根目錄以下的目錄建立基本的 debian 系統，debootstrap本身其實只是一些 shell scripts<br>
 
 <br>
 
 <h3>Ref URL:</h3>
 
-<hr><cite>http:/wiki.cchtml.com/index.php/ubuntu_jaunty_installation_guide</cite><br>
+<hr>
 
+<cite>http:/wiki.cchtml.com/index.php/ubuntu_jaunty_installation_guide</cite><br>
 <cite>http:/archive.ubuntu.com/ubuntu/pool/restricted/f/fglrx-installer</cite><br>
-
 <cite>http://www.kernel.org/</cite><br>
-
 <cite>http:/ppa.launchpad.net</cite>
-<br>
 
 <br>
 
-</body></html>
+<br>
+
+</body>
+</html>
