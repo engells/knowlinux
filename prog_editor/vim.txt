@@ -1,29 +1,6 @@
 # vim:ts=4
 
 
-設定檔
-====================
-變數
-	$VIM="/usr/share/vim/
-	$VIMRUNTIME="/usr/share/vim/vim73"
-
-預設的應用程式層級的設定檔
-	$VIM/vimrc	--> /etc/vim/vimrc
-	$VIM/gvimrc	--> /etc/vim/gvimrc
-
-使用者層級的設定檔
-	$HOME/.vimrc
-	$HOME/.gvimrc
-
-將設定檔切分成數個檔案
-	利用 source 指令可讓 vim 載入外部設定檔
-		for CONFIG in split(glob('~/.vim/vimrc.d/*.vim'), '\n')
-			exe 'source' CONFIG
-		endfor
-
-
-
-
 folding
 ====================
 url:	http://ctwyw.com/?p=43
@@ -124,6 +101,7 @@ nnoremap <C-H> <C-W><C-H>
 <Up> PageUp 向上翻頁鍵。
 <F5> F5 功能鍵。
 <C-G> Ctrl+G 鍵。
+<K-9> 九宮格數字鍵的 9
 要注意的是,大小寫是不分的
 
 
@@ -148,3 +126,68 @@ UTL
 ====================
 Vim 的顏色設定：http://aknow-work.blogspot.tw/2013/05/vim-color.html
 
+
+
+
+執行模式
+====================
+普通模式 (Normal-mode)
+    一般，啟動編輯器之後就處於普通模式
+
+可視模式 (Visual-mode)
+    與普通模式相似，只是游標移動會擴展高亮的區域。而其它非移動命令會作用于高亮的區域。
+    在普通模式下，可以通過 v 或 V 或 CTRL-V 進入。
+    如果沒有關閉 ‘showmode’ 選項，視窗底部會出現「—VISUAL—」 字樣。
+
+選擇模式 (Select-mode)
+    與 Windows 下其它編輯器的選擇模式很像。選中字元後，輸入一個可顯示字元，會刪掉所有先前選中的所有字元，並進入插入模式。
+    在普通模式下按 gh 進入，或在 gvim 中用滑鼠拖選區域。
+    視窗底部會出現 「—SELECT—」 字樣。
+
+插入模式 (Insert-mode)
+    輸入的內容會插入到緩衝區。
+    普通模式下按 i 或 a 進入插入模式。
+    視窗底部會出現 「—INSERT—」 字樣。
+
+命令列模式 (Cmdline-mode)
+    命令列模式可以在視窗底部輸入一行命令。可以用 “:” 執行命令，用 “?” 和 “/“ 來查找。
+
+Ex 模式 (Ex-mode)
+    與命令列模式類似，只是執行完一條命令後，會繼續停留在 Ex 模式。在普通模式下，按 Q 進入 Ex 模式。
+
+
+
+
+設定檔
+====================
+變數
+	$VIM="/usr/share/vim/
+	$VIMRUNTIME="/usr/share/vim/vim73"
+
+預設的應用程式層級的設定檔
+	$VIM/vimrc	--> /etc/vim/vimrc
+	$VIM/gvimrc	--> /etc/vim/gvimrc
+
+使用者層級的設定檔
+	$HOME/.vimrc
+	$HOME/.gvimrc
+
+將設定檔切分成數個檔案
+	利用 source 指令可讓 vim 載入外部設定檔
+		for CONFIG in split(glob('~/.vim/vimrc.d/*.vim'), '\n')
+			exe 'source' CONFIG
+		endfor
+
+熱鍵(指令映射)
+    map b a → 將 b 映射為 a
+    map b a ＋ map c b → 輸入 c 映射為 b，b 再映射為 a，產生遞迴(recirsing)效果 
+    noremap b a → 將 b 映射為 a，無遞迴(recirsing)效果
+    unmap {lhs} → 取消普通模式下 lhs 的映射，其他模式不受影響
+    mapclear → 取消所有映射
+    特殊參數
+        <buffer>
+        <silent> → nmap <silent> b a → 所映射指令不會在底部命令列顯現
+        <special>
+        <script>
+        <expr>
+        <unique> 

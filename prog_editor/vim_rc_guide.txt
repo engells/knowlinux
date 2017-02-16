@@ -8,6 +8,10 @@ set t_Co=256 		" 256 色顯示
 colo lucid 			" 採用 lucid 佈景主題，完整指令 colorscheme lucid 
 set fileencodings=utf-8,utf-16,big5,gb2312,gbk,gb18030,euc-jp,euc-kr,latin1
 set encoding=utf-8	" 使用 utf-8 編碼
+let mapleader=";"   " 使用「;」作為快捷鍵(熱鍵)的起始(導引)字元，也就是 <Leader> 參數
+filetype on         " 自動偵測檔案類型
+filetype plugin on  " 依據所偵測到的檔案類型載入插件
+filetype indent on  " 依據所偵測到的檔案類型決定縮排風格
 
 
 " 提示游標所在行及列
@@ -22,14 +26,27 @@ hi LineNr cterm=bold ctermfg=Grey ctermbg=Black
 
 
 "---- Editing Style ----
-set cindent			" 以 cindent 模式縮排，另有 autoindent、smartindent 模式 <=> set nocindent
-set expandtab		" 將「TAB」字元替換為空白字元 <=> set noexpandtab
-set tabstop=4		" 定義「TAB」字元的寬度
-set softtabstop=4	" 定義鍵盤「TAB」按鍵產生的寬度
-set shiftwidth=4	" 縮排模式為內縮 4 個空白字元
-set smarttab		" 行首縮排字元引用「shiftwidth」變數所定義的寬度 <=> set nosmarttab
-syntax on			" 程式碼語法高亮 <=> syntax off
+set cindent			 " 以 cindent 模式縮排，另有 autoindent、smartindent 模式 <=> set nocindent
+set expandtab        " 將「TAB」字元替換為空白字元 <=> set noexpandtab
+set tabstop=4	     " 定義「TAB」字元的寬度
+set softtabstop=4    " 定義鍵盤「TAB」按鍵產生的寬度
+set shiftwidth=4     " 縮排模式為內縮 4 個空白字元
+set smarttab	     " 行首縮排字元引用「shiftwidth」變數所定義的寬度 <=> set nosmarttab
+
+let g:indent_guides_enable_on_vim_startup=1 " 啟動縮排輔助指示，「g:」表示全域設定
+let g:indent_guides_start_level=2           " 從第二層縮排開始輔助指示
+let g:indent_guides_guide_size=1            " 縮排輔助指示色塊寬度
+nmap <silent> <Leader>i <Plug>IndentGuidesToggle   " 快速鍵 i 開/關縮排輔助指示
+
+syntax enable       " 啟用程式碼語法高亮
+syntax on			" 允許使用自訂的程式碼語法高亮顏色配置 <=> syntax off
 set wrap			" 自動換行 <=> set nowrap
+
+
+"set foldmethod=indent  " 依據縮排摺疊
+set foldmethod=syntax   " 依據語法摺疊
+set nofoldenable
+
 
 
 "---- Search Mode ----
@@ -41,11 +58,25 @@ set wrap			" 自動換行 <=> set nowrap
 
 
 "---- Mouse ----
-set mouse=			" 關閉滑鼠控制功能 <=> set mouse=a
+set mouse=			" 關閉滑鼠控制功能 <=> set mouse=a, mouse=nv 只在 Normal 以及 Visual 模式使用滑鼠
 
 
 "---- Key-Mapping ----
-" 「map」為一般模式和視覺模式、「map!」、「nmap」、「vmap」、「imap」、「cmap」、「omap」
+" 「map」為一般模式和視覺模式、「map!」、「nmap」、「vmap」、「imap 選擇模式」、「cmap」、「omap」
+nmap LB 0                       " 定義快速鍵到行首和行尾
+nmap LE $
+vnoremap <Leader>y "+y          " 設置熱鍵將選中文字區塊複製至系統剪貼板
+nmap <Leader>p "+p              " 設置熱鍵將系統剪貼板內容粘貼至 vim
+nmap <Leader>q :q<CR>           " 定義熱鍵關閉當前分割窗口
+nmap <Leader>w :w<CR>           " 定義熱鍵保存當前視窗內容
+nmap <Leader>WQ :wa<CR>:q<CR>   " 定義熱鍵保存所有視窗內容並退出 vim
+nmap <Leader>Q :qa!<CR>         " 不做任何保存，直接退出 vim
+nnoremap nw <C-W><C-W>          " 依次遍歷子視窗
+nnoremap <Leader>hw <C-W>h      " 跳轉至左方的窗口
+nnoremap <Leader>jw <C-W>j      " 跳轉至下方的子窗口
+nnoremap <Leader>kw <C-W>k      " 跳轉至上方的子窗口
+nnoremap <Leader>lw <C-W>l      " 跳轉至右方的窗口
+nmap <Leader>M %                " 定義熱鍵在結對符之間跳轉
 
 
 "---- Miscellaneous ----
@@ -56,5 +87,11 @@ set laststatus=2	" 開啟狀態列 <=> set laststatus=1
 "set showcmd		" 顯示暫存指令 <=> set noshowcmd
 "set showmode		" 顯示 vim 的模式，「n」為一般模式；「v」為視覺模式；「i」為插入模式；「c」為命令列模式；「a」為所有模式  <=> set noshowmode
 "set autowrite		" <=> set noautowrite
+"set wildmenu       " 輸入 vim 指令時自動補全
 "set binary
 "set eol
+"autocmd BufWritePost $MYVIMRC source $MYVIMRC  " 設定檔變更立即生效
+
+
+"---- Commands ----
+retab               " 將檔案內現有之「TAB」字元替換為空白字元
