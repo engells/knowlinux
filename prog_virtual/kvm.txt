@@ -101,30 +101,33 @@ libvirt 網路機制
 
 
 
-產生虛擬機
+產生虛擬機硬碟
 ==============================
 
 產生硬碟映像檔
 -------------------------
-sudo kvm-img create -f qcow2 x.img 4G
-sudo kvm-img convert -O qcow2 x.img y.img
+kvm-img create -f qcow2 x.img 4G
+kvm-img convert -O qcow2 x.img y.img
 kvm-img info x.img
 dd if=/dev/zero of=~/virtual/vd01.raw bs=64k count=4800
 
 
 fdisk disk image file
 -------------------------
-sudo modprobe nbd max_part=8
-sudo kvm-nbd --connect=/dev/nbd0 ~/virtual/vd02.qcwo
-sudo gparted /dev/nbd0
-sudo kvm-nbd --disconnect /dev/nbd0
-sudo rmmod nbd
+modprobe nbd max_part=8
+modinfo nbd
+kvm-nbd --connect=/dev/nbd0 /path/to/xxxx.qcwo
+    # 替代指令：kvm-nbd -c /dev/nbd0 /path/to/xxxx.qcwo
+gparted /dev/nbd0
+kvm-nbd --disconnect /dev/nbd0
+rmmod nbd
 
 mount virtual disk, should have nbd module active, and note that only partitions could be mounted
 -------------------------
-sudo mkdir ~/mnt/vhd
-sudo mount /dev/nbd0p1 ~/mnt/vhd
-sudo umount ~/mnt/vhd
+mkdir /path/to/folder
+mount /dev/nbd0p1 /path/to/folder
+    # 替代指令：mount -t exfat -o rw /dev/nbd0p1 /path/to/folder，-t vfat | exfat | ntfs | ext4 ...
+umount /path/to/folder
 
 
 使用實體硬碟
@@ -243,7 +246,7 @@ Install KVM and manager command
 安裝
 -------------------------
 kvm-ok
-sudo apt-get install qemu-kvm kvm-ipxe virt-manager
+apt install qemu-kvm kvm-ipxe virt-manager
 	qemu-kvm：kvm 必要套件，一般會同時安裝 qemu-common 及 bridge-utils 套件
 	kvm-ipxe：提供 PXE 開機 ROM，供網路開機使用
 	virt-manager：圖形管理界面，本身是 libvirt-bin 套件的強化，故安裝時會一併安裝 libvirt-bin、virtinst 套件
