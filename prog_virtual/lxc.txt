@@ -123,6 +123,8 @@ Method 1:
 ----------
 apt install xauth
 apt install dbus dbus-x11
+ssh -X ubuntu@10.0.3.101 # run this command in host
+/usr/bin/firefox
 
 
 Method 2:
