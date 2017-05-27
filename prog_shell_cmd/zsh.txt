@@ -1,0 +1,26 @@
+# vim:ts=2
+
+
+
+Install zsh and
+====================
+安裝 zsh
+	sudo apt install -y zsh
+
+安裝 Oh My ZSH
+	方法一
+		git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
+			＃下載 Oh My ZSH
+		cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+			# 產生 Oh My ZSH 組態檔
+	方法二
+		curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | bash
+
+將 zsh 設定為目前使用者的預設shell
+	sudo chsh -s $(which zsh) $(whoami)
+
+修改 home 的.zshrc，設定 Oh My ZSH
+	vim ~/.zshrc
+		佈景主題修改 ZSH_THEME="theme_name"
+		佈景主題位置在 .oh-my-zsh/themes/底下，可自 https://github.com/robbyrussell/oh-my-zsh/wiki/Themes 取得佈景
+
