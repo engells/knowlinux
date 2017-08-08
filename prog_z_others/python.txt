@@ -1,0 +1,25 @@
+
+
+虛擬環境
+套件：virtualenv
+url：http://pythonguidecn.readthedocs.io/zh/latest/dev/virtualenvs.html
+
+
+
+
+環境建置
+====================
+基本安裝
+----------
+Ubuntu 16.04 及 Debian 8 已預設安裝 python，以 python3 -V 查詢安裝版本
+安裝 pip 工具程式：apt-get install -y python3-pip
+安裝 python 套件：pip3 install package_name
+安裝輔助套件：apt-get install build-essential libssl-dev libffi-dev python3-dev
+
+虛擬環境
+----------
+安裝 venv 模組：apt-get install python3-venv
+建立目錄供虛擬環境使用：mkdir environments && cd environments
+建立虛擬環境：pyvenv my_env
+啟用虛擬環境：source my_env/bin/activate，啟用後命令列出現類似提示文字 (my_env) sammy@ubuntu:~/environments$
+離開虛擬環境：deactivate
