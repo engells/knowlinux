@@ -8,6 +8,32 @@
 
 
 
+Web 或者 Service 能夠支援 SSL
+====================
+產生私有金鑰 (Private Key)
+    openssl genrsa -aes256 -out private.key 2048
+
+產生 CSR (Certificate Signing Request), 並將 CSR 傳送給 CA
+    openssl req -new -key private.key -out CSR.csr
+
+把 CA 所提供的憑證 (Certificate) 安裝在 Web 或 Service的伺服器上
+    openssl req -text -in CSR.csr -noout
+    以上指令是輸出 CSR 內容，確認正確後將 CSR 傳送到公認且有公信力的 CA 單位，請該單位已此 CSR 產生憑證 (Certificate，Crt)，再將憑證安裝在需要支援 SSL 的伺服器上
+
+如果不需要公開對外支援 SSL，可以自行產生 Self-signed 的憑證
+    openssl req -x509 -days 3650 -in CSR.csr -signkey private.key -out self-signed.crt
+
+或是從私有金鑰直接產生 Self-signed 的憑證
+    openssl req -x509 -new -days 3650 -key private.key -out self-signed-2.crt
+
+
+參考資料
+----------
+URL：http://ijecorp.blogspot.tw/2014/03/openssl.html
+
+
+
+
 OpenSSL
 ====================
 
