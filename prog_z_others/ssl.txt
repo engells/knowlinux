@@ -1,4 +1,9 @@
-# vim:ts=2
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about SSL and CA
+# made by: Engells
+# date: Aug 11, 2017
+# content: 內容並未最佳化，單純作為書摘使用
 
 
 
@@ -9,7 +14,7 @@ OpenSSL
 CA 證書
 ----------
 (umask 077; openssl genrsa -out /etc/pki/CA/private/cakey.pem 2048)
-	產生 CA 的金鑰
+	產生 CA 單位本身的金鑰
 
 openssl req -new -x509 -key /etc/pki/CA/private/cakey.pem -out /etc/pki/CA/cacert.pem
 	-reg：產生證書
