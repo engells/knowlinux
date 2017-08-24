@@ -10,4 +10,6 @@ proxmox VE 4x 檔案位置
 ====================
 設定檔：/etc/pve
 KVM 虛擬機：/var/lib/vz
-lxc 容器：/vat/lib/lxc
+lxc 容器：/var/lib/lxc
+lxc 範本：/var/lib/vz/template/cache/xxxx.tar.gz
+iso 檔案：/var/lib/vz/template/iso
