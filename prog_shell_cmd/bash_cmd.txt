@@ -32,5 +32,20 @@ rename 's/([[:alpha:]])-([[:digit:]])/$1-0$2/' *.jpg
 	# [:space:]	任何會產生空白的字元，包括空白鍵, [Tab], CR 等等
 	# [:xdigit:]	代表 16 進位的數字類型，因此包括： 0-9, A-F, a-f 的數
 
+kill -9 PID; 
+killall procedure_name
+    # -e, --exact：在程式名稱完全比對成功時，才中止程式。
+      如程式名稱超過 15 個字元，其餘的字元捨去，預設狀況下，所有符合前 15 個字元的程式都中止掉，
+      如加上 -e 參數的話，killall 指令就會跳過這種名稱過長的程式。
+    -I, --ignore-case：在比對程式名稱時，英文大小寫視為相同（ignore case）。
+    -i, --interactive：在中止程式之前，先以互動式的方式詢問。
+    -l, --list：列出所有的訊號（signal）名稱。
+    -r, --regexp：使用常規表示法（regular expression）指定程式名稱。
+    -s, --signal：指定送出的訊號（signal）。
+    -u, --user：只中止指定使用者所執行的程式。
+    -o, --older-than：指定程式的開始執行時間點，必須在此時間點之前。
+    -y, --younger-than：指定程式的開始執行時間點，必須在此時間點之後。
+pkill procedure_name
+    # 與 killall 指令類似，可以指定程式名稱，但所指定的名稱直接以常規表示法（regular expression）的方式比對，只要比對成功，就會中止該程式。
 
 
