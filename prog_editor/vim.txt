@@ -1,4 +1,36 @@
+#!/bin/bash
 # vim:ts=4
+# program:Using to note the knowledge about vim
+# made by: Engells
+# date: Aug 29, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+
+plugin & plugin-manager
+====================
+plugin-managr
+----------
+Pathogen
+  # 把要加入的 plugin 的資料夾放在 bundle/ 底下就完工了！刪除也是，直接砍掉 bundle/ 底下對應資料夾就可以
+
+Vundle
+  # 編輯 .vimrc 中加入右列內容：Plugin 'tpope/vim-fugitive'，然後在 vim 中打 :PluginInstall 就會安裝。
+
+vim-plug
+  # 下載 plug.vim 至 ~/.vim/autoload，編輯 .vimrc 中加入右列內容：Plug 'tpope/vim-fugitive'，然後在 vim 中打 :PlugInstall 就會安裝。
+
+
+常用 plugin
+----------
+NERDTree
+XMLEdit
+SuperTab	https://github.com/ervandew/supertab
+PowerLine
+
+
 
 
 folding
@@ -11,16 +43,6 @@ url:	http://ctwyw.com/?p=43
 :set foldexpr=getline(v:lnum)=~'.'?1:0		//折疊連續非空行
 :set foldcolumn=1				// 左側可以顯示折疊的+-號，通過鼠標可以打開關閉折疊效果
 :set foldtext=foldtext()			//可以設置折疊顯示的文字 
-
-
-
-
-plugin
-====================
-NERDTree
-XMLEdit
-SuperTab	https://github.com/ervandew/supertab
-PowerLine
 
 
 
