@@ -23,7 +23,7 @@
 	lxc-stop -n name_of_machine
 
 複製 Container
-	lxc-copy -n old_machine N new_machine
+	lxc-copy -n old_machine -N new_machine
 	lxc-clone -o 來源虛擬機器名稱 -n 新虛擬機器名稱 # 複製 Conatiner
 
 暫停及恢復 Container

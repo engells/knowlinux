@@ -114,6 +114,7 @@ nnoremap <C-H> <C-W><C-H>
 ====================
 <Esc> Esc 鍵。
 <Tab> Tab 鍵。
+<Space> Space 鍵。
 <Home> Home 鍵。
 <Del> Del 鍵。
 <CR> Enter 鍵。
