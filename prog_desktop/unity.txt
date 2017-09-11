@@ -1,0 +1,36 @@
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about Unity interface
+# made by: Engells
+# date: Sep 11, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+Unity
+==============================
+移除掛載磁碟的圖示
+  command: gsettings set com.canonical.Unity.Devices devices-option "Never"
+掛載磁碟的圖示
+  command: gsettings set com.canonical.Unity.Devices devices-option "Always"
+經201207測試，上述指令似無效果
+
+Ubuntu登入時發生：「您的登入鑰匙圈並未在登入時自動解鎖」
+killall -9 gnome-keyring-daemon
+rm -fr ~/.gnome2/keyrings
+
+ubuntu desktopcouch-service CPU loading 100%
+sudo cp /usr/lib/desktopcouch/desktopcouch-service /usr/lib/desktopcouch/desktopcouch-service.bak
+sudo rm /usr/lib/desktopcouch/desktopcouch-service
+
+先按住 super 鍵（win鍵）不要放，unity 那一行上面的軟體圖案就會顯示號碼，然後 super + 號碼，就可以直接啟動該軟體
+http://blog.longwin.com.tw/2012/01/unity-keyboard-shortcut-2012/
+http://wowubuntu.com/unity-shortcut.html
+
+Ctrl + Shift + 箭頭 切換虛擬桌面
+
+
+url:
+-------------------------
+http://askubuntu.com/questions/28086/what-are-unitys-keyboard-and-mouse-shortcuts
+http://wowubuntu.com/unity-shortcut.html

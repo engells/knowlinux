@@ -1,193 +1,146 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html><head>
-  
+<html>
+<head>
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <title>Locale and Fonts</title>
-
-  
-  
   <link rel="stylesheet" type="text/css" href="/home/engells/mnt/MyDefaultType.css">
+</head>
 
-</head><body>
+<body>
 <br>
-
 <br>
-
 <h1>Locale and Fonts</h1>
-
 <br>
-
-<h3>語系設定<br>
-</h3>
-
+<h3>語系設定<br></h3>
 <hr>
 <p>概說</p>
 <ul>
-<li>
-Locale 是軟體執行時的語言環境，其代碼包括語言(Language)、地域 (Territory)和字元集(Codeset)。組合格式爲:
-語言[_地域[.字元集]]。繁體中文語系代碼為：zh_TW.UTF-8。系統預設的語系為 C 或是 POSIX。</li>
+  <li>Locale 是軟體執行時的語言環境，其代碼包括語言(Language)、地域 (Territory)和字元集(Codeset)。組合格式爲：語言[_地域[.字元集]]。繁體中文語系代碼為：zh_TW.UTF-8。系統預設的語系為 C 或是 POSIX。</li>
   <li>Locale 大多用在libc-based的應用程序上。</li>
   <li>Debian 系列 Linux，編譯安裝好的語系位於 /usr/lib/locale/</li>
   <li>語系相關變數值，包括：<br>
-
-<ul>
-LANG：預設語系，效力最低，如果有設其他變數，則其他變數優先使用。如果沒有安裝 locales，預設的 LANG 通常稱為 C 或 POSIX<br>
-LANGUAGE：只有少數程式會用到<br>
-LC_CTYPE：字元分類和處理，一般的輸入法只要設定這個就能用<br>
-LC_NUMERIC：處理非金錢相關的數字格式<br>
-LC_TIME：處理時間、日期等<br>
-LC_COLLATE：處理字元比較和排序<br>
-LC_MONETARY：處理金錢相關的格式和符號<br>
-LC_MESSAGES：處理顯示的格式，訊息想看中文要設定這個<br>
-LC_PAPER<br>
-LC_NAME<br>
-LC_ADDRESS<br>
-LC_TELEPHONE<br>
-LC_MEASUREMENT<br>
-LC_IDENTIFICATION<br>
-LC_ALL：最強效設定，除 $LANGUAGE 外取代以上所有的語系變數<br>
-</ul>
+    <ul>
+      <li>LANG：預設語系，效力最低，如果有設其他變數，則其他變數優先使用。如果沒有安裝 locales，預設的 LANG 通常稱為 C 或 POSIX</li>
+      <li>LANGUAGE：只有少數程式會用到</li>
+      <li>LC_CTYPE：字元分類和處理，一般的輸入法只要設定這個就能用</li>
+      <li>LC_NUMERIC：處理非金錢相關的數字格式</li>
+      <li>LC_TIME：處理時間、日期等</li>
+      <li>LC_COLLATE：處理字元比較和排序</li>
+      <li>LC_MONETARY：處理金錢相關的格式和符號</li>
+      <li>LC_MESSAGES：處理顯示的格式，訊息想看中文要設定這個</li>
+      <li>LC_PAPER</li>
+      <li>LC_NAME</li>
+      <li>LC_ADDRESS</li>
+      <li>LC_TELEPHONE</li>
+      <li>LC_MEASUREMENT</li>
+      <li>LC_IDENTIFICATION</li>
+      <li>LC_ALL：最強效設定，除 $LANGUAGE 外取代以上所有的語系變數</li>
+    </ul>
   </li>
 </ul>
 
 加入新語系摘要步驟
 <ul>
-
   <li>在 Ubuntu 安裝新的語系
     <ul>
       <li>加入語系來源<br>
-touch /var/lib/locales/supported.d/locale<br>
-echo 'zh_TW.UTF-8 UTF-8' &gt;&gt; /var/lib/locales/supported.d/locale</li>
+        touch /var/lib/locales/supported.d/locale<br>
+        echo 'zh_TW.UTF-8 UTF-8' &gt;&gt; /var/lib/locales/supported.d/locale</li>
       <li>安裝新的語系<br>
-locale-gen zh_TW.UTF-8</li>
+        locale-gen zh_TW.UTF-8</li>
       <li>--</li>
     </ul>
   </li>
   <li>在 Debian 安裝新的語系
     <ul>
       <li>支援語系的設定<br>
-apt-get install locales</li>
+        apt-get install locales</li>
       <li>使用圖形化工具安裝新的語系<br>
-dpkg-reconfigure locales<br>
-# 此工具對應至 /etc/locale.gen(語言選擇列表步驟)，/etc/default/locale(設定預設語言步驟)<br>
-      </li>
+        dpkg-reconfigure locales<br>
+        # 此工具對應至 /etc/locale.gen(語言選擇列表步驟)，/etc/default/locale(設定預設語言步驟)</li>
       <li>手動安裝新的語系<br>
         <ul>
-          <li>編輯 /etc/locale.gen 與 /etc/default/locale<br>
-把要產生的 locale 前面的 # 去掉<br>
-          </li>
-          <li>安裝新的語系<br>
-locale-gen</li>
-          <li>更新預設語系<br>
-update-locale</li>
+          <li>編輯 /etc/locale.gen 與 /etc/default/locale<br>把要產生的 locale 前面的 # 去掉</li>
+          <li>安裝新的語系<br>locale-gen</li>
+          <li>更新預設語系<br>update-locale</li>
         </ul>
       </li>
-      <li>設定環境變數<br>
-export LANG=en_US.UTF-8<br>
-export LANGUAGE=<br>
-export LC_ALL=</li>
-      <li>重開機或重登入 X 環境<br>
-      </li>
+      <li>設定環境變數<br>export LANG=en_US.UTF-8<br>export LANGUAGE=<br>export LC_ALL=</li>
+      <li>重開機或重登入 X 環境</li>
     </ul>
   </li>
   <li>--</li>
 </ul>
 
-<p>指令<br>
-</p>
-
+<p>指令</p>
 <ol>
-
-  <li>export<br>
-查詢所有環境參數，包括 $LANG</li>
-  <li>locale<br>
-查詢 locale 相關變數值 </li>
-  <li>locale -a<br>
-查詢已安裝語系，可對照 /usr/lib/locale/&lt;locale-name&gt;</li>
-  <li>locale-gen zh_TW.UTF-8<br>
-新增繁體語系<br>
-  </li>
-  <li>dpkg-reconfigure locales<br>
-設定
-$LANG。man
-page 或其他文字通常是以 en 或 en_US 顯示。<br>
-  </li>
+  <li>export<br>查詢所有環境參數，包括 $LANG</li>
+  <li>locale<br>查詢 locale 相關變數值 </li>
+  <li>locale -a<br>查詢已安裝語系，可對照 /usr/lib/locale/&lt;locale-name&gt;</li>
+  <li>locale-gen zh_TW.UTF-8<br>新增繁體語系</li>
+  <li>dpkg-reconfigure locales<br>設定 $LANG。man page 或其他文字通常是以 en 或 en_US 顯示。</li>
 </ol>
 
-<p>Ubuntu 
-語系相關設定檔<br>
-</p>
-
+<p>Ubuntu 語系相關設定檔</p>
 <ol>
-
-  <li>/etc/default/locale =&gt; 系統語系設定，Ubuntu 的內容為 LANG="en_US.UTF-8"<br>
-  </li>
+  <li>/etc/default/locale =&gt; 系統語系設定，Ubuntu 的內容為 LANG="en_US.UTF-8"</li>
   <li>/var/lib/locales/supported.d/* =&gt; locale-gen設定檔</li>
   <li>/usr/lib/locale/&lt;locale-name&gt;/ =&gt; 已安裝之語系</li>
-  <li>/usr/share/i18n/SUPPORTED =&gt; 所有支援之語系<br>
-  </li>
+  <li>/usr/share/i18n/SUPPORTED =&gt; 所有支援之語系</li>
 </ol>
 
-其他 Distribution 使用檔案<br>
-
+<p>其他 Distribution 使用檔案</p>
 <ol>
-
   <li>/etc/local-gen → Debian，locale-gen設定檔</li>
-  <li>/etc/environment → Ubuntu中只設定 $PATH<br>
-  </li>
+  <li>/etc/environment → Ubuntu中只設定 $PATH</li>
   <li>/etc/sysconfig/i18n → Red Hat</li>
 </ol>
 
-語系變數設定範例
+<p>語系變數設定範例</p>
 <ul>
-
   <li>export LC_ALL=zh_TW.UTF-8<br>
-export LANG=zh_TW.UTF-8<br>
-export LC_CTYPE=zh_TW.UTF-8<br>
-在這裡設定 LANG 和 LC_CTYPE 都是沒意義的，因為
-LC_ALL 已經設定了 </li>
+    export LANG=zh_TW.UTF-8<br>
+    export LC_CTYPE=zh_TW.UTF-8<br>
+    在這裡設定 LANG 和 LC_CTYPE 都是沒意義的，因為LC_ALL 已經設定了 </li>
   <li>export LANG=zh_TW.BIG5<br>
-export LC_ALL=zh_TW.UTF-8<br>
-在這裡 LANG 無效</li>
+    export LC_ALL=zh_TW.UTF-8<br>
+    在這裡 LANG 無效</li>
   <li>export LANG=zh_TW.BIG5<br>
-export LC_CTYPE=zh_TW.UTF-8<br>
-export LC_MESSAGES=zh_TW.UTF-8<br>
-顯示輸入都是用 UTF-8, 其他的東西則是 big5</li>
+    export LC_CTYPE=zh_TW.UTF-8<br>
+    export LC_MESSAGES=zh_TW.UTF-8<br>
+    顯示輸入都是用 UTF-8, 其他的東西則是 big5</li>
   <li>export LANG=POSIX<br>
-export LC_CTYPE=zh_TW<br>
-全部都是美式英文, 但可以輸入繁體中文</li>
+    export LC_CTYPE=zh_TW<br>
+    全部都是美式英文, 但可以輸入繁體中文</li>
   <li>export LC_MESSAGES=zh_TW<br>
-通常設定這個之後,
-軟體的介面和選單就會用中文(如果有支援的話)，例外是 openoffice, 還要設定LANGUAGE，代碼:<br>
-export LANGUAGE=zh_TW</li>
+    通常設定這個之後,軟體的介面和選單就會用中文(如果有支援的話)，例外是 openoffice, 還要設定LANGUAGE，代碼:<br>
+    export LANGUAGE=zh_TW</li>
 </ul>
 
 <div class="ref">參考資料：
 <hr class="ref"><cite class="ref">http://moto.debian.org.tw/viewtopic.php?t=6213</cite></div>
 
 <br>
-
 <br>
 
 <h3>設定字體</h3>
-
 <hr>
-繁體中文字體設定檔： /etc/fonts/conf.d/69-language-selector-zh-tw.conf
-<ul>
 
-  <li>字體有三種：serif、sans-serif 及 monospace。各字體有單獨之區段，各區段所列出之字型，即為引用順序。</li>
+繁體中文字體設定檔： 
+<ul>
+  <li>目錄 /etc/fonts/conf.d/ 或 ~/.config/fontconfig/fonts.conf，後者可能需要手動建立<br>
+    檔案 69-language-selector-zh-tw.conf 字體有三種：serif、sans-serif 及 monospace。各字體有單獨之區段，各區段所列出之字型，即為引用順序。</li>
+  <li>檔案 65-nonlatin.conf 可設定中文以及其他非拉丁字母對應字型，不確定與 69-language-selector-zh-tw.con 的適用順序。
 </ul>
 
 字型顯示
 <ul>
-
   <li>建議系統字型使用蘋果黑體、蘋果儷黑體或微軟正黑體。</li>
   <li>除系統字型外，FireFox、Chrome、MadEdit、Gedit等均可個別設定字型</li>
 </ul>
 
-使用 fontconfig 程式，自行設定螢幕顯示字型繪製的方法，或轉換字體格式為 ttf
+Linux 以 fontconfig 套件來管理跟控制字型，可使用 fontconfig 程式，自行設定螢幕顯示字型繪製的方法，或轉換字體格式為 ttf
 <ul>
-
   <li>http://wiki.ubuntu-tw.org/index.php?title=HowtoCustomFontswithFontconfig</li>
   <li>http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?viewmode=compact&amp;order=DESC&amp;topic_id=51992&amp;forum=8</li>
 </ul>
@@ -198,78 +151,59 @@ export LANGUAGE=zh_TW</li>
 <br>
 
 <h3>用Evince完美看PDF檔</h3>
-
 <hr>
+
 編輯/etc/fonts/conf.d/49-sansserif.conf，將&lt;edit name="family"
 mode="append_last"&gt;<br>
-
 那行定義的字型指定成Droid Sans Fallback或其他適當字型<br>
 
 <div class="ref">參考資料：
 <hr class="ref"><cite class="ref">http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=30432&amp;forum=7&amp;post_id=142152#forumpost142152</cite></div>
 
 <br>
-
 <br>
 
-<h3>X-Window Fonts Aliases<br>
-</h3>
-
+<h3>X-Window Fonts Aliases</h3>
 <hr>
-<p>指令<br>
-</p>
+
+<p>指令</p>
 
 <ol>
-
   <li>/etc/fonts/conf.avail/30-cjk-aliases.conf</li>
-  <li>/etc/fonts/conf.d/30-cjk-aliases.conf，由
-/etc/fonts/conf.avail/30
--cjk-aliases.conf連結而來<br>
+  <li>/etc/fonts/conf.d/30-cjk-aliases.conf，由 /etc/fonts/conf.avail/30-cjk-aliases.conf 連結而來
     <p class="command">sudo ln -s
-/etc/fonts/conf.avail/30-cjk-aliases.conf&nbsp;
-/etc/fonts/conf.d/30-cjk-aliases.conf</p>
+      /etc/fonts/conf.avail/30-cjk-aliases.conf&nbsp;
+      /etc/fonts/conf.d/30-cjk-aliases.conf</p>
   </li>
   <li>詳細範例請參閱相關網址，設定字體別名簡單範例如下：<br>
-&lt;!--增加一段 alias，指定文泉驛正黑(WenQuanYi Zen Hei)作為 SimHei 的替代字體--&gt;<br>
-&lt;alias&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&lt;family&gt;SimHei&lt;/family&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;accept&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&lt;family&gt;WenQuanYi Zen Hei&lt;/family&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/accept&gt;<br>
-&nbsp; &lt;/alias&gt;<br>
+    &lt;!--增加一段 alias，指定文泉驛正黑(WenQuanYi Zen Hei)作為 SimHei 的替代字體--&gt;<br>
+    &lt;alias&gt;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &lt;family&gt;SimHei&lt;/family&gt;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;accept&gt;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &lt;family&gt;WenQuanYi Zen Hei&lt;/family&gt;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/accept&gt;<br>
+    &nbsp; &lt;/alias&gt;<br>
   </li>
 </ol>
 
 相關設定檔<br>
-
 <ol>
-
   <li>字型說明<br>
   </li>
   <ul>
     <li>黑體<br>
-可設定文泉驛正黑體作為黑體的替代字型。<br>
-目前 Ubuntu 與大多數的 Linux 桌面環境，皆使用文泉驛正黑體作為預設字體。
-可
-以作為微軟 Windows 系統的正黑体(SimHei), 微軟正黑體與微軟雅黑體的替代字體。微軟雅黑體是微軟 Windows Vista
-簡體中文版的默認字體。微軟正黑體是微軟 Windows Vista 繁體中文版的預設字體。</li>
+      可設定文泉驛正黑體作為黑體的替代字型。<br>
+      目前 Ubuntu 與大多數的 Linux 桌面環境，皆使用文泉驛正黑體作為預設字體。可以作為微軟 Windows 系統的正黑体(SimHei), 微軟正黑體與微軟雅黑體的替代字體。微軟雅黑體是微軟 Windows Vista 簡體中文版的默認字體。微軟正黑體是微軟 Windows Vista 繁體中文版的預設字體。</li>
     <li>楷書<br>
-可設定全字庫正楷體作為標楷體(DFKai-sb)的替代字型。<br>
-Ubuntu 內建提套 AR PL UKai TW
-楷體，是文鼎公司捐贈出來的楷書字體。然而，該字體不符合中華民國教育部頒標準字體，嚴格說來，不適合作為「標楷體」的替代。<br>
-標
-楷體的英文名稱是 DFKai-sb ，為 Windows XP 繁體中文版的預設字體之一。 只有 Windows XP
-繁體中文版認「標楷體」這個名稱，其他語系的 Windows 認的是 DFKai-sb 這個名稱。標楷體是微軟向華康公司購買的楷書字型，支援
-Unicode ，同時提供簡、繁兩種字體。此外，其繁體字體符合中華民國教育部頒標準字體，故名為「標楷體」。<br>
-    </li>
+      可設定全字庫正楷體作為標楷體(DFKai-sb)的替代字型。<br>
+      Ubuntu 內建提套 AR PL UKai TW 楷體，是文鼎公司捐贈出來的楷書字體。然而，該字體不符合中華民國教育部頒標準字體，嚴格說來，不適合作為「標楷體」的替代。<br>
+      標楷體的英文名稱是 DFKai-sb ，為 Windows XP 繁體中文版的預設字體之一。 只有 Windows XP 繁體中文版認「標楷體」這個名稱，其他語系的 Windows 認的是 DFKai-sb 這個名稱。標楷體是微軟向華康公司購買的楷書字型，支援 Unicode ，同時提供簡、繁兩種字體。此外，其繁體字體符合中華民國教育部頒標準字體，故名為「標楷體」。</li>
     <li>明體與宋體<br>
-可設定全字庫正宋體作為細明體(MingLiu)的替代字型。<br>
-Ubuntu 內建提供一套 AR PL UMing 宋體，是文鼎公司捐贈出來的字體。該字體不符合中華民國教育部頒標準字體。<br>
-細明體的英文名稱是 MingLiu ，為 Windows XP 繁體中文版的預設字體之一。 只有 Windows XP
-繁體中文版認「細明體」這個名稱，其他語系的 Windows 認的是 MingLiu 這個名稱。細明體是微軟向華康公司購買的字體，支援
-Unicode ，同時提供簡、繁兩種字體。</li>
+      可設定全字庫正宋體作為細明體(MingLiu)的替代字型。<br>
+      Ubuntu 內建提供一套 AR PL UMing 宋體，是文鼎公司捐贈出來的字體。該字體不符合中華民國教育部頒標準字體。<br>
+      細明體的英文名稱是 MingLiu ，為 Windows XP 繁體中文版的預設字體之一。 只有 Windows XP 繁體中文版認「細明體」這個名稱，其他語系的 Windows 認的是 MingLiu 這個名稱。細明體是微軟向華康公司購買的字體，支援 Unicode ，同時提供簡、繁兩種字體。</li>
   </ul>
   <li>字型表<br>
     <table border="1" cellspacing="0" cols="3">

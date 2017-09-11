@@ -53,6 +53,27 @@ http://newtoypia.blogspot.tw/2012/06/xinitrc-xsession-xprofile.html#more
 
 
 
+Ubuntu 的 X
+==============================
+使用套件：xorg
+	該套件提供 Server、Client 及 Lib 等。預設不產生 xorg.conf。
+	網路資料，使用 service lightdm stop + Xorg -configure 指令產生 xorg.conf.new，再複製成 /etc/X11/xorg.conf
+
+搜尋時發現的其他套件：
+	x-window-system-core：似乎就是 xorg
+	xserver-xorg：未安裝
+	xserver-xorg-core：未安裝
+	xserver-xorg-video-radeon：驅動程式，未安裝。以指令 lspci | grep VGA 得知 HD 3300 的對應型號為 RS780D。
+
+在 server 版本安裝桌面環境
+	sudo apt-get install ubuntu-desktop
+		安裝完整桌面環境
+	sudo apt-get install --no-install-recommends ubuntu-desktop
+		僅安裝基本桌面環境
+
+
+
+
 石頭閒語
 http://blog.roodo.com/rocksaying/archives/19886616.html
 ==============================
