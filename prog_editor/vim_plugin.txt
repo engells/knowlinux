@@ -1,0 +1,101 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Aug 29, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+vim-airline
+====================
+安裝 airline
+----------
+以 vim-plug 或 vundle 安裝
+  vim-airline/vim-airline
+  vim-airline/vim-airline-themes
+在 vim 建立 airline 的說明文件，非必要步驟
+  :helptags vim-airline
+
+
+設定字型
+----------
+mkdir ~/.fonts && cd ~/.fonts && git clone https://github.com/Lokaltog/powerline-fonts
+fc–cache –vf ~/.fonts
+terminal > Edit > Profiles… > General Font，選擇名稱帶有 for Powerline 的字型
+
+另有參考的字型
+  cd ~/.fonts && wget https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf
+  cd ~/.config/fontconfig/conf.d/ && wget https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf
+
+
+組態設定
+----------
+" 顯示顏色
+set t_Co=256
+" set status line
+set laststatus=2
+" 使用佈景如 wombat 或 base16
+let g:airline_theme='wombat'
+" 使用 powerline 特製字型
+let g:airline_powerline_fonts = 1
+" 開啟 tabline
+let g:airline#extensions#tabline#enabled = 1
+" 顯示 tabline 中 buffer 編號
+let g:airline#extensions#tabline#buffer_nr_show = 1
+" tabline 中當前 buffer 兩端的分隔字元
+let g:airline#extensions#tabline#left_sep = ' '
+" tabline 中未啟動 buffer 兩端的分隔字元
+let g:airline#extensions#tabline#left_alt_sep = '|'
+" 映射切換buffer的鍵位
+nnoremap [b :bp<CR>
+nnoremap ]b :bn<CR>
+" 映射<leader>num到num buffer
+map <leader>1 :b 1<CR>
+map <leader>2 :b 2<CR>
+map <leader>3 :b 3<CR>
+map <leader>4 :b 4<CR>
+map <leader>5 :b 5<CR>
+map <leader>6 :b 6<CR>
+map <leader>7 :b 7<CR>
+map <leader>8 :b 8<CR>
+map <leader>9 :b 9<CR>
+
+
+
+
+YouCompleteMe
+====================
+安裝
+----------
+apt install build-essential cmake python-dev python3-dev
+cd path/to/YouCompleteMe && git clone --recursive git://github.com/Valloric/YouCompleteMe
+  # 若出現下載中斷的情形，執行：cd path/to/YouCompleteMe && git submodule update --init --recursive 
+cd path/to/YouCompleteMe && ./install.py --clang-completer
+  # 不需要 sudo 權限
+
+
+.vimrc 組態
+----------
+set runtimepath+=~/.vim/plugs/YouCompleteMe
+let g:ycm_collect_identifiers_from_tags_files = 1                 " 採 tags files 模式
+let g:ycm_collect_identifiers_from_comments_and_strings = 1       " 包括註釋與字串
+let g:syntastic_ignore_files=[".*\.py$"]
+let g:ycm_seed_identifiers_with_syntax = 1                        " 語法關鍵字補完
+let g:ycm_complete_in_comments = 1
+let g:ycm_confirm_extra_conf = 0
+let g:ycm_key_list_select_completion = ['<c-n>', '<Down>']        " 改以 Crtl＋n，啟用補完 
+let g:ycm_key_list_previous_completion = ['<c-p>', '<Up>']
+let g:ycm_complete_in_comments = 1                                " 註釋輸入補完
+let g:ycm_complete_in_strings = 1                                 " 字串輸入補完
+let g:ycm_collect_identifiers_from_comments_and_strings = 1       " 註釋與字串中的文字也納入補完
+let g:ycm_global_ycm_extra_conf='~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_show_diagnostics_ui = 0                                 " 禁用語法檢查
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>" |          " Enter 代表確認目前選項
+nnoremap <c-j> :YcmCompleter GoToDefinitionElseDeclaration<CR>|   " 跳到定義處
+"let g:ycm_min_num_of_chars_for_completion=2                      " 自第 2 個鍵入值開始補完
+
+
+參考資料：
+  http://www.mikewootc.com/wiki/tool/sw_develop/vim_ycm_ubuntu_1604.html

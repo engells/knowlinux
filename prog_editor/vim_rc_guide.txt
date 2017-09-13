@@ -64,6 +64,7 @@ set mouse=			" 關閉滑鼠控制功能 <=> set mouse=a, mouse=nv 只在 Normal 
 "---- Key-Mapping ----
 " 「map」為一般模式和視覺模式、「map!」、「nmap」、「vmap」、「imap 選擇模式」、「cmap」、「omap」
 let mapleader=";"               " 將「;」設為熱鍵的領(頭)鍵
+let g:mapleader="\<Space>"      " 將「空白鍵」設為熱鍵的領(頭)鍵
 nmap LB 0                       " 定義快速鍵到行首和行尾
 nmap LE $
 vnoremap <Leader>y "+y          " 設置熱鍵將選中文字區塊複製至系統剪貼板

@@ -1,0 +1,94 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Aug 29, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+vim as ide of python
+====================
+安裝 jedi 支援
+
+
+
+安裝 vim plugin
+  tmhedberg/SimpylFold              <= 支援摺疊
+  vim-scripts/indentpython.vim      <= 支援縮排
+  Valloric/YouCompleteMe            <= 自動補全，需先用 pip 安装 jedi 模組
+  scrooloose/syntastic              <= 語法檢查
+  nvie/vim-flake8                   <= PEP8，需先用 pip 安装 flake8 模組，然後安裝
+  jnurmine/Zenburn                  <= 佈景
+  altercation/vim-colors-solarized  <= 佈景
+  scrooloose/nerdtree
+  jistr/vim-nerdtree-tabs
+  kien/ctrlp.vim                    <= Control + P 搜索
+  tpope/vim-fugitive                <= 支援 git 指令
+  ----
+  w0rp/ale                          <= 考慮取代 syntastic
+  python-mode/python-mode           <= syntax 支援強化，hi pythonSelf ctermfg=174 guifg=#6094DB cterm=bold gui=bold
+  google/yapf                       <= 語法格式化，autocmd FileType python nnoremap <LocalLeader>= :0,$!yapf<CR>，=**= autopep8 和 pep8ify
+  
+  
+
+參考資料：
+  http://codingpy.com/article/vim-and-python-match-in-heaven/
+  https://www.zhihu.com/question/19655689
+
+
+
+
+jedi-vim
+====================
+在 ~/.bashrc 加入下列語句：
+  export PYTHONSTARTUP="$(python -m jedi repl)" 
+
+
+
+
+YouCompleteMe
+====================
+  let g:ycm_autoclose_preview_window_after_completion=1
+  map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+
+
+
+Run python command in vim
+====================
+查詢 vim 對 python 支援
+  :h python
+
+執行單行 python 指令
+  :py3 print("Hello")
+
+執行多行 python 指令
+  py3 << {endmarker} 
+    {script} 
+  {endmarker}
+
+  script_demo.vim
+    function! Foo()
+      python3 << EOF
+        class Foo_demo:
+          def __init__(self):
+            print 'Foo_demo init'
+        Foo_demo()
+      EOF
+    endfunction
+
+將 .vim 巨集載入 vim
+  :source path_to_script/script_demo.vim
+
+在 vim 使用巨集中的函數
+  :call Foo() <= run python3 script
+
+執行 bash 指令
+ :!command	
+
+
+參考資料：
+  http://python.jobbole.com/86538/?utm_source=blog.jobbole.com&utm_medium=relatedPosts
+

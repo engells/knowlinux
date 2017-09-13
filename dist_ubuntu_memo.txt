@@ -6,12 +6,9 @@ xrandr
 xrandr --output LVDS1 --off # 關閉筆電上的螢幕
 xrandr --output VGA1 --mode 1680x1050 --rate 60	# 指定螢幕的解析度及更新頻率
 https://github.com/plans > Create a free account > engells/kt99.... > new repository
-lsb_release -sr	顯示 Ubuntu 之數字版本
+
 
 dtrx(un-compress); di(disk info); iftop(interface top)
-
-NVIDIA CUDA 技術是利用顯示卡的 GPU 進行高效能平行運算
-UKMS(Ultra KSM(Kernel Samepage Merging))：消除記憶體( ram )中的資料重覆（Data Deduplication），可以大幅節省記憶體，如果經常用虛擬機的話，UKSM 的效果會更明顯
 
 troff: 
 rxvt: terminal
@@ -24,7 +21,7 @@ R-project + RKward : 統計軟體	，http://blog.lyhdev.com/2008/09/r-project-rk
 
 
 
-
+dpkg-reconfigure
 =============================
 dpkg-reconfigure keyboard-configuration，選擇一般預設的 Generic 104-key PC 就可以恢復正常
 dpkg-reconfigure bash，更改 shell

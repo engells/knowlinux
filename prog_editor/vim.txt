@@ -1,10 +1,9 @@
 #!/bin/bash
 # vim:ts=4
-# program:Using to note the knowledge about vim
+# program: Using to note the knowledge about vim
 # made by: Engells
 # date: Aug 29, 2017
 # content: 內容並未最佳化，單純作為書摘使用
-
 
 
 
@@ -29,6 +28,7 @@ NERDTree
 XMLEdit
 SuperTab	https://github.com/ervandew/supertab
 PowerLine
+space-vim，實質上為大型設定集
 
 
 
