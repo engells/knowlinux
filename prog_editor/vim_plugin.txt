@@ -94,7 +94,7 @@ let g:ycm_global_ycm_extra_conf='~/.vim/bundle/YouCompleteMe/third_party/ycmd/cp
 let g:ycm_show_diagnostics_ui = 0                                 " 禁用語法檢查
 inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>" |          " Enter 代表確認目前選項
 nnoremap <c-j> :YcmCompleter GoToDefinitionElseDeclaration<CR>|   " 跳到定義處
-"let g:ycm_min_num_of_chars_for_completion=2                      " 自第 2 個鍵入值開始補完
+let g:ycm_min_num_of_chars_for_completion=2                       " 自第 2 個鍵入值開始補完
 
 
 參考資料：
