@@ -214,3 +214,11 @@ Ex 模式 (Ex-mode)
     <script>
     <expr>
     <unique> 
+
+
+
+
+其他參考資料
+====================
+提高 Vim 使用效率的 12 個技巧：http://blog.jobbole.com/87481/
+
