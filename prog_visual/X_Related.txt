@@ -1,0 +1,22 @@
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about vim
+# made by: Engells
+# date: Aug 29, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+xrandr, X Rotate and Reflect Extension
+====================
+改變X環境的桌面大小和螢幕頻率
+xrandr --output LVDS1 --off                         # 關閉筆電上的螢幕
+xrandr --output VGA1 --mode 1680x1050 --rate 60     # 指定螢幕的解析度及更新頻率
+xrandr -s 1024x768                                  # 把桌面解析度調成1024×768
+xrandr -r 75                                        # 把螢幕頻率調成75Hz
+xrandr -q
+  # 列出目前環境支援的解析度和頻率。列出的訊息，每行的第一個數字可以用來指定給 -s 參數
+  # 假設有一行這麼寫 20 640 x 480 ( 347mm x 260mm ) 75，xrandr -s 20 => 螢幕調成 640×480 大小，頻率75Hz
+xrandr -s 800x600 -d :0
+  # 如有數個 X 環境同時運作，可用 -d 參數去調整其他的 X 環境，-d 後面加的是像 :0 :1 :2。
+

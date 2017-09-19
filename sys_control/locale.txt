@@ -10,6 +10,20 @@
 
 語系設定
 ====================
+指令
+----------
+export
+  查詢所有環境參數，包括 $LANG
+locale
+  查詢 locale 相關變數值
+locale -a
+  查詢已安裝語系，可對照 /usr/lib/locale/<locale-name>，Ubuntu 16.04 的已安裝語系似乎不在左列位置
+locale-gen zh_TW.UTF-8
+  新增繁體語系
+dpkg-reconfigure locales
+  設定 $LANG。man page 或其他文字通常是以 en 或 en_US 顯示。
+
+
 加入新語系摘要步驟
 ----------
 在 Ubuntu 安裝新的語系
@@ -17,7 +31,9 @@
     touch /var/lib/locales/supported.d/locale
     echo 'zh_TW.UTF-8 UTF-8' >> /var/lib/locales/supported.d/locale
   安裝新的語系
-    locale-gen zh_TW.UTF-8
+    locale-gen zh_TW.UTF-8 或 dpkg-reconfigure locales
+    # 以上的步驟可順利產生新的語系
+    # 套件 language-pack-zh-hant 為繁體中文，language-pack-zh-hant 為簡體中文，language-pack-gnome-zh-hant 及 language-pack-gnome-zh-hans 為 Gnome 環境對應套件
 
 在 Debian 安裝新的語系
   安裝套件支援語系的設定
@@ -75,20 +91,6 @@ Debian 系列 Linux，編譯安裝好的語系位於 /usr/lib/locale/
   LC_MEASUREMENT
   LC_IDENTIFICATION
   LC_ALL：最強效設定，除 $LANGUAGE 外取代以上所有的語系變數
-
-
-指令
-----------
-export
-  查詢所有環境參數，包括 $LANG
-locale
-  查詢 locale 相關變數值
-locale -a
-  查詢已安裝語系，可對照 /usr/lib/locale/<locale-name>
-locale-gen zh_TW.UTF-8
-  新增繁體語系
-dpkg-reconfigure locales
-  設定 $LANG。man page 或其他文字通常是以 en 或 en_US 顯示。
 
 
 語系變數設定範例
