@@ -2,8 +2,20 @@
 # vim:ts=4
 # program:Using to note the knowledge about SSH
 # made by: Engells
-# date: Aug 11, 2017
+# date: Sep 28, 2017
 # content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+ssh X forwarding
+====================
+ssh -v -X user_name@host_ip
+
+設定 host
+    編輯 /etc/ssh/sshd_config 加一句 X11UseLocalhost no， 再重新啟動服務： systemctl restart ssh
+    編輯 root 的 .bashrc 裡面設定 export XAUTHORITY=/home/user_name/.Xauthority
+
 
 
 
