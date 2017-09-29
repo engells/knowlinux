@@ -179,3 +179,17 @@ Apple 提供 3 種 macOS 的重裝方式：
 1. Command + R：重新安裝 Mac 目前的版本，而不升級到最高版本
 2. Option + Command + R：重新安裝並升級到與該 Mac 相容的最新版本
 3. Shift + Option + Command + R：重新安裝出廠時搭載的版本
+
+
+\usepackage{keystroke}
+\usepackage[os=win]{menukeys}
+  \menu[,]{AAA,BBB,CCC}
+  \directory{C:/Windows/drivers}
+  \renewmenumacro{\directory}[/]{pathswithblackfolder}
+  \keys{Ctrl+Alt+Del}
+LaTeX 的「合併列印」--- csvsimple 套件   https://ctan.org/topic/data-import
+甘特圖 --- pgfgantt 
+
+\newcommand{\wuhao}{\fontsize{10.5pt}{10.5pt}\selectfont}
+\fontsize{参数1}{参数2}中参数1为字号大小，参数2为行间距，
+只有使用\selectfont命令之后，\fontzize{}{}的设置才能生效。切记
