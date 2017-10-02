@@ -30,7 +30,7 @@ Apache 虛擬主機
 		Order Allow,Deny
 		Allow from All
 	</Directory>
-</VirtualHost>
+</VirtualHost> apache 2.2 版以下語法
 
 <VirtualHost *:80>
 	ServerAdmin admit@engells.idv
@@ -43,7 +43,7 @@ Apache 虛擬主機
 		AllowOverride All
 		Require all granted
 	</Directory>
-</VirtualHost>
+</VirtualHost> apache 2.4 版以上語法
 
 
 
