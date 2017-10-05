@@ -193,3 +193,11 @@ LaTeX 的「合併列印」--- csvsimple 套件   https://ctan.org/topic/data-im
 \newcommand{\wuhao}{\fontsize{10.5pt}{10.5pt}\selectfont}
 \fontsize{参数1}{参数2}中参数1为字号大小，参数2为行间距，
 只有使用\selectfont命令之后，\fontzize{}{}的设置才能生效。切记
+
+
+
+kext utilities, kext wizard
+Tonymacx86、InsanelyMac
+FakeCPUID 改為 0x0506E3 | https://dacota.tw/blog/post/antec-cube-razer-with-macos-sierra-and-window10 | 雲爸
+XHCI Hand-off 設定為啟動、晶片組的 VT-d 選項關閉、、、、、、、
+進入 Clover Bootloader，按下 space 查看額外的開機選項，勾選 Verbose、Keep symbols on panic 跟 Don’t reboot on panic，還沒安裝 nvidia web driver 之前也會選取 Set Nvidia to VESA (nv_disable=1)，勾選完成之後選擇上面的 Boot macOS with selected options 來進行安裝
