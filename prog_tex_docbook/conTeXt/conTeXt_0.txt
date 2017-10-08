@@ -1,0 +1,184 @@
+# vim:ts=4
+
+
+conTeXt 安裝與移除
+==============================
+假設要安裝的目錄為 /opt/cpntext，進入該目錄。
+至 http://minimals.contextgarden.net/setup/ 下載適當作業平台之 first-setup.sh，以 bash 中執行。
+如果只打算使用 MkIV，將 first-setup.sh 最後一行的 "--engine=all" 改為 "--engine=luatex"，可減少約 50MB 的磁碟空間。
+
+若要安裝穩定版本，指令為：bash ./first-setup.sh --current
+
+升級 conTeXt，指令為：bash ./first-setup.sh --current，與安裝指令相同。
+
+移除 conTeXt，只要移除 /opt/cpntext 目錄即可。
+
+更新文檔	context --generate
+
+查詢已安裝字體：	mtxrun --script fonts --list --all '--pattern=*'
+
+
+
+conTeXt 參數
+==============================
+$TEXROOT=/opt/contex/tex			# conTeXt 根目錄
+
+$TEXMFMAIN=$TEXROOT/texmf
+$TEXMFCACHE=$TEXROOT/texmf-cache
+$TEXMFCONTEXT=$TEXROOT/texmf-context
+$TEXMFOS=$TEXROOT/texmf-linux64
+$TEXMFLOCAL=$TEXROOT/texmf-local
+
+OSFONTDIR=/usr/share/fonts/tex/		# 系統字體目錄
+
+? cd $TEXROOT/texmf-concext/tex/generic/conTeXtconcext/; luatex --ini luatex-plain
+? mkdir -p $TEXMFOS/web2c/luatex; mv luatex-plain.fmt $TEXMFOS/web2c/luatex/luatex.fmt; luatools --generate 或 conTeXt --generate
+
+
+
+
+meta structure
+==============================
+set up area(導言區)：指在 \starttext 之前的部份。一般作為排版設定使用。
+body area(正文區)：指在 \starttext 與  \stoptext 之間的部份。真正要表達的文字內容。
+
+一般模式下，在  \starttext 與  \stoptext 之間的內文可分為：front matter、body matter、appendices、back matter
+
+相關指令：
+\startfrontmatter ... \stopfrontmatter
+\startbodymatter ... \stopbodymatter
+\startappendices ... \stopappendices
+\startbackmatter ... \stopbackmatter
+\setupsectionblock → 設定各分區的樣式
+
+
+
+
+command logic
+==============================
+通常先 /define***，然後 /setup***，最後 /*** 或 /start***。 *** 指 command 名稱。
+也就是先定義新的指令，然後設定該指令，最後執行該指令。如果是系統預先定義好的指令，則可以跳過定義的步驟。若指令預設值適當，也可直接使用。
+
+
+
+
+script
+==============================
+行內腳本使用\ctxlua，行間腳本使用\startlua, \stoplua，
+\ctxlua{a = 1.5; b = 1.8; c = a*b; tex.print(c);}
+ 
+\startlua
+function maximum (a)
+  local mi = 1
+  local m = a[mi]
+  for i, val in ipairs (a) do
+    if val > m then mi = i; m = val end
+  end
+  return m, mi
+end
+local v, index = maximum ({8, 10, 23, 12, 5})
+tex.print (v .. "\\emdash" .. index);
+\stoplua
+
+
+
+
+修改PDF
+==============================
+% 設置元數據
+\setupinteraction[
+    title={測試},
+    subtitle={測試修改PDF},
+    author={百合仙子},
+    keyword=百合; 仙子
+]
+ 
+% 設定待處理的 PDF 文檔並獲取其尺寸、頁面數量等信息
+\define\MySingleSidedDocument{test.pdf}
+\getfiguredimensions[\MySingleSidedDocument]
+ 
+% 將當前文檔的頁面尺寸設為與 pyramid-algorithms.pdf 的頁面尺寸相等，
+% \figurewidth 與 \figureheight 皆為 \getfiguredimensions 所獲
+\definepapersize[MyPaper][width=\figurewidth,height=\figureheight]
+\setuppapersize[MyPaper]
+ 
+% 關閉頁碼
+\setuppagenumbering[location=]
+ 
+\starttext
+ 
+% 將 pyramid-algorithms.pdf 文檔的各頁面作為圖形插入到當前文檔
+\dorecurse\noffigurepages{%
+    \externalfigure[\MySingleSidedDocument][
+        page=\recurselevel,width=\paperwidth,height=\paperheight
+    ]
+}
+ 
+\stoptext
+使用context --once編譯即可。
+
+
+
+
+
+
+
+\definestructureconversionset[idenfifier][conversion,conversion,...][default]
+	\definestructureconversionset[myconversion]
+		[A,   % part: capital letters
+		KR,  % chapter: small caps Roman
+		,   % section: none defined (use fallback)
+		m,   % subsection: medieaval, a.k.a. oldstyle
+		R]   % subsubsection: capital Roman
+		[r]
+	\setupheads
+		[part,chapter,section,subsection,subsubsection]
+		[before={}, after={}, 
+		sectionconversionset=myconversion]
+
+	---------------
+
+	\definestructureconversionset[frontpart:pagenumber][][romannumerals]
+	\definestructureconversionset[bodypart:pagenumber] [][numbers]
+
+	\setuplist[chapter][pageconversionset=pagenumber]
+
+	\startsectionblockenvironment[frontpart]
+	\setupuserpagenumber[numberconversion=romannumerals]
+	\setuppagenumber[number=1]
+	\stopsectionblockenvironment
+
+	\startsectionblockenvironment[bodypart]
+	\setuppagenumber[number=1]
+	\stopsectionblockenvironment
+
+	===============
+
+\defineconversion[idenfifier][command text]
+\defineconversion[bracketroman][(\romannumerals] % 定義編號樣式
+Predefined conversions:
+a	\characters
+A	\Characters
+AK	\cap\characters
+KA	\cap\characters
+n	\numbers
+N	\Numbers
+m	\mediaeval
+i	\romannumerals
+I	\Romannumerals
+r	\romannumerals
+R	\Romannumerals
+KR	\cap\romannumerals
+RK	\cap\romannumerals
+g	\greeknumerals
+G	\Greeknumerals
+o	\oldstylenumerals
+O	\oldstylenumerals
+or	\oldstyleromannumerals
+
+\defineconversion[bracketroman][(\romannumerals] % Change numbering in itemize to '(i)', '(ii)', ...
+\defineconversion[starred][\m{*},\m{**},\m{***}] % Math mode gives better spacing, thus \m{...}
+
+
+
+

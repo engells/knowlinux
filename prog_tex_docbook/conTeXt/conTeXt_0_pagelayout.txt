@@ -1,0 +1,70 @@
+
+
+
+Pagelayout
+==============================
+
+參數：
+-------------------------
+leftedgewidth, leftedgedistance ← edge 概念
+leftmarginwidth, leftmargindistance ← margin 概念
+width ← makeup, 版心概念
+rightmargindistance, rightmarginwidth ← margin 概念
+rightedgedistance, rightedgewidth ← edge 概念
+
+topheight, topdistance ← edge 概念
+headerheight, headerdistance ← margin 概念
+texheight
+footerdistance, footerheight ← margin 概念
+bottomdistance, bottomheight ← edge 概念
+height = texheight+ headerheight + footerheight ← makeup, 版心概念
+
+paperwidth：紙張寬度
+paperheight：紙張高度
+topspace：版心上方區域
+backspace：版心左方區域
+
+bottomspace
+cutspace
+
+margin=text + header + footer
+\makeupwidth = (2 * \textwidth + 兩攔中間的間距)
+\makeupheight = \headerheight + \headerdistance + \textheight + \footerdistance + \footerheight
+
+
+指令：
+-------------------------
+\setuplayout 及 \showlayout：設定除 paperwidth 與 paperheight 以外參數，如：
+\setuplayout[
+  backspace=4.5cm,
+  leftedge=0.5cm,
+  leftedgedistance=0.5cm,
+  rightedge=0.5cm,
+  rightedgedistance=0.5cm,
+  topspace=3cm,
+  top=2cm,
+  topdistance=0.5cm,
+  header=1cm,
+  headerdistance=0.5cm,
+  footerdistance=0.5cm,
+  footer=1cm,
+  bottomspace=3cm,?
+  bottom=2cm,
+  width=fit, 
+  height=fit]
+\setuplayout[width=13cm, height=15cm]
+\showframe?
+
+\setuppapersize[A4][A4]
+\setuppapersize[A4,landscape][A4,landscape]
+\setuppapersize[A3][A4] ← 將 A3 排版輸出至 A4 紙張印表機
+
+\definepapersize[MyPaper][width=18.5cm,height=23cm]
+\setuppapersize[MyPaper]
+
+\setuppapersize[A4]
+\setuplayout[backspace=4cm, width=13cm] → cutspace = 21-4-13=4
+\setuppapersize[A4]
+\setuplayout[backspace=4cm, width=middle, cutspace=5cm] → cutspace = 21-4-5=12
+
+

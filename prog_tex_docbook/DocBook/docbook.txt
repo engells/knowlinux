@@ -1,0 +1,302 @@
+# vim:ts=2
+
+
+
+將內容與樣式分開處理
+SGML & DSSSL
+XML & XSL / XSLT
+
+消除 pdf 檔案中帶出 ulink 的 url 屬性值
+xsltproc.exe \
+	--stringparam section.autolabel 1 \
+	--stringparam section.label.includes.component.label 1 \
+	--stringparam bibliography.numbered 1 \
+	--stringparam ulink.show 0 \ <= 消除自動帶出 ulink 的 url 屬性值
+	--xinclude \
+	-o /cygdrive/e/Dev_Root/docbook/dev/src/docbook/books/VBR/output/fo/MPEG_VBR.fo \
+	/usr/share/sgml/docbook/xsl-ns-stylesheets/fo/docbook_fo_crl_yahei.xsl \
+	/cygdrive/e/Dev_Root/docbook/dev/src/docbook/books/VBR/src/MPEG_VBR.xml
+
+想要配置 xref 類型（xref，link，olink，ulink ﹍）的屬性，例如：藍色字體，加上底線，可以在 xsl 檔案中加入對應的配置：
+<xsl:attribute-set name="xref.properties">
+  <xsl:attribute name="color">blue</xsl:attribute>
+  <xsl:attribute name="text-decoration">underline</xsl:attribute>
+</xsl:attribute-set>
+
+
+
+
+install
+==============================
+
+方法一：使用 apt-get，功能為 xml 及 xsl
+apt-get install docbook5-xml docbook-xsl-ns fop xsltproc
+
+
+方法二：到各網站下載壓縮檔後，解壓縮至 /usr/share/xml/docbook
+http://docbook.org/schemas/5x.html => /usr/share/xml/docbook/schema
+http://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.77.1/ => /usr/share/xml/docbook/docbook-xsl-ns
+http://www.apache.org/dyn/closer.cgi/xmlgraphics/fop => /usr/share/xml/docbook/fop
+xsltporc 以 apt-get 安裝
+
+備註：
+docbook-utils 套件：安裝最多套件組的套件，包含 texlive-latex 在內。應該不需要如此多的套件。
+docbook-defguide  套件： docbook 的說明文件，為 html 格式。非必要套件。
+xmlto 套件：  支援從 DocBook xml 轉換至 dvi、xsl-fo、html、xhtml、epub、manual page、pdf、postscript 以及 plain text。
+		或從 xsl-fo 轉換至 dvi、pdf 及 postscript。注意，此套件組需極大硬碟空間。
+libxml2-utils 套件：為 xml utilities，實際用途不清楚
+xmlstarlet 套件：一組命令列 xml utilities，實際用途不清楚
+
+
+
+
+編輯器
+==============================
+NetBeans
+XMLmind XML Editor(簡稱為 XXE)
+
+
+
+
+使用預設圖標
+==============================
+下載 docbook-xsl 或 docbook-xsl-ns 壓縮檔，將其中 images/ 目錄解壓縮至目標目錄即可
+或者以連結方式，將 images 目錄連結至 images_docbook：ln -s ../../images images_docbook
+
+
+
+meta structure
+==============================
+set > book > division > component > section
+
+book = dedication + (toc | index) + division + component
+	book 元素可以跳過 division 元素，直接納入 component 元素
+
+division
+	part = Σ component，用來處理一般的內容
+	reference = Σ refentry，用來處理使用說明類型的內容，釋例為 printf 指令的使用說明
+
+preface (序言，導論)、appendix (附錄)
+
+toc：章節目錄或其他目錄
+index: 索引
+glossary: 詞彙解釋
+qandaset: 問答集(Q & A)
+bibliography: 參考書目
+
+<book><title>書籍名稱</title>
+	<chapter><title>章標題</title>
+		<para>章引言... </para>
+		<sect1><title>節標題</title>
+			<para>節內容... </para>
+			<para>節內容... </para>
+		</sect1>
+		......
+	</chapter>
+	<chapter><title>章標題</title>
+		<para>章引言... </para>
+		......
+	</chapter>
+	......
+</book>
+
+
+
+
+SGML 的文件型態宣告
+==============================
+<!DOCTYPE	book	PUBLIC	"-//OASIS//DTD DocBook V4.2//EN">
+註1		註2	註3	註4	
+註1, 文件型態表示詞
+'!' 字符加上大寫 "DOCTYPE" 字串，表示這個標籤作為宣告文件型態之用。
+
+註2, 根標籤名稱
+指定本文件要用那個 DocBook DTD 定義的標籤當根標籤。原則上 DocBook 並未嚴格指定限用那些標籤做根標籤，所以不只 book ，像 article,chapter,grossary.appendix 都可以當根標籤。
+
+註3, 公共識別表示詞
+大寫 "PUBLIC" 字串是表示它後面跟了個公共識別字串，又稱作 PUBLIC IDENTIFIER 。DocBook 有個龐大的 DTD 定義，通常都不會直接和本文寫在一起，而採外部文件形式，把 DTD 敘述儲存成單獨的檔案，在解譯轉譯 DocBook 文件時，再由解譯器載入外部 DTD 檔案，以分析 DocBook 文件。
+
+註4, 公共識別字串
+任何一個格式標準的發佈者，都應該設定其與眾不同，獨一無二的識別字串，來公佈周知。如果在文件開頭看到這個識別字串，就表示此文件使用該發佈者制定的格式，應該依據發佈者規定的方式處理。這個識別字串的組成可翻閱參考字典的 Public Identifier，查看標準的組成方式。但縱使不依據此規則，仍無損其效力，因為識別字串的關鍵是獨特與唯一。而 DocBook 的每一版本都有其唯一的公共識別字串，你必須完全照抄，不能任意增減，所以寫作前請先參考相關 DTD 下載群組的 catlog or docbook.cat ，看看他要求的識別字串是怎麼下的，然後複製貼上，成為你 DocBook 文件的第一行。
+
+
+
+
+XML 的文件型態宣告
+==============================
+<?xml version='1.0'?>                                                     
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://docbook.org/xml/4.1.2/docbookx.dtd">  
+
+
+
+
+book 的 SGML 文件模型
+==============================
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V4.2//EN">
+<book><title>書籍名稱</title>
+	<chapter><title>章標題</title>
+		<para>章引言... </para>
+		......
+	</chapter>
+	......
+</book>
+
+
+
+
+book 的 XML DTD
+==============================
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN">
+<book><title>書籍名稱</title>
+	<chapter><title>章標題</title>
+		<para>章引言... </para>
+		......
+	</chapter>
+	......
+</book>
+
+
+
+
+article 的 XML DTD
+==============================
+<?xml version="1.0"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN">
+            
+<article><title>研究主題</title>
+	<sect1><title>標題</title>
+		<para>引言... </para>
+		......
+	</sect1>
+	......
+</article>
+
+
+
+
+
+bin structure
+==============================
+
+apt-get approach
+------------------------
+/usr/share/xml/docbook/schema/dtd/catalog.xml
+/usr/share/xml/docbook/schema/dtd/5.0
+/usr/share/xml/docbook/schema/rng/5.0
+/usr/share/xml/docbook/stylesheet/docbook-xsl-ns
+
+manual install approach
+-------------------------
+/usr/share/xml/docbook/catalog.xml
+/usr/share/xml/docbook/docbook-5.0/			← DocBook 5 Schema
+/usr/share/xml/docbook/docbook-5.0/ent/		← ISO Entites
+/usr/share/xml/docbook/docbook-xsl-1.76.1/	← DocBook 樣式表
+/usr/share/xml/docbook/fop-1.0/				← XSL-FO 處理器
+
+
+
+
+file structure
+==============================
+path/to/work/***.sh	← lunch script
+
+path/to/work/xls/		← 存放 xls 檔案，亦即自訂之 DocBook 樣式表
+path/to/work/sur_cont/	← 存放 docbook 文稿
+path/to/work/css
+path/to/work/images/	← 存放圖檔
+
+path/to/work/product/	← 存放 docbook 文稿編譯後成品
+path/to/work/product/pdf/
+path/to/work/product/html_chunk/
+path/to/work/product/html_chunk/css/
+path/to/work/product/html_chunk/images_docbook/
+path/to/work/product/html_chunk/images_custom/
+path/to/work/product/html_alone/
+path/to/work/product/html_alone/css/
+path/to/work/product/html_alone/images_docbook/
+path/to/work/product/html_alone/images_custom/
+
+
+
+
+commands
+==============================
+export XML_CATALOG_FILES="file:///usr/share/xml/docbook/catalog.xml"
+xsltproc --xinclude --output Product/html/single/SampleBook.html XSL/html.xsl Content/SampleBook.xml
+xsltproc --xinclude --output Product/html/chunk/SampleBook.html XSL/chunk.xsl Content/SampleBook.xml
+
+-------------------------
+
+export DOCBOOK_DIR="/usr/share/xml/docbook"
+export XML_CATALOG_FILES="$DOCBOOK_DIR/catalog.xml"
+export DOCBOOK_XSL_DIR="$DOCBOOK_DIR/docbook-xsl-1.76.1"
+export FOP_DIR="$DOCBOOK_DIR/fop-1.0" 
+
+rm -r Product
+mkdir -p Product/{html/{chunk/{css,images/{custom,docbook}},single/{css,images/{custom,docbook}}},pdf/images/{custom,docbook}}
+
+cp -r CSS/ Product/html/chunk/css
+cp -r CSS/ Product/html/single/css
+
+cp -r IMAGES/ Product/html/chunk/images/custom
+cp -r $DOCBOOK_XSL_DIR/images/ Product/html/chunk/images_docbook
+cp -r IMAGES/ Product/html/single_images/custom
+cp -r $DOCBOOK_XSL_DIR/images/ Product/html/single/images_docbook
+cp -r IMAGES/ Product/pdf/images_custom
+cp -r $DOCBOOK_XSL_DIR/images/ Product/pdf/images/docbook
+
+xsltproc --xinclude --output Product/html/single/SampleBook.html XSL/html.xsl Content/SampleBook.xml
+xsltproc --xinclude --output Product/html/chunk/SampleBook.html XSL/chunk.xsl Content/SampleBook.xml
+
+xsltproc --xinclude --output Product/pdf/SampleBook.fo --stringparam fop1.extensions 1 fop.xsl Content/SampleBook.xml
+$FOP_DIR/fop Product/pdf/SampleBook.fo -awt # -awt 參數代表不在硬碟存入 pdf 檔案
+
+-------------------------
+
+export DOCBOOK_DIR="/usr/share/xml/docbook"
+export XML_CATALOG_FILES="$DOCBOOK_DIR/catalog.xml"
+export DOCBOOK_XSL_DIR="$DOCBOOK_DIR/docbook-xsl-1.76.1"
+export FOP_DIR="$DOCBOOK_DIR/fop-1.0"
+
+clear
+rm Product/pdf/*.fo Product/pdf/*.pdf
+
+# xsltproc --xinclude \
+# --output Product/pdf/SampleBook.fo \
+# --stringparam title.font.family "SimHei" \
+# --stringparam body.font.family SimSun \
+# --stringparam admon.textlabel 1 \
+# --stringparam admon.graphics 1 \
+# --stringparam admon.graphics.path "Product/pdf/images/docbook/" \
+# --stringparam header.rule 1 \
+# --stringparam fop1.extensions 1 \
+# fop.xsl \
+# Content/SampleBook.xml
+
+xsltproc --xinclude \
+--output Product/pdf/SampleBook.fo \
+--stringparam fop1.extensions 1 \
+XSL/pdf.xsl \
+Content/SampleBook.xml
+
+$FOP_DIR/fop -c $FOP_DIR/conf/fop.xconf Product/pdf/SampleBook.fo Product/pdf/SampleBook.pdf
+
+
+
+
+fop 中文字型
+==============================
+/path/to/fo/conf/fop.xconf | /etc/fop.conf.d/fop.xconf
+<renderers>
+	<renderer mime="application/pdf">
+		......
+		<fonts>
+			......
+			<auto-detect/>
+			<!-- 加入 auto-detect 標籤即可 -->
+		</fonts>
+	</renderer>
+	......
+</renderers>
+

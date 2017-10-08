@@ -1,0 +1,62 @@
+# vim:ts=4
+
+
+Introduction
+==============================
+Control Sequence
+	commands to TEX Engine，Knuth provide about 300
+	控制序列(碼)，為 TEX 排版系統的核心。Macro Extension、Macro Package 以及 TEX Format 都是強化對控制序列(碼)的處理
+
+Macro = Abbreviation of Control Sequence
+	巨集(擴展)，實質上是用簡碼作為複雜的控制序列(碼)的代稱，TEX Engine 讀取簡碼時會還原為原來的控制序列(碼)。
+
+Package = Collections of Macros
+	巨集套件，實際上是將一些巨集(擴展)集結成套而已。
+
+TEX Engine
+	TEX
+	e-­TeX = TEX + 拓展？
+	pdfTeX 1997
+	Omega Unicode
+	Aleph = e-­TeX + Omega
+	XeTeX = e-­TeX + Unicode + MacOS + OS TTF/Open Type
+	LuaTeX = e-­TeX + pdfTeX + MetaPost
+	pTeX
+
+TEX Format
+	格式產生機制，將 TEX Macro Package 轉換為二進位執行檔(或 fmt 檔)，以加速 TEX Engine 載入與解析 TEX Macro Package
+	Plain TeX
+	AMSTeX
+	LaTeX：其 TEX Engine 似為原始之 TEX，後期可改採 XeTeX 處理中文
+	ConTeXt
+	TeXinfo
+
+TEX Distribution
+	free: 
+		MiKTEX					2.8 以後版本內建 XeLaTeX				Windows
+		fpTEX					from Unix 的 teTEX					Windows
+	commercial:
+		TrueTEX					http://www.truetex.com/				Windows
+		TurboTEX				http://www.truetex.com/				Un*x, DOS, Windows
+		Y&Y TEX					http://www.YandY.com/				Windows
+		pcTEX					http://www.pctex.com/				Windows
+		VTEX					http://www.micropress-inc.com/		Windows, Linux, OS/2
+		Scientific Word			http://www.sciword.demon.co.uk		Windows	
+		Textures				http://www.bluesky.com/				Macintosh
+		OzTEX					http://www.trevorrow.com/oztex/		Mac OS X
+		Scientific Assistant	http://www.advanced-science.com/	Mac OS X
+
+
+
+
+TeX Live
+==============================
+關於安裝程序的詳細信息，可以參考光碟目錄 /texlive-doc/texlive-zh-cn/texlive-zh-cn.pdf 文件，其中介紹了安裝程序的所有詳細功能。
+
+TeXLive 的安裝程序是個 Perl script，在 Linux 環境下需要安裝 Perl，用圖形安裝界面的話還需要安裝 perl-tk。Windows 環境下已經預備了這些環境，因此不用安裝。
+
+執行安裝程序：
+
+windows: install-tl
+Linux: sudo ./install-tl --gui 或 --no-gu
+

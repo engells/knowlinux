@@ -1,0 +1,111 @@
+
+
+
+字體機制
+==============================
+
+主字體模型
+-------------------------
+[\rm, \ss, \tt, \mm(數學), \hw(手寫), \cg(書寫)] * [\tf, \it, \sl, \bf, \bi, \bs] * [\sc, \os, \WORD{}, \Word{}] *
+[\tfxx, \tfx, \tf, \tfa, \tfb, \tfc]
+
+\definefontsynonym[Song][AdobeSongStd-Light]
+\definefontsynonym[Hei][AdobeHeitiStd-Regular]
+\definebodyfont[11pt][rm][tf=Song,bf=Hei]
+\setupbodyfont[rm,11pt]
+
+
+
+字體別名
+-------------------------
+\definefont[kai][name:TW-Kai]
+\definefont[kai][file:TW-Kai]
+\kai
+內文
+
+
+
+typescript 字型模型
+-------------------------
+\starttypescript ... \stoptypescript
+\definefontsynonym
+\definetypeface
+
+\usetypescriptfile	# typescript file 似乎要以 type 作為檔名起頭
+\usetypescript
+\setupbodyfont
+
+
+
+Fallback 字型
+-------------------------
+將英文字型注入中文字型
+\definefontsynonym[sung][name:adobesongstd]
+\definefontfallback[hereos][name:texgyreherosregular][0x0000­0x0400]
+\definefontsynonym[fbsung][sung][fallbacks=hereos]
+\definefont[newsung][fbsung]
+
+將中文字型注入英文字型
+\definefontsynonym[hereos][name:texgyreherosregular]
+\definefontfallback[sung][name:adobesongstd][0x00400­0x2FA1F]
+\definefontsynonym[fbsung][hereos][fallbacks=sung]
+\definefont[newsung][fbsung]
+
+
+
+Simplefonts 模組
+-------------------------
+安裝：
+sh first­setup.sh ­­extras="t­-simplefonts"
+
+設定：
+\usemodule[simplefonts]
+\setmainfont[texgyrepagella]
+\setsansfont[texgyreheros]
+\setmonofont[texgyrecursor]
+\setcjkmainfont[adobesongstd]
+\setcjksansfont[adobeheitistd]
+\setcjkmonofont[adobefangsongstd]
+\setupsimplefonts[size=12pt]
+
+
+
+zhfonts 模組
+-------------------------
+安裝：
+git clone https://github.com/liyanrui/zhfonts.git or https://github.com/liyanrui/zhfonts/archives/master
+path/to/context/tex/texmf­local/tex/context/third
+mtxrun --generate
+
+中文字體
+cjkfonts.serif.regular    = 'nsimsun'
+cjkfonts.serif.bold       = 'simhei'
+cjkfonts.serif.italic     = 'nsimsun'
+cjkfonts.serif.bolditalic = 'simhei'
+cjkfonts.sans.regular     = 'youyuan'
+cjkfonts.sans.bold        = 'simhei'
+cjkfonts.sans.italic      = 'youyuan'
+cjkfonts.sans.bolditalic  = 'simhei'
+cjkfonts.mono.regular     = 'fangsong'
+cjkfonts.mono.bold        = 'simkai'
+cjkfonts.mono.italic      = 'fangsong'
+cjkfonts.mono.bolditalic  = 'simkai'
+ 
+% 西文字體
+latinfonts.serif.regular    = 'texgyrepagellaregular'
+latinfonts.serif.bold       = 'texgyrepagellabold'
+latinfonts.serif.italic     = 'texgyrepagellaitalic'
+latinfonts.serif.bolditalic = 'texgyrepagellabolditalic'
+latinfonts.sans.regular     = 'texgyreherosregular'
+latinfonts.sans.bold        = 'texgyreherosbold'
+latinfonts.sans.italic      = 'texgyreherositalic'
+latinfonts.sans.bolditalic  = 'texgyreherosbolditalic'
+latinfonts.mono.regular     = 'lmmono10regular'
+latinfonts.mono.bold        = 'lmmonolt10bold'
+latinfonts.mono.italic      = 'lmmono10italic'
+latinfonts.mono.bolditalic  = 'lmmonolt10boldoblique'
+ 
+% 數學字體
+mathfonts.roman = 'xitsmathregular'
+
+
