@@ -2,110 +2,116 @@
 # vim:ts=4
 # program:Using to note the knowledge about KVM
 # made by: Engells
-# date: Dec 20, 2011
+# date: Oct 13, 2017
 # content: 內容並未最佳化，單純作為書摘使用
 
 
 
 
 指令示例：
-==============================
+====================
 由硬碟分割啟動虛擬機
-	qemu-kvm -monitor stdio -m 1024 -vga -kernel vmlinuz -initrd initrd.img -append 'root=/dev/sda' /dev/sdz99
+  qemu-kvm -monitor stdio -m 1024 -vga -kernel vmlinuz -initrd initrd.img -append 'root=/dev/sda' /dev/sdz99
 
 由一整顆硬碟或隨身碟啟動虛擬機
-	qemu-kvm -monitor stdio -m 1024 -vga std /dev/sdz
+  qemu-kvm -monitor stdio -m 1024 -vga std /dev/sdz
 
 由 LVM 的 volume 啟動虛擬機
-	qemu-kvm -monitor stdio -m 1024 -vga /dev/mapper/abc-xyz
+  qemu-kvm -monitor stdio -m 1024 -vga /dev/mapper/abc-xyz
 
 由光碟映像檔啟動虛擬機
-	qemu-kvm -monitor stdio -m 1024 -vga iso_name.iso
+  qemu-kvm -monitor stdio -m 1024 -vga iso_name.iso
 
 在虛擬機安裝作業系統
-	qemu-kvm vdisk.img -cdrom /path/to/boot-media.iso -smp 2 -boot d -m 512
-	 -cdrom:掛載光碟印象檔
-	 -smp:CPU核心數
-	 -boot:選擇開機方法，d是指光碟開機
-	 -m:記憶體大小
+  qemu-kvm vdisk.img -cdrom /path/to/boot-media.iso -smp 2 -boot d -m 512
+   -cdrom:掛載光碟印象檔
+   -smp:CPU核心數
+   -boot:選擇開機方法，d是指光碟開機
+   -m:記憶體大小
 
 一般開機：
-	qemu-kvm vdisk.img -smp 2 -m 512
+  qemu-kvm vdisk.img -smp 2 -m 512
 
 引導 Ports：
-	qemu-kvm vdisk.img -smp 2 -m 512 -redir tcp:實體機器的port::虛擬機器的port
-	 ex：kvm vdisk.img -smp 2 -m 512 -redir tcp:3389::3389
+  qemu-kvm vdisk.img -smp 2 -m 512 -redir tcp:實體機器的port::虛擬機器的port
+   ex：kvm vdisk.img -smp 2 -m 512 -redir tcp:3389::3389
 
 掛載 USB 裝置：
-	-usbdevice 'devicename'
-	 ex：-usbdevice disk:/dev/sdb
-	 devicename：
-		mouse
-		tablet
-		disk:[format=format]:file
-		host:bus.addr
-		host:vendor_id:product_id
-		...更詳細資訊請 man kvm
+  -usbdevice 'devicename'
+   ex：-usbdevice disk:/dev/sdb
+   devicename：
+    mouse
+    tablet
+    disk:[format=format]:file
+    host:bus.addr
+    host:vendor_id:product_id
+    ...更詳細資訊請 man kvm
 
-		PS.可以用 lsusb 看裝置在哪
-		PS.掛載時可能會碰到權限問題，可以用sudo或是修改該裝置的權限chmod a+wr
+    PS.可以用 lsusb 看裝置在哪
+    PS.掛載時可能會碰到權限問題，可以用sudo或是修改該裝置的權限chmod a+wr
 
 url:
-	玩具烏托邦： http://newtoypia.blogspot.tw/2015/03/qemu-kvm-boot-partition.html
-	StarNight's Blog： http://blog.xuite.net/zack_pan/blog/40655693-Kernel-based+Virtual+Machine+(KVM)
+  玩具烏托邦： http://newtoypia.blogspot.tw/2015/03/qemu-kvm-boot-partition.html
+  StarNight's Blog： http://blog.xuite.net/zack_pan/blog/40655693-Kernel-based+Virtual+Machine+(KVM)
 
 
 
 
 與 Virtual Box 相容性問題
-==============================
+====================
 KVM 可在 Virtual Box 載入系統核心時執行，但 Virtual Box 不可在 KVM 載入核心時執行。因此較佳的方式是同一時間只執行其中之一。
 
 執行 KVM 時，先停止 Virtual Box，再啟動 KVM
--------------------------
+----------
 sudo service vboxdrv stop
 lsmod | grep vbox
 sudo service qemu-kvm start ← 需先確定沒有執行 VirtualBox 
 
 
 執行 Virtual Box 時，先停止 KVM，再啟動 Virtual Box
--------------------------
+----------
 sudo service qemu-kvm stop
 lsmod | grep kvm → 確定已經移除 kvm 模組
 sudo service vboxdrv start
 
 
 開機時不載入 kvm 模組
--------------------------
+----------
 編輯 /etc/init/qemu-kvm.conf
-	#start on runlevel [2345]
+  #start on runlevel [2345]
 
 
 相關指令
--------------------------
+----------
 modprobe -clfr module_name
-	-c：列出目前系統所有的模組
-	-l：列出 /lib/modules/$(uname -r)/kernel 目錄下所有的模組
-	-f：強制載入模組
-	-r：移除模組
+  -c：列出目前系統所有的模組
+  -l：列出 /lib/modules/$(uname -r)/kernel 目錄下所有的模組
+  -f：強制載入模組
+  -r：移除模組
 
 
 
 
-libvirt 網路機制
-==============================
-預設產生 virbr0 虛擬橋接器，供 NAT 虛擬網路模式使用
-虛擬機所用之 NAT 模式網路卡，依序為 vbet0、vbet1﹍
-之後建立 virbr[x] 虛擬橋接器，供 isolated 等非 NAT 之虛擬網路模式使用
+在虛擬機加入新硬體及驅動程式
+====================
+qxl 顯示卡
+  在虛擬機安裝 spice-guest-tools，下載位置：https://www.spice-space.org/download/windows/spice-guest-tools/
+
+virtio 介面裝置
+  下載 virtio 驅動程式，https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.126-2/virtio-win-0.1.126.iso
+    Hard Disk： /path/to/iso/viostor
+    NIC： /path/to/iso/NetKVM
+    PCI： /path/to/iso/vioserial
+    PCI SCSI： /path/to/iso/Balloon
 
 
 
 
 產生虛擬機硬碟
-==============================
+====================
 
 產生硬碟映像檔
--------------------------
+----------
 kvm-img create -f qcow2 x.img 4G
 kvm-img convert -O qcow2 x.img y.img
 kvm-img info x.img
@@ -113,7 +119,7 @@ dd if=/dev/zero of=~/virtual/vd01.raw bs=64k count=4800
 
 
 fdisk disk image file
--------------------------
+----------
 modprobe nbd max_part=8
 modinfo nbd
 kvm-nbd --connect=/dev/nbd0 /path/to/xxxx.qcwo
@@ -123,7 +129,7 @@ kvm-nbd --disconnect /dev/nbd0
 rmmod nbd
 
 mount virtual disk, should have nbd module active, and note that only partitions could be mounted
--------------------------
+----------
 mkdir /path/to/folder
 mount /dev/nbd0p1 /path/to/folder
     # 替代指令：mount -t exfat -o rw /dev/nbd0p1 /path/to/folder，-t vfat | exfat | ntfs | ext4 ...
@@ -131,149 +137,129 @@ umount /path/to/folder
 
 
 使用實體硬碟
--------------------------
+----------
 產生 NewStorage.xml:
-	<disk type='block' device='disk'>
-		<driver name='qemu' type='raw' cache='none'/>
-		<source dev='/dev/sr0'/>
-		<target dev='vdc' bus='virtio'/>
-	</disk>
-	# vd[X], the disk is connected to a virtio controller
-	# sd[X], the disk is connected to a scsi controller
-	# hd[X], the disk is connected to an IDE controller
+  <disk type='block' device='disk'>
+    <driver name='qemu' type='raw' cache='none'/>
+    <source dev='/dev/sr0'/>
+    <target dev='vdc' bus='virtio'/>
+  </disk>
+  # vd[X], the disk is connected to a virtio controller
+  # sd[X], the disk is connected to a scsi controller
+  # hd[X], the disk is connected to an IDE controller
 
 
 將硬碟設定檔匯入虛擬機
-	virsh attach-disk machine_name /dev/sr0 vdc
-		# 單純匯入硬碟
-	virsh attach-disk machine_name /dev/sr0 vdc --config --type disk
-		# 加入 type 參數
-	virsh attach-disk machine_name /dev/sr0 vdc --config --type cdrom --mode readonly
-		# 加入唯讀光碟
+  virsh attach-disk machine_name /dev/sr0 vdc
+    # 單純匯入硬碟
+  virsh attach-disk machine_name /dev/sr0 vdc --config --type disk
+    # 加入 type 參數
+  virsh attach-disk machine_name /dev/sr0 vdc --config --type cdrom --mode readonly
+    # 加入唯讀光碟
 
 
 注意：
-	至此在虛擬機產生 /dev/vdc 的裝置，其實體位置對應至 Host 的 /dev/sr0
-	將整個硬碟映射至虛擬機，應先將該實體硬碟的 MBR 備份，以預防在虛擬機操作時變更到實體硬碟原本的 boot-loader
-		# dd if=/dev/sda of=sda.mbr bs=446 count=1
+  至此在虛擬機產生 /dev/vdc 的裝置，其實體位置對應至 Host 的 /dev/sr0
+  將整個硬碟映射至虛擬機，應先將該實體硬碟的 MBR 備份，以預防在虛擬機操作時變更到實體硬碟原本的 boot-loader
+    # dd if=/dev/sda of=sda.mbr bs=446 count=1
 
 
 或是在 /etc/libvirt/qemu/<your-vm>.xml 組態檔的 <device> section 增加：
-	<disk type='block' device='disk'>
-	 <driver name='qemu' type='raw'/>
-	 <source dev='/dev/md/storage'/>
-	 <target dev='vdb' bus='virtio'/>
-	</disk>
+  <disk type='block' device='disk'>
+   <driver name='qemu' type='raw'/>
+   <source dev='/dev/md/storage'/>
+   <target dev='vdb' bus='virtio'/>
+  </disk>
 
 
 
 
 利用 qemu-kvm 虛擬技術將 Linux 安裝於實體硬碟
-==============================
+====================
 備份 MBR (非必要)
-	sudo dd if=/dev/sda of=sda.mbr bs=446 count=1
+  sudo dd if=/dev/sda of=sda.mbr bs=446 count=1
 
 
 以 qemu-kvm 載入 Linux 安裝光碟, 開始進行安裝作業
-	sudo qemu-kvm -hda /dev/sda -cdrom /path/to/fedora18-live-cd.iso -smp 2 -m 1024 -usb -usbdevice tablet -boot d
-		# -hda 指向要安裝的硬碟代號（如: /dev/sda），不要指向分割區（如: /dev/sda8）
-		# -boot d 強制以光碟開機，否則會跑硬碟的 Bootloader
-		# -usb -usbdevice tablet 讓虛擬機器的滑鼠游標與本機游標同步，若以文字介面進行安裝可免用這項設定
-		# 選擇自訂安裝, 將 / 安裝於指定分割區（如: /dev/sda8）
-		# 把 Bootloader 安裝於上述分割區
+  sudo qemu-kvm -hda /dev/sda -cdrom /path/to/fedora18-live-cd.iso -smp 2 -m 1024 -usb -usbdevice tablet -boot d
+    # -hda 指向要安裝的硬碟代號（如: /dev/sda），不要指向分割區（如: /dev/sda8）
+    # -boot d 強制以光碟開機，否則會跑硬碟的 Bootloader
+    # -usb -usbdevice tablet 讓虛擬機器的滑鼠游標與本機游標同步，若以文字介面進行安裝可免用這項設定
+    # 選擇自訂安裝, 將 / 安裝於指定分割區（如: /dev/sda8）
+    # 把 Bootloader 安裝於上述分割區
 
 
 安裝後, 在 GRUB 2 選單增添或修改選項
-	vi /etc/grub.d/40_custom
-		menuentry 'Ubuntu (sda8)' {
-			set root='(hd0,8)'
-			chainloader +1
-		}
-	grub2-mkconfig -o /boot/grub2/grub.cfg
+  vi /etc/grub.d/40_custom
+    menuentry 'Ubuntu (sda8)' {
+      set root='(hd0,8)'
+      chainloader +1
+    }
+  grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 把 Bootloader 另外寫入磁碟分割區 (first sector of boot partition)
-	grub2-install --force /dev/sda7
-		目的: 若 MBR 的 Bootloader 毀損或改寫，仍可用其他 Linux 系統的 GRUB 以 chainloader +1 方式啟動本分割區的 Linux 系統
+  grub2-install --force /dev/sda7
+    目的: 若 MBR 的 Bootloader 毀損或改寫，仍可用其他 Linux 系統的 GRUB 以 chainloader +1 方式啟動本分割區的 Linux 系統
 
 
 若安裝時不小心把 Bootloader 寫入 MBR, 想改回原設定
-	方式一：寫回備份內容
-		dd if=sda.mbr of=/dev/sda
-	方式二：以目前設定重新寫入 MBR
-		grub2-install /dev/sda
+  方式一：寫回備份內容
+    dd if=sda.mbr of=/dev/sda
+  方式二：以目前設定重新寫入 MBR
+    grub2-install /dev/sda
 
 
 參考網址
-	http://jamyy.us.to/blog/2013/01/4431.html
+  http://jamyy.us.to/blog/2013/01/4431.html
 
 
 
 
-Host OS and Virtual OS 資料交換
-==============================
-1. Host OS 安裝 SAMBA
+建置及調整 KVM 環境
+====================
+安裝
+----------
+kvm-ok
+apt install qemu-kvm kvm-ipxe virt-manager
+  qemu-kvm：kvm 必要套件，一般會同時安裝 qemu-common 及 bridge-utils 套件
+  kvm-ipxe：提供 PXE 開機 ROM，供網路開機使用
+  virt-manager：圖形管理界面，本身是 libvirt-bin 套件的強化，故安裝時會一併安裝 libvirt-bin、virtinst 套件
 
 
+檢查是否安裝成成功
+----------
+lsmod | grep kvm    # 若未出現回報資料，則 kvm 未安裝或未執行
+modprobe -l | grep kvm
+ls -la /usr/bin | grep kvm
 
-
-安裝後調整
-==============================
 
 以登入帳號執行 virt-manager
--------------------------
+----------
 將登入帳號名稱，加入 kvm 及 libvirtd 這二個群組
-	編輯 /etc/group
-	sudo adduser `id -un` kvm && sudo adduser `id -un` libvirtd
+  sudo adduser `id -un` kvm && sudo adduser `id -un` libvirtd
 編輯 /etc/libvirt/libvirtd.conf
-	設定：unix_sock_rw_perms = "0777"
+  設定：unix_sock_rw_perms = "0777"
 視情況重新登錄
 
 
 關閉 libvirt 產生的 virbr0 網卡
--------------------------
+----------
 virsh net-destroy default
 virsh net-undefine default
 service libvirt-bin restart
 ifconfig
 
 
+libvirt 網路機制
+----------
+預設產生 virbr0 虛擬橋接器，供 NAT 虛擬網路模式使用
+虛擬機所用之 NAT 模式網路卡，依序為 vbet0、vbet1﹍
+之後建立 virbr[x] 虛擬橋接器，供 isolated 等非 NAT 之虛擬網路模式使用
 
 
-Install KVM and manager command 
-==============================
+設定檔
+----------
+虛擬機資料：/etc/libvirt/qemu/
+網路資料：/etc/libvirt/qemu/network
 
-安裝
--------------------------
-kvm-ok
-apt install qemu-kvm kvm-ipxe virt-manager
-	qemu-kvm：kvm 必要套件，一般會同時安裝 qemu-common 及 bridge-utils 套件
-	kvm-ipxe：提供 PXE 開機 ROM，供網路開機使用
-	virt-manager：圖形管理界面，本身是 libvirt-bin 套件的強化，故安裝時會一併安裝 libvirt-bin、virtinst 套件
-
-
-檢查是否安裝成成功
--------------------------
-lsmod | grep kvm
-	# 若未出現回報資料，則 kvm 未安裝或未執行
-modprobe -l | grep kvm
-ls -la /usr/bin | grep kvm
-
-
-
-
-建立 KVM 環境
-==============================
-1.安裝 KVM 套件
-2.建立虛擬網路環境：
-	a.移除預設橋接器
-	b.建立 Hub_NAT 橋接器，192.168.120.0/24
-	c.建立 Hub_Route 橋接器，192.168.130.0/24
-	d.考慮是否將 Host 掛入虛擬網路
-3.安裝 SAMBA 套件，並設定好組態檔
-4.建立虛擬機，可考慮採雙網卡，其一採 NAT 聯外，另一採橋接模式連線 SAMBA
-5.虛擬機資料：/etc/libvirt/qemu/：網路資料：/etc/libvirt/qemu/network
-6.虛擬機若為 Windows 可將硬碟及網卡設為 VirtIO 類型以強化執行效率
-	注意：每個 VirtIO 裝置均視同獨立的介面卡，其匯流排等各不相同。若以 virsh 直接編輯 xml 檔中相關資料，則需重新安裝驅動程式
-	virtio 網卡驅動的位址: http://sourceforge.net/project/showfiles.php?group_id=180599&package_id=267943
-	virtio 硬碟驅動的位址: http://www.linux-kvm.com/sites/default/files/viostor.iso
