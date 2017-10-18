@@ -170,7 +170,7 @@ umount /path/to/folder
    <source dev='/dev/md/storage'/>
    <target dev='vdb' bus='virtio'/>
   </disk>
-
+執行指令  virsh define /etc/libvirt/qemu/guest_name.xml，使上述修改生效。
 
 
 
