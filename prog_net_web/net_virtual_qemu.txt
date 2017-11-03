@@ -1,0 +1,240 @@
+
+
+
+
+手工精簡版 qemu-kvm 虛擬區域網路
+====================
+qemu/kvm 是蠻底層的 linux 虛擬化工具， 只適合用於單一虛擬機的場合。 它固定配 10.0.2.15 的 IP 給虛擬機， 這個 IP 僅供虛擬機自嗨用， 從 host 並不能用這個 IP 連到虛擬機； 。 如果要管理一整群虛擬機， 各自要有 ip、 彼此要能互連， 理論上應該改用 virsh 跟 virt-manager 比較好。 不過這兩者的相依套件蠻多的。 對於喜歡騎腳踏車勝過騎機車/開車的人來說， 其實 「含有多部 kvm 虛擬機的區域網路環境」 還是可以用 qemu/kvm 指令徒手建立出來。
+
+假設從 route -n 查出 host 對外的網卡叫做 enp3s0， 而對外的 gateway 是 192.168.0.1。 本文的目標是要建立一個內部區域網路 192.168.29.0/24， 讓 kvm 虛擬機都連到這個內部網路， 再透過 NAT 上網。 測試環境是 lubuntu 16.04。
+
+一、 建立 bridge
+----------
+請先安裝 bridge-utils 套件，  在 host 的 /etc/network/interfaces 最後面加上這一段：
+
+auto br29
+iface br29 inet static
+    address 192.168.29.254
+    netmask 255.255.255.0
+    bridge_ports none
+    bridge_stp off
+    bridge_fd 0
+    post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+    post-up iptables -t nat -A POSTROUTING -s '192.168.29.0/24' -o enp3s0 -j MASQUERADE
+    post-down iptables -t nat -D POSTROUTING -s '192.168.29.0/24' -o enp3s0 -j MASQUERADE
+
+注意： 請把 enp3s0 改成你的真實網卡名稱。 修改之前， 先用 ip link show、 ip route show、 brctl show 三個指令查看並儲存目前網路設定。 修改完之後， systemctl restart ifup@br29 或 service networking restart 或重開機， 然後再次用上述三個指令查看， 應該每句都會看到多出一列 br29。
+
+
+
+二、 /etc/qemu-ifup 跟 /etc/qemu-ifdown
+----------
+把系統原有的 /etc/qemu-if* 改名或備份。 改用以下簡單的兩句完全取代 /etc/qemu-ifup：
+
+    #! /bin/sh
+    echo "setting up tap device $1..." # 這一句僅為幫助除錯。 成功後可刪掉。
+    ip link set "$1" up
+    ip link set "$1" master br29
+
+又用以下一句取代 /etc/qemu-ifdown：
+
+    #! /bin/sh
+    ip link set "$1" down
+
+並且 chmod a+x /etc/qemu-if* 開放執行權限。 每當 kvm 指令啟動虛擬機時， 會觸發 /etc/qemu-ifup 設定虛擬機的網卡； 虛擬機關機時， 會觸發 /etc/qemu-ifdown。
+
+
+
+三、 在 br29 上面啟動 dhcp 服務
+----------
+安裝 dnsmasq 套件，編輯 /etc/dnsmasq.conf， 分別在各自適當的地方 (每一句範例註解的位置) 加上這兩句：
+
+    interface=br29
+    ...
+    dhcp-range=br29,192.168.29.31,192.168.29.99,4h
+
+重新啟動 dnsmasq： systemctl restart dnsmasq 
+
+如果 dnsmasq 無法啟動， 出現 「address already in use」之類的錯誤， 有可能是因為跟 network-manager 套件衝突。 請移除 dnsmasq-base (會同時移除掉 network manager)、 重裝 dnsmasq、 再重裝 network-manager 。 詳見 這個問答。
+
+
+
+四、 啟動 finnix 虛擬機
+----------
+假設你有 中文版 finnix 光碟 (或原始英文版也可以)。
+
+啟動虛擬機： kvm -monitor stdio -cdrom finnix-ckhung16c.iso -device virtio-net,netdev=net0,mac=52:54:00:12:34:13 -netdev tap,id=net0,ifname=tap13 這裡的 mac= 跟 ifname= 可以任意取， 但不可以跟其他 kvm 虛擬機重複； 其他部分可以照抄。 啟動時應該要看到 /etc/qemu-ifup 那句 echo 所印出來的除錯訊息。
+
+開機後， 用 ifconfig 查看 dnsmasq 分配給它的 ip、 用 route -n 查看 dnsmasq 幫忙設定好的 gateway、 用 lynx http://www.eff.org 測試瀏覽網頁。
+
+用 passwd 更改密碼。
+    編輯 /etc/ssh/sshd_config， 找到 PermitRootLogin， 把 without-password 或是 no 改成 yes。
+    重新啟動 ssh： service ssh restart 
+
+
+
+五、 啟動 SystemRescueCD
+----------
+開第二部虛擬機來測試一下， 如果沒設定好， 兩部機器有可能會搶網卡之類的。 比較懶一點的話， 也可以兩部虛擬機都用同一張光碟來開機測試； 不過用不同的光碟會更有感覺。
+
+因為 finnix 蠻久沒更新了， 所以最近我也常改用 SystemRescueCD。 測試步驟大致同 finnix， 只有幾個地方不太一樣：
+
+它需要 256MB 的記憶體才能跑。 又， 啟動第二部虛擬機時， mac= 跟 ifname= 不能跟先前的重複。 所以完整的指令長這樣： kvm -monitor stdio -m 256 -cdrom systemrescuecd-x86-4.9.6.iso -device virtio-net,netdev=net0,mac=52:54:00:12:34:14 -netdev tap,id=net0,ifname=tap14
+
+它好像沒裝 lynx 跟 w3m， 所以改用 wget http://www.eff.org 測試網路連線。 
+
+最後， 請從 finnix 視窗登入 SystemRescueCD， 又從 SystemRescueCD 視窗登入 finnix， 虛擬區網測試成功!
+
+
+
+
+六、 除錯
+----------
+如果虛擬機的網路不通，請由內向外依序檢查：
+
+    dhcp 有成功嗎? route -n
+    可以 ping 得到虛擬網路的 gateway (br29) 嗎? ping 192.168.29.254
+    可以 ping 得到 host 的實體網卡的 IP 嗎?
+    可以 ping 得到 host 對外的實體 gateway 嗎? 
+
+如果可以 ping 得到 host 的實體網卡的 IP， 但卻出不去， 那就有可能是 iptables 沒設定好。 請下 iptables-save | grep MASQ 檢查 -- 也許對外網卡的名稱打錯了?
+
+
+
+七、 補充說明
+----------
+如果虛擬機並不需要跟其他虛擬機互動，一樣可以用簡單的 (不含 -device 跟 -netdev 那兩段的) kvm 指令啟動它。 原先預設的 User Networking (SLIRP) 還是有效。 (不要用 ping 測試! 直接用瀏覽器或 ssh 測試。)
+
+上面的 (高效率的 para-virtualization 版驅動程式) -netdev virtio-net,... 只適用於 linux guests。 如果是 windows guests 的話， 則必須改成 -netdev e1000,... 或 -netdev rtl8139,...。
+
+如果希望 dnsmasq (根據虛擬機的 mac address) 派送固定的 IP 給特定的虛擬機， 可以在 /etc/dnsmasq.conf 裡加上類似這句。 dhcp-host=52:54:00:12:34:13,192.168.29.13
+
+寫這篇時， 搜尋到 qemu 的 wiki、 2015 年的文章、 2009 年的文章 等等幾篇。 不過想要把虛擬機群直接接到實體網卡對外網路時， 一直失敗。 反正就算成功了， 也會有 (1) 不適用於 wifi (2) 比較危險 (3) 需要動到真實網卡的設定 等等幾大缺點。 所以最後還是改參考我自己寫的、 解釋得很詳盡的、 已經快忘光的 「我的免費有線分享器」 那篇， 改用 NAT 間接上網比較簡單。
+
+騎腳踏車就是比較辛苦， 不過也特別有感就感啊! 
+
+
+
+
+我的免費有線分享器： qemu/kvm 虛擬區網
+====================
+貴哥小時候沒修過網路的課，後來玩 linux 勉強學會一點點 網路基本指令。這幾天爬了好多文終於學會用 bridge 跟 tap 手工建立虛擬區網。 
+
+我們的目標是要在你的電腦 （Host） 上面用 qemu/kvm 開兩部虛擬機 GuestA 跟 GuestB， 把它們放在同一個虛擬區域網路裡面， 讓 GuestA、 GuestB、 Host 可以直接看到彼此的 IP。 當然，GuestA 跟 GuestB 要能夠上網。
+
+只想用虛擬機做事的讀者不必讀本文，因為只要改採用更高階的 libvirt，這些 「接水管」 的問題就不必自己操心了。想當水管工的， 或是 [沒有足夠的設備也硬是要] 開設網路實習課程的老師才請進。
+
+
+
+一、 行前準備
+----------
+先談一下很簡單、根本不需要讀本文的狀況。
+
+如果只是要讓虛擬機能上網 => 什麼都不必設定。 這等同於在 kvm 命令列上使用 -net nic -net user 選項， 建立一個 SLIRP 類型的簡單網路。
+
+如果 虛擬機要提供服務給 Host 例如 ssh 或 http 等等）=> 在 kvm 命令列上使用 -redir tcp:13022::22 就夠了，也不需要做複雜的設定。 然後就可以從 Host 這樣連線： ssh -p 13022 localhost。
+
+更挑戰的是，這幾年當中，linux 的網路指令/系統服務/kvm指令選項都有一些變動。有些文章採用舊指令；有些文章採用新指令。
+
+特別是 qemu/kvm，爬文幾乎都採舊指令；但 qemu networking 跟 kvm networking 兩份最重要的官網文件採用的卻是新指令，卻又很不完整。我先用舊指令實驗成功， 最後再從猜測及錯誤訊息搜尋當中試出新的指令。實驗環境是 lubuntu 15.04。虛擬機跑的是簡單又強大的 finnix 開機光碟。 我在 .bashrc 裡面有這樣兩句設定：
+    alias mykvm='kvm -monitor stdio -m 1024 -vga std -cpu host'
+    alias myfkvm='mykvm -cdrom /x/cdrom/finnix-ckhung16c.iso -boot order=dc'
+
+所以原本我打 myfkvm 就可以直接開一部 finnix 虛擬機。如果滑鼠不能動， 請加上 -usbdevice mouse 重試一次看看
+
+你可以把 tun/tap 想成是虛擬網路線。 在 Host 那頭， 用 ip tuntap add name XXXX mode tap 建立一條名為 XXXX 的虛擬網路線的一頭； 用 ip link show 可以看見 XXXX。 在 GuestX 那頭， 啟動 kvm 時要用相同的名字， 這樣就在 Host 跟 GuestX 之間建立了一條虛擬網路線。 tun 是 IP 層的通道； tap 是 ethernet 層的通道。 這篇 tun/tap 簡介 很白話易懂； 這篇 第一節也很值得讀。
+
+
+
+二、 實作
+----------
+本文只用 tap， 而且在 Host 這邊， 不採用指令而是寫在設定檔裡。 請在 Host 的 /etc/network/interfaces 裡面加上這幾句：
+
+    auto qibr29
+    iface qibr29 inet static
+        address 10.0.29.254
+        netmask 255.255.255.0
+        bridge_ports qitap2931 qitap2932 qitap2933
+        bridge_stp off
+        bridge_fd 0
+        post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+        post-up iptables -t nat -A POSTROUTING -s '10.0.29.0/24' -o ethz -j MASQUERADE
+
+然後照第三節第一個提示啟動新的 qibr29 網路服務。 以上是從 Debian wiki 的 NAT 內網那一節 改來的。 
+網卡的名字代表 "qemu-internel bridge 29"。 
+bridge_ports 後面的三個裝置名稱也是任意取的， 分別會 （用一條虹吸管） 接到一部虛擬機的虛擬網卡。 
+注意！post-up iptables ... 指令的 "-o ethz" 請改成 Host 對外的真實網卡。 
+每次修改過 /etc/network/interfaces 之後，要下 service ifup@qibr29 restart 才會生效。
+
+趁虛擬機還沒打開前，先查看一下 Host 上有哪些實體及虛擬網卡： ip link show > ~/netdev0.txt。
+
+再來啟動虛擬機：
+    舊語法： myfkvm -net nic,macaddr=52:54:00:12:34:1f -net tap,ifname=qitap2931,script=no,downscript=no
+    新語法： myfkvm -device e1000,netdev=net0,mac=52:54:00:12:34:1f -netdev tap,id=net0,ifname=qitap2931,script=no
+
+舊語法的詳細解釋請見 suse linux 的文件。 新語法很清楚地把 GuestA 那頭關心的 （-device ...） 跟 Host 那頭關心的 （-netdev tap，...） 區分開來。
+
+在 Host 上執行 ip link show > ~/netdev1.txt， 然後比較前後差異： diff ~/netdev0.txt ~/netdev1.txt， 會看到多出一個 qitap2931 的裝置。
+
+在 GuestA 上執行：
+    ifconfig eth0 10.0.29.31 netmask 255.255.255.0
+    route add default gw 10.0.29.254
+
+然後它對外的網路就通了 -- 挑一個英文網站試試看 w3m http://www.eff.org/ 。 再來， 還可以安裝輕薄短小的網頁伺服器 nginx：
+    apt-get update
+    apt-get install nginx
+    w3m localhost
+    vim /var/www/html/index*.html # 小改一下， 再用 w3m 確認有修改到
+
+回到 Host 上， 瀏覽器開到 http：//10.0.29.31/ 成功開啟 GuestA 的網頁！
+
+開第二部虛擬機時， 請把上面特殊顏色標記的地方都改掉： 例如 31 改成 32， 1f 改成 20。 請確認一下兩部虛擬機可以造訪彼此的網頁。 當然， 外界看不到它們 -- 就連 Host 所在的網路都看不見它們。
+
+
+
+三、 忍不住要問細節
+----------
+能動是一回事； 追問細節才能學到更多。
+
+service ifup@qibr29 restart 那個指令是怎麼回事？ 現在已經沒有 "network" 這個服務了。 用 systemctl list-units --type=service 查看有哪些服務。 其中會出現一個 ifup@qibr29。
+
+post-up iptables ... -j MASQUERADE 那一句是從 恆逸資訊洪朝欽老師 幫我做的設定改來的，主要就是為了把虛擬網域的封包透過真實網卡送出去。 
+
+指定 mac address 的新舊語法不同。 而且 這段不能省略 -- 一開始我偷懶省略， 結果兩部機器各自可上網可被 Host 看見， 但看不到彼此， 因為 qemu 幫每一部虛擬機預設的 mac address 相同， 又放在同一個區網內， 所以就打架了。
+
+如果你想在某部虛擬機裡面安裝很多張網卡呢？ （反正不用錢， 哈哈） 在新語法裡面， 顯然會用到好幾對 -device 跟 -netdev。 其中每一對的 netdev=net0 跟 id=net0 要一致， 這樣 虹吸管 虛擬網路線的兩頭才可以找到彼此。 （對， net0 的名字可以隨便亂改， 不要叫虹吸管就對了。） 在舊語法裡面， 如果要創造三張網卡， 就要有六句 -net， 每句後面都要加上 ,vlan=0 之類的， 每一對的數字要相同。 詳見 這篇。
+
+bridge_ports 那一句目前是寫死的。如果開超過三部虛擬機，後面的就沒網路可用了。理想上，應該要寫一些指令，想辦法每開一部虛擬機時就自動開一個新的 tap 裝置加入 qibr29； 每關一部虛擬機時就自動把它的 tap 裝置移除。
+
+是的，kvm 命令列上的 script=... 跟 downscript=... 正是拿來這樣用的。可以自己寫 shell scrip、從這裡指向它。 不過那太麻煩了，所以本文省略。但是 qemu/kvm 預設會去執行某兩個 scripts，我們搞不清楚系統在幫我們做什麼，所以乾脆叫它不要執行預設的這兩個 scripts。預設的 scripts 放在哪裡？在 lubuntu 15.04 上，用 strings /usr/bin/qemu-system-x86_64 | grep ifup 可以發現是 /etc/qemu-ifup 跟 /etc/qemu-ifdown。在 proxmox 3.* 上， 用 strings /usr/bin/kvm | grep ifup 可以發現是 /etc/kvm/kvm-ifup 跟 /etc/kvm/kvm-ifdown。
+
+可以進一步按照 Debian DHCP 安裝設定教學 （中文） 幫 qibr29 架設一個 dhcp 服務。 我沒仔細讀， 基本上只是關虛擬機、 安裝 isc-dhcp-server、 在 /etc/dhcp/dhcpd.conf 最下面加一段、 重新啟動 isc-dhcp-server、 重開 GuestA 跟 GuestB。 於是 GuestA 跟 GuestB 就自動取得 IP 了。
+
+    subnet 10.0.29.0 netmask 255.255.255.0 {
+        INTERFACES="qibr29"；
+        range 10.0.29.31 10.0.29.33；
+        option routers 10.0.29.254；
+    }
+
+
+四、 融入 Host 所在的區網
+----------
+那如果想要讓虛擬區網融入 Host 所在的區網呢？ 觀念上， 我們只需要在 /etc/network/interfaces 裡面修改三處：
+
+    直接把 ethz 加入 qibr29 底下的埠。
+    qibr29 自己的 IP 該如何設定？ 套用原先 ethz 的設定值。
+    省略 post-up iptables ... -j MASQUERADE 那一句。 
+
+實作上， 還要加一句 iface ethz inet manual， 這樣才可以 避免好心的 network-manager 插手管理 ethz 結果越幫越忙。 例如我的 ethz 原先沒有出現在 /etc/network/interfaces 裡面， 而是由 network manager 在管理； 它的 IP 是從實體分享器取得的。 所以現在 /etc/network/interfaces 改成這樣：
+
+iface ethz inet manual
+
+auto qibr29
+iface qibr29 inet dhcp
+        bridge_ports ethz qitap2931 qitap2932 qitap2933
+        bridge_stp off
+        bridge_fd 0
+
+那麼我的 GuestA 跟 GuestB 就會跟家裡的其他裝置 （例如我的手機） 看到彼此的 IP 了。 這也是 debian 官網解釋 bridging 的設定方式， 比第二節還簡單。 又因為實體分享器會派送 dhcp， 所以我們不必自己架 dhcp 伺服器， 虛擬機也會自動取得 IP， 超方便的啊！ 不過如果你的 Host 是一部真的伺服器， 那麼最好你要在現場， 因為這種設定方式很可能一不小心網路就會壞掉。
+
+心得： 虛擬化環境真的是學習網路設定與觀念的好環境啊！ 

@@ -5,11 +5,34 @@
 
 
 
+Proxmox 範例
+====================
+auto lo
+iface lo inet loopback
+
+auto vmbr0
+iface vmbr0 inet static
+	address 192.168.15.130
+	netmask 255.255.255.0
+	gateway 192.168.15.254
+	bridge_ports eth0
+	bridge_stp off
+	bridge_fd 0
+
+
+
 範例一：Nano雞排
 	需安裝有 bridge-utils 及 uml-utilities
-==========================================================
+====================
 auto br0
 iface br0 inet static
+	address 192.168.12.1
+	netmask 255.255.255.0
+	bridge_ports tap0
+	bridge_stp off
+	bridge_fd 9
+	bridge_hello 2
+	bridge_maxage 12
 	pre-up brctl addbr br0
 	pre-up tunctl -b -u username -t tap0
 	pre-up brctl addif br0 tap0
@@ -17,13 +40,6 @@ iface br0 inet static
 	post-dwon brctl delif br0 tap0
 	post-down tunctl -d tap0
 	post-down brctl delbr br0
-	address 192.168.12.1
-	netmask 255.255.255.0
-	bridge_ports tap0
-	bridge_fd 9
-	bridge_hello 2
-	bridge_maxage 12
-	bridge_stp off
 
 # pre-up 指令，意指在啟動網路介面(Network interface)前執行指令
 # post-down 指令，意指在關閉網路介面(Network interface)後執行指令
@@ -33,7 +49,7 @@ iface br0 inet static
 
 範例二：Warren's Portal(http://hlchang.com/?p=107)
 	需安裝有 bridge-utils 及 uml-utilities，以及 sudo chmod 666 /dev/net/tun
-==========================================================
+====================
 auto br0
 iface br0 inet dhcp 
     bridge_ports eth0
@@ -50,7 +66,7 @@ iface eth0 inet manual
 
 範例三：YaYa-Ubuntu 站-楊奕農(http://yinung2.blogspot.com/2010/02/ubuntu-virtualbox-ip.html)
 	router為 192.168.138.254，ubuntu的主機網路位址為192.168.138.191
-#==========================================================
+#====================
 auto eth0
 	iface eth0 inet manual
 
