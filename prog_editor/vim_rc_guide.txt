@@ -86,6 +86,8 @@ set confirm			" 啟用確認詢問功能 <=> set noconfirm
 set backspace=indent,eol,start	" 可刪除縮排、換行字元
 set history=500
 set laststatus=2	" 開啟狀態列 <=> set laststatus=1
+set set statusline=[%{expand('%:p')}][%{strlen(&fenc)?&fenc:&enc},\ %{&ff},\ %{strlen(&filetype)?&filetype:'plain'}]%{FileSize()}%{IsBinary()}%=%c,%l/%L\ [%3p%%]
+" 設定「statusline」環境變數，顯示狀態列的文字格式。「%t」代表檔案名稱；「%F」代表檔案路徑；「%y」代表檔案類型；「%=」代表左右分隔；「%c」代表目前游標所在的行號；「%l」代表目前游標所在的列號；「%L」代表總列數；「%p」代表目前瀏覽位置的進度百分比。
 "set showcmd		" 顯示暫存指令 <=> set noshowcmd
 "set showmode		" 顯示 vim 的模式，「n」為一般模式；「v」為視覺模式；「i」為插入模式；「c」為命令列模式；「a」為所有模式  <=> set noshowmode
 "set autowrite		" <=> set noautowrite
@@ -97,3 +99,4 @@ set laststatus=2	" 開啟狀態列 <=> set laststatus=1
 
 "---- Commands ----
 retab               " 將檔案內現有之「TAB」字元替換為空白字元
+
