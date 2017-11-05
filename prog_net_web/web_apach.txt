@@ -16,34 +16,40 @@ systemctl reload apache2
 
 Apache 虛擬主機
 ====================
+編輯 /etc/apach2/sites-available/www.abc.com.conf
+  <VirtualHost *:80>
+    ServerAdmin admit@abc.com
+    ServerName abc.com
+    ServerAlias www.abc.com
+    DocumentRoot /webs/abc
+    ErrorLog /webs/logs/engells/www.error.log
+    CustomLog /webs/logs/engells/www.access.log  combined
+    <Directory "/webs/abc">
+      AllowOverride All
+      Order Allow,Deny
+      Allow from All
+    </Directory>
+  </VirtualHost> apache 2.2 版以下語法
 
-編輯 /etc/apach2/sites-available/www.engells.idv.conf
-<VirtualHost *:80>
-	ServerAdmin admit@engells.idv
-	ServerName engells.idv
-	ServerAlias www.engells.idv
-	DocumentRoot /webs/engells
-	ErrorLog /webs/logs/engells/www.error.log
-	CustomLog /webs/logs/engells/www.access.log  combined
-	<Directory "/webs/engells">
-		AllowOverride All
-		Order Allow,Deny
-		Allow from All
-	</Directory>
-</VirtualHost> apache 2.2 版以下語法
+  <VirtualHost *:80>
+    ServerAdmin admit@abc.com
+    ServerName abc.com
+    ServerAlias acct.abc.com
+    DocumentRoot /webs/abc
+    ErrorLog off
+    CustomLog /dev/null combined
+    <Directory "/webs/abc">
+      AllowOverride All
+      Require all granted
+    </Directory>
+  </VirtualHost> apache 2.4 版以上語法
 
-<VirtualHost *:80>
-	ServerAdmin admit@engells.idv
-	ServerName engells.idv
-	ServerAlias acct.engells.idv
-	DocumentRoot /webs/engells
-	ErrorLog off
-	CustomLog /dev/null combined
-	<Directory "/webs/engells">
-		AllowOverride All
-		Require all granted
-	</Directory>
-</VirtualHost> apache 2.4 版以上語法
+建立軟連結並重啟 Apache Server
+  編輯 /etc/apache2/apache2.conf，加入 /webs 目錄
+  cd /etc/apache2/sites-enabled
+  sudo ln -s ../sites-available/www.abc.com.conf ./www.abc.com.conf
+  sudo a2ensite www.abc.com
+  sudo systemctl reload apache2
 
 
 
@@ -52,11 +58,11 @@ Apache 目錄權限
 ====================
 http://xxx.xxx.xxx.xxx/test
 編輯 /etc/apach2/apach2.conf
-<!-- 設定虛擬目錄為 localhost/test/，實際檔案位置在 /home/franklin/test/ -->
-Alias /test/ "/home/franklin/test/"
-<Directory "/home/franklin/test/">
-    Options FollowSymLinks
-    AllowOverride None
-    Require all granted
+<!-- 設定虛擬目錄為 localhost/test/，實際檔案位置在 /webs/test/ -->
+Alias /test/ "/webs/test/"
+<Directory "/webs/test/">
+  Options FollowSymLinks
+  AllowOverride None
+  Require all granted
 </Directory>
 

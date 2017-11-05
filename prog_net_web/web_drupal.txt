@@ -17,7 +17,7 @@ web root passwd: admit--mouse--drupal~*
 
 Drupal 8 MultiSite 多網站安裝
 ====================
-MultiSite 的好處是模組共用，更新任一網站，其他次網站也都一併更新。若資料庫採獨立建置，就可實現多網站+共用網頁檔案+獨立資料庫的架構，方便更新與維護。
+MultiSite 的好處是模組共用，更新任一網站，其他次網站也都一併更新。若資料庫採獨立建置，就可實現多網站 + 共用網頁檔案 + 獨立資料庫的架構，方便更新與維護。
 
 啟用多虛擬主機
 
@@ -66,7 +66,7 @@ URL: http://blog.fhps.tp.edu.tw/fhpsmis/?p=1273
 Drupal 7 Multisite
 ====================
 Apache啟用虛擬多網站
-	需將網站位置設為 drupal根目錄
+	需將網站位置設為 drupal 根目錄
 
 新增次網站的根目錄，必須用全網域名稱
 	mkdir -p /path/to/drupal/sites/www1.abc.com
@@ -86,7 +86,7 @@ Apache啟用虛擬多網站
 LAMP
 ====================
 apt install -y apache2 libapache2-mod-php mariadb-server php7.0 php7.0-mysql php7.0-json php7.0-cli php7.0-gd php7.0-pdo php7.0-xml php7.0-mbstring
-apt install -y phpmyadmin # 可不裝
+apt install -y phpmyadmin php7.0-opcache php-apcu # 可不裝
 
 
 

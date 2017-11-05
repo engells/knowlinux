@@ -1,0 +1,45 @@
+# vim:ts=2
+
+
+
+MariaDB 重設密碼
+====================
+停止 MariaDB
+	sudo systemctl stop mysql
+
+以非驗證模式啟動 MariaDB
+	sudo mysqld_safe — user=mysql — skip-grant-tables — skip-networking &
+
+登入 MariaDB 變更密碼
+	sudo mysql -u root
+	use mysql;
+	UPDATE user SET Password=PASSWORD("new_password") WHERE User='root';
+	flush privileges;
+	exit
+
+重啟動 MariaDB
+	sudo systemctl stop mysql
+	sudo systemctl start mysql
+
+重登入 MariaDB
+	mysql -u root -p
+
+
+
+MariaDB 設置密碼
+====================
+設置密碼
+	mysqladmin -u root password 'your_password' or mysqladmin -u root password
+
+修改密碼
+	mysqladmin -u user_name -p'old_password' password 'new_password'
+
+
+
+
+MariaDB 安裝
+====================
+sudo apt install mariadb-server
+
+root 帳戶預設密碼為空
+
