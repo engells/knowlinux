@@ -4,13 +4,19 @@
 
 網站規劃：
 ====================
-site www: /var/www/webs/sites/default + DB website_main
-site acct: /var/www/webs/sites/acct.englls.idv 或 /var/www/webs/sites/acct (Drupal 8) + DB website_acct
+directories:
+  site www: /webs/drop/sites/www.englls.idv
+  site acct: /webs/drop/sites/acct.englls.idv
 
-os passwd: admit--mouse--u*u~2??5
-db root passwd: admit--mouse--mariadb~*
-web db passwd: admit--mouse--drupal~*
-web root passwd: admit--mouse--drupal~*
+databases:
+  site www: web_www
+  site acct: web_acct
+
+passwords:
+  os passwd: admit--mouse--u*u~2??5
+  db root passwd: admit--mouse--mariadb~*
+  web db passwd: admit--mouse--drupal~*
+  web root passwd: admit--mouse--drupal~*
 
 
 
@@ -35,7 +41,7 @@ MultiSite 的好處是模組共用，更新任一網站，其他次網站也都�
 	vim /path/to/drupal/sites/sites.php
 		$sites = array(
 			‘www1.abc.com’ => ‘www1.abc.com’,
-			‘www1.abc.com’ => ‘www1.abc.com’,
+			‘www2.abc.com’ => ‘www2.abc.com’,
 		);
 		格式為：‘<port>.<domain>.<path>’ => ‘directory’，詳細設定參考 example.sites.php
 
@@ -88,7 +94,26 @@ LAMP
 apt install -y apache2 libapache2-mod-php mariadb-server php7.0 php7.0-mysql php7.0-json php7.0-cli php7.0-gd php7.0-pdo php7.0-xml php7.0-mbstring
 apt install -y phpmyadmin php7.0-opcache php-apcu # 可不裝
 
+sudo a2enmod rewrite
+sudo systemctl reload apache2
 
+sudo chown --recursive www-data:www-data /path/to/drupal/sites/xxx.xxx/files
+sudo chmod --recursive g+w /path/to/drupal/
+sudo cp /path/to/drupal/sites/default/default.settings.php /path/to/drupal/sites/xxx.xxx/settings.php
+sudo chown www-data:www-data /path/to/drupal/sites/xxx.xxx/settings.php
+
+sudo mysql -u root -p
+create database web_www default charset utf8 collate utf8_general_ci;
+grant usage on *.* to admit@localhost identified by 'admit--mouse--drupal~*';
+grant all privileges on web_www.* to admit@localhost;
+exit
+
+mkdir -p /path/to/drupal/sites/xxx.xxx/files && chmod 775 /path/to/drupal/xxx.xxx/default/files
+mkdir -p /path/to/drupal/sites/xxx.xxx/files/translations && chmod 775 /path/to/drupal/xxx.xxx/default/files/translations
+cp /path/to/drupal/sites/xxx.xxx/default.settings.php /path/to/drupal/sites/xxx.xxx/settings.php
+cp /path/to/drupal/sites/xxx.xxx/default.services.yml /path/to/drupal/sites/xxx.xxx/services.yml
+chmod 666 /path/to/drupal/xxx.xxx/default/settings.php
+chmod 666 /path/to/drupal/xxx.xxx/default/services.yml
 
 
 
@@ -105,12 +130,6 @@ systemctl restart php7.0-fpm
 /etc/nginx/sites-available/
 nginx -t
 systemctl reload nginx
-
-sudo mysql -u root -p
-create database website_main default charset utf8 collate utf8_general_ci;
-grant usage on *.* to admit@localhost identified by 'admit@drupal~2015';
-grant all privileges on website_main.* to admit@localhost;
-exit
 
 use rrxl
 source /path/to/xxx.sql
@@ -148,6 +167,5 @@ Drupal 目錄架構
 網站位置：/path/to/drupal/sites/xxxx
 模組：/path/to/drupal/sites/all/modules
 版型：/path/to/drupal/sites/all/themes
-
 
 

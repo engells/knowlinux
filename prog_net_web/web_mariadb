@@ -13,7 +13,7 @@ MariaDB 重設密碼
 登入 MariaDB 變更密碼
 	sudo mysql -u root
 	use mysql;
-	UPDATE user SET Password=PASSWORD("new_password") WHERE User='root';
+	update user set Password=PASSWORD("new_password") where User='root';
 	flush privileges;
 	exit
 
