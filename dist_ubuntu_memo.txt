@@ -11,13 +11,6 @@ dtrx(Do The Right Extraction，un-compress); di(disk info); iftop(interface top)
 SDL: Simple SirectMedia Layer
 R-project + RKward : 統計軟體	，http://blog.lyhdev.com/2008/09/r-project-rkward.html
 
-dpkg-reconfigure keyboard-configuration，選擇一般預設的 Generic 104-key PC 就可以恢復正常
-dpkg-reconfigure bash，更改 shell
-dpkg-reconfigure tzdata，修改時區
-dpkg-reconfigure console-setup，修改 console 字型、編碼等
-dpkg-reconfigure wireshark，讓一般使用者也可以用 wireshark 擷取封包 (default root)
-dpkg-reconfigure locales
-
 
 
 
@@ -93,46 +86,6 @@ tails linux
 
 
 
-Create SSL Certificates
-++++++++++++++++++++
-cd /etc/ssl/private
-openssl genrsa -aes128 -out server.key 2048 # create RSA key
-openssl rsa -in server.key -out server.key  # remove passphrase from private key
-openssl req -new -key server.key -out server.csr -days 3650 # create CSR(Crtificate Sign Request)
-openssl x509 -in server.csr -out server.crt -req -signkey server.key -days 3650  # create self-sign CAT(certificat)
-
-
-Apach2 SSL Settings
-++++++++++++++++++++
-vi /etc/apache2/sites-available/default-ssl.conf 
-  line 3: ServerAdmin webmaster@srv.world
-  line 32: SSLCertificateFile /etc/ssl/private/server.crt
-  line 33: SSLCertificateKeyFile /etc/ssl/private/server.key
-a2ensite default-ssl
-a2enmod ssl
-systemctl restart apache2 
-
-
-Apach2 Auth+LDAP
-++++++++++++++++++++
-a2enmod ldap authnz_ldap
-vi /etc/apache2/sites-available/auth-ldap.conf 
-  https://www.server-world.info/en/note?os=Debian_8&p=httpd&f=10
-  https://sysadmin.compxtreme.ro/enable-ldap-authentication-in-apache/
-  <Directory /var/www/html/auth-ldap>
-    SSLRequireSSL
-    AuthName "LDAP Authentication"
-    AuthType Basic
-    AuthBasicProvider ldap
-    AuthLDAPURL ldap://dlp.srv.world/dc=srv,dc=world?uid?sub?(objectClass=*)
-    Require ldap-filter objectClass=posixAccount
-  </Directory>
-mkdir /var/www/html/auth-ldap 
-a2ensite auth-ldap
-systemctl restart apache2 
-vi /var/www/html/auth-ldap/index.html # create a test html page
-
-
 Install LaTex packages manually on Ubuntu
 ++++++++++++++++++++
 1. Download the package from CTAN (e.g., xCJKnumb.tar).
@@ -146,40 +99,6 @@ Install LaTex packages manually on Ubuntu
 exfat-utils exfat-fuse
 
 %%%%%%%%%%
-MacBook 觸控板手勢
-兩按按一下/點一下：輔助按鈕（即所謂右鍵選單）
-兩指分開或靠攏：圖片、網頁放大或縮小
-用兩指點兩下：智慧型縮放
-用兩指旋轉：物件旋轉
-用兩指左右捲動或用兩指/三指滑動：瀏覽器或視窗前往上一頁/下一頁
-用兩指從觸控板邊緣滑動入：打開 Mac 版通知中心
-三指/四指向上推：Mission Control
-三指/四指向下推：同一軟件下選擇不同視窗（App Exposé）
-三指/四指向左右推：轉換到各大全螢幕視窗、其他虛擬桌面以及 Dashboard
-三指點按一下：查詢和資料偵測器
-姆指和其他手指分開：顯示桌面
-姆指和其他手指靠攏：顯示 LaunchPad
-
-sudo /Applications/Install\ macOS\ High\ Sierra.app/Contents/Resources/createinstallmedia --volume /Volumes/Untitled --applicationpath /Applications/Install\ macOS\ High\ Sierra.app --nointeraction
-
-免BootCamp! 直接將MAC整台安裝Windows
-Step1   放入Window7安裝光碟開機，按住Alt(Option)鍵不放，就會看到Windows安裝光碟。
-Step2   接著進到Windows安裝畫面後，在磁區的地方，將所有的磁區都全部給刪除掉。
-Step3   由於iMac的光碟機，有點老舊的，竟然會挑片，在安裝Windows7時，卻突然讀不到，最後則改裝Winodws XP。
-Step4   直接快速格式化就行了。
-Step5   格式化完後，就會開始複製檔案。
-Step6   檔案複製完後，就會開始進行安裝。
-Step7   安裝完後，第一次啟動，並進行設定。
-Step8   接著放入，MAC的安裝光碟，驅動程式在光碟中。
-Step9   這樣就搞定囉!
-Step10  重開機，按住Alt(Option)鍵後，就會看到，只剩一個Windows的磁區啦!
-
-
-Apple 提供 3 種 macOS 的重裝方式：
-1. Command + R：重新安裝 Mac 目前的版本，而不升級到最高版本
-2. Option + Command + R：重新安裝並升級到與該 Mac 相容的最新版本
-3. Shift + Option + Command + R：重新安裝出廠時搭載的版本
-
 
 \usepackage{keystroke}
 \usepackage[os=win]{menukeys}
@@ -195,9 +114,3 @@ LaTeX 的「合併列印」--- csvsimple 套件   https://ctan.org/topic/data-im
 只有使用\selectfont命令之后，\fontzize{}{}的设置才能生效。切记
 
 
-
-kext utilities, kext wizard
-Tonymacx86、InsanelyMac
-FakeCPUID 改為 0x0506E3 | https://dacota.tw/blog/post/antec-cube-razer-with-macos-sierra-and-window10 | 雲爸
-XHCI Hand-off 設定為啟動、晶片組的 VT-d 選項關閉、、、、、、、
-進入 Clover Bootloader，按下 space 查看額外的開機選項，勾選 Verbose、Keep symbols on panic 跟 Don’t reboot on panic，還沒安裝 nvidia web driver 之前也會選取 Set Nvidia to VESA (nv_disable=1)，勾選完成之後選擇上面的 Boot macOS with selected options 來進行安裝

@@ -45,4 +45,13 @@ gksudo, use root theme, for gui program
 
 gsettings
 ==============================
-gsettings set org.gnome.desktop.background picture-uri "url"	# 設定桌面背景圖片
+設定佈景主題
+	gsettings set org.gnome.desktop.wm.preferences theme "AmbiancePlus"
+設定桌面背景圖片
+	gsettings set org.gnome.desktop.background picture-uri "url"
+功能鍵設至左側
+	gsettings set org.gnome.desktop.wm.preferences button-layout 'close,maximize,minimize,shade,stick,above:'
+功能鍵設至右側
+	gsettings set org.gnome.desktop.wm.preferences button-layout ':above,stick,shade,minimize,maximize,close'
+
+

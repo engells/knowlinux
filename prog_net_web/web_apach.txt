@@ -1,5 +1,8 @@
 # vim:ts=2
-
+# program:Using to note the knowledge about Apache
+# made by: Engells
+# date: Nov 20, 2017
+# content: 內容並未最佳化，單純作為書摘使用
 
 
 常用指令
@@ -65,4 +68,40 @@ Alias /test/ "/webs/test/"
   AllowOverride None
   Require all granted
 </Directory>
+
+
+
+
+Apach2 SSL Settings
+====================
+vi /etc/apache2/sites-available/default-ssl.conf 
+  line 3: ServerAdmin webmaster@srv.world
+  line 32: SSLCertificateFile /etc/ssl/private/server.crt
+  line 33: SSLCertificateKeyFile /etc/ssl/private/server.key
+a2ensite default-ssl
+a2enmod ssl
+systemctl restart apache2 
+
+
+
+
+Apach2 Auth+LDAP
+====================
+a2enmod ldap authnz_ldap
+vi /etc/apache2/sites-available/auth-ldap.conf 
+  https://www.server-world.info/en/note?os=Debian_8&p=httpd&f=10
+  https://sysadmin.compxtreme.ro/enable-ldap-authentication-in-apache/
+  <Directory /var/www/html/auth-ldap>
+    SSLRequireSSL
+    AuthName "LDAP Authentication"
+    AuthType Basic
+    AuthBasicProvider ldap
+    AuthLDAPURL ldap://dlp.srv.world/dc=srv,dc=world?uid?sub?(objectClass=*)
+    Require ldap-filter objectClass=posixAccount
+  </Directory>
+mkdir /var/www/html/auth-ldap 
+a2ensite auth-ldap
+systemctl restart apache2 
+vi /var/www/html/auth-ldap/index.html # create a test html page
+
 

@@ -1,0 +1,65 @@
+# vim:ts=4
+# program:Using to note the knowledge about Apple OS
+# made by: Engells
+# date: Nov 20, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+MacBook 觸控板手勢
+====================
+兩按按一下/點一下：輔助按鈕（即所謂右鍵選單）
+兩指分開或靠攏：圖片、網頁放大或縮小
+用兩指點兩下：智慧型縮放
+用兩指旋轉：物件旋轉
+用兩指左右捲動或用兩指/三指滑動：瀏覽器或視窗前往上一頁/下一頁
+用兩指從觸控板邊緣滑動入：打開 Mac 版通知中心
+三指/四指向上推：Mission Control
+三指/四指向下推：同一軟件下選擇不同視窗（App Exposé）
+三指/四指向左右推：轉換到各大全螢幕視窗、其他虛擬桌面以及 Dashboard
+三指點按一下：查詢和資料偵測器
+姆指和其他手指分開：顯示桌面
+姆指和其他手指靠攏：顯示 LaunchPad
+
+
+
+免 BootCamp! 直接將 MAC 整台安裝 Windows
+====================
+Step1   放入 Window7 安裝光碟開機，按住 Alt(Option) 鍵不放，就會看到 Windows 安裝光碟。
+Step2   接著進到 Windows 安裝畫面後，在磁區的地方，將所有的磁區都全部給刪除掉。
+Step3   由於 iMac 的光碟機，有點老舊的，竟然會挑片，在安裝 Windows7 時，卻突然讀不到，最後則改裝 Winodws XP。
+Step4   直接快速格式化就行了。
+Step5   格式化完後，就會開始複製檔案。
+Step6   檔案複製完後，就會開始進行安裝。
+Step7   安裝完後，第一次啟動，並進行設定。
+Step8   接著放入，MAC 的安裝光碟，驅動程式在光碟中。
+Step9   這樣就搞定囉!
+Step10  重開機，按住 Alt(Option) 鍵後，就會看到，只剩一個 Windows 的磁區啦!
+
+
+
+產生 macOS 安裝 USB
+====================
+sudo /Applications/Install\ macOS\ High\ Sierra.app/Contents/Resources/createinstallmedia --volume /Volumes/Untitled --applicationpath /Applications/Install\ macOS\ High\ Sierra.app --nointeraction
+
+
+
+macOS 的重裝方式
+====================
+Apple 提供 3 種 macOS 的重裝方式：
+1. Command + R：重新安裝 Mac 目前的版本，而不升級到最高版本
+2. Option + Command + R：重新安裝並升級到與該 Mac 相容的最新版本
+3. Shift + Option + Command + R：重新安裝出廠時搭載的版本
+
+
+
+Refer Data
+====================
+kext utilities, kext wizard
+Tonymacx86、InsanelyMac
+FakeCPUID 改為 0x0506E3 | https://dacota.tw/blog/post/antec-cube-razer-with-macos-sierra-and-window10 | 雲爸
+XHCI Hand-off 設定為啟動、晶片組的 VT-d 選項關閉、、、、、、、
+進入 Clover Bootloader，按下 space 查看額外的開機選項，勾選 Verbose、Keep symbols on panic 跟 Don’t reboot on panic，還沒安裝 nvidia web driver 之前也會選取 Set Nvidia to VESA (nv_disable=1)，勾選完成之後選擇上面的 Boot macOS with selected options 來進行安裝
+
+
+

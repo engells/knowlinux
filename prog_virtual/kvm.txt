@@ -251,6 +251,15 @@ service libvirt-bin restart
 ifconfig
 
 
+支援 UEFI Fireware
+----------
+安裝 UEFI firmware for virtual machines
+  apt install ovmf
+將虛擬機設為 UEFI 模式
+  vim /etc/libvirt/qemu/virtual_machine
+  在 <os> 區段加入 <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
+
+
 libvirt 網路機制
 ----------
 預設產生 virbr0 虛擬橋接器，供 NAT 虛擬網路模式使用

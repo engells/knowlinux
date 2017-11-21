@@ -1,0 +1,46 @@
+
+
+xeCJK
+====================
+引入參數：
+ BlodFont 讓 xeCJK 自行建立粗體樣式 (\bf) 
+ SlantFont 讓 xeCJK 自行建立斜體樣式 (\it) 
+ CJKnumber 引入 CJKnumber （中文數字） 
+ CJKchecksingle 避免中文單字成行
+ 
+ \usepackage[BlodFont,SlanFont]{xeCJK}  % 讓 xeCJK 建立粗體和斜體字
+
+
+設定字型：
+ \setCJKmainfont[<Options>]{<Font Name>}    % \textrm
+ \setCJKsansfont[<Options>]{<Font Name>}    % \textsc
+ \setCJKmonofont[<Options>]{<Font Name>}    % \texttt
+ \setCJKfamilyfont{<Family name>}[<Options>]{<Font Name>}   % 此法可引用 rm、sc、tt 以外字型
+
+ <FontName> :在這裡寫下想引用的字型名稱， 在 MikTex 中的 xeCJK 可以使用中文名稱 (Ex: 微軟正黑體)
+ <Options> :可以放其他參數(可省)，各參數使用英文半形逗號隔開
+    ItalicFont={<FontName>} 使用指定字型取代斜體字 (\it)
+    BoldFont={<FontName>} 使用指定字型取代粗體字(\bf)，以上取代優先權高於引入 xeCJK 時設定的參數
+        AutoFakeBold=6 % 設定粗體字要多粗
+    AutoFakeSlant=.4 % 設定斜體字要多斜，範圍-0.999到0.999，負值為往左斜
+ <FamilyName> :為其他引入的字型組命名。
+
+ \newCJKfontfamily\Kai{標楷體}       %定義指令 \Kai 則切換成標楷體，經測試可執行
+ \newCJKfontfamily\Hei{微軟正黑體}   %定義指令 \Hei 則切換成正黑體
+ \newCJKfontfamily\NewMing{新細明體} %定義指令 \NewMing 則切換成新細明體
+
+ 若要在某段文字使用標楷體：
+     a: 在參數區 \setCJKsansfont{標楷體}，在本文鍵入 \textsc 可切換成標楷體，實際上是套用 sans serial 機制
+     b: 在參數區 \setCJKfamilyfont{kai}{標楷體}，在本文鍵入 {\CJKfamily{kai}要輸入文字}
+     c: 在參數區 \setCJKfamilyfont{kai}{標楷體} + 新指令 \newcommand{\kai}{\CJKfamily{kai}}，在本文鍵入 \kai 切換成標楷體
+     d: 在參數區 \newCJKfontfamily\kai{標楷體}，在本文鍵入 \kai 切換成標楷體
+
+
+其他
+ 建議加上 fontspec 工具集來支援 xeCJK 
+ 若之前有設 CJKnumber 的參數，則可以用指令 \CJKnumber{1234}，以中文表示數字。
+
+
+url:
+ https://www.ptt.cc/bbs/LaTeX/M.1287510009.A.2C1.html
+ https://www.ptt.cc/bbs/LaTeX/M.1366782607.A.202.html

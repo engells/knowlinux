@@ -1,0 +1,160 @@
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about SSH
+# made by: Engells
+# date: Sep 28, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+管理與指令
+====================
+dpkg --get-selections | grep syslinux   # 查詢是否安裝syslinux
+dpkg --unpack package_name.deb          # 解開 deb 套件的內容
+dpkg -i package_name.deb                # 安裝套件
+dpkg -r package_name                    # 刪除套件
+dpkg -P package_name                    # 刪除套件（套件括配置文件）
+dpkg -L package_name                    # 列出與該套件關聯的文件
+dpkg -l package_name                    # 顯示該套件的版本
+dpkg -l                                 # 列出當前已安裝的套件
+dpkg -S keyword                         # 搜索所屬的套件內容
+dpkg -c package_name.deb                # 列出 deb 套件的內容
+dpkg --configure package_name           # 配置套件
+
+
+dpkg-reconfigure keyboard-configuration # 選擇一般預設的 Generic 104-key PC 就可以恢復正常
+dpkg-reconfigure bash                   # 更改 shell
+dpkg-reconfigure tzdata                 # 修改時區
+dpkg-reconfigure console-setup          # 修改 console 字型、編碼等
+dpkg-reconfigure wireshark              # 讓一般使用者也可以用 wireshark 擷取封包 (default root)
+dpkg-reconfigure locales
+
+
+update-alternatives --config editor
+update-alternatives --config x-window-manager
+update-alternatives --config x-terminal-emulator
+update-alternatives --all
+
+
+Debian 的套件主要是使用 dpkg(底層)及 apt / aptitude(前端)來進行管理套件:
+  dpkg：用來安裝/移除單一套件檔案，或查詢套件資料庫狀態等等。
+  apt：主要的套件管理程式，提供了安裝/移除/查詢套件等等功能。僅提供命令列模式，但有提供一些 aptitude 未能提供的指令。
+  aptitude：官方推薦的套件管理程式。除了指令模式外，也提供了一個友善的視覺模式 (visual mode)。在指令和參數上幾乎和 apt 相同，但在處理複雜的相依關係時會比 apt 好一些。
+
+
+
+
+套件版本: oldstable / stable / testing / unstable 以及 experimental
+----------
+oldstable
+    上一個 stable 版。Debian 會在下個 stable 發佈後繼續維護這些套件 1 年。之後便讓這個版本走入歷史。
+
+stable
+    Debian 的正式發行版。 適合 Server 使用。Debian 會訂立一些階段性目標,在這些目標達成後便釋出 1 次發行版。約莫每隔 1 至 3 年會發佈一次。Debian 有專門的 stable 安全維護小組以確保 stable 的品質。
+
+testing
+    測試版。 適合 Desktop 使用者。套件在 unstable 中一段時間沒有重大問題 (rc bug) 便會進入 testing 裡。
+
+unstable
+    嘗鮮版。 適合有經驗的使用者。套件維護者在測試過新套件大致沒問題後,會先放入 unstable 讓使用者使用測試並回報錯誤。
+
+experimental
+    體驗版。套件維護者自行測試版本。不適合於日常使用。像 OpenOffice.org、X.org、Wine、GNOME、KDE 都是 experimental 的常客。但並非每一個套件都會有 experimental 版。
+
+
+套件種類:  main / non-free / contrib
+----------
+main
+    符合 Debian Free Software Guidelines (DFSG) 的自由軟體。
+
+non-free
+    不符合 DFSG 的非自由軟體。
+
+contrib
+    符合 DFSG 的自由軟體，但必須和 non-free 套件搭配使用。
+
+
+更新套件來源
+----------
+執行 apt-get update 來取得或更新套件列表，這些列表檔將會被下載到 /var/lib/apt/lists/ 裡。在 update 時下載的都只是會下載有所更新的部份，而不是下載整個套件列表。如此可以有效節省頻寬。偶爾差異檔會損壞或是故障，此時只要把 /var/lib/apt/lists/partial/ 裡的檔案刪除後再執行一次 apt-get update 後大多就能夠修復這個問題了。
+
+套件驗証
+為了確保連上的是正確的伺服器，且下載到的是正確的套件。Debian 會在套件檔下載完後，使用電子簽章及md5sum/ SHA1/SHA256 碼來驗証這些套件。
+Debian 套件驗証機制流程簡介:
+任何上傳至 Debian Archiver 中的套件必須先經由 Debian Developer 以電子簽章簽名，之後會計算其 md5sum/SHA1/SHA256 碼再將其放入 Debian Archiver 中的 Packages 檔裡。然後這個 Packages 檔必須加上 Debian Archiver 的電子簽章以確保 Packages 檔不至於被人所篡改。既然 Packages 檔無法被篡改，那麼只要是 md5sum/SHA1/SHA256 符合的套件應該就能確保它是由 Debian 官方所提供的套 件。
+apt-key list：取得 Key 的列表。
+apt-key update：來更 Key。debian-archive-keyring 套件也會隨著 apt-get upgrade 更新。
+apt-key add / apt-key del：手動加入或刪除Key，一般而言,若無特別指定，apt 不會安裝未提供套件驗証機制的套件，必須手動指定才能安裝這些套件。
+
+搜尋套件 / 顯示套件資訊
+apt-cache search XXXX：搜尋XXXX套件，套件名稱可用英文""包起來。
+apt-cache show XXXX：顯示XXXX套件資訊，套件名稱必須明確。
+apt-file /path/file：尋找某個檔案是由哪個套件所提供的。預設未安裝apt-file，故需先安裝並更新 apt-file 的資料庫。apt-get install apt-file && apt-file update
+apt-cache policy pidgin：顯示所提供的 pidgin 版本。
+dpkg -l ：顯示系統已安裝的套件列表
+dpkg -l XXXX：顯示 XXXX 這個套件的狀態及簡要說明
+dpkg --status XXXX：顯示 XXXX 這個套件的詳盡狀況
+dpkg -L XXXX：顯示 XXXX 這個套件所包含的檔案
+dpkg -S bin/pstree：搜尋 *bin/pstree* 這個檔案是屬於哪個套件
+
+安裝套件
+dpkg-reconfigure debconf：指定『提問等級』，唯有高於這個提問等級的問題才會在安裝套件的過程中出現，可在安裝時使用預設值，減少提問以節省安裝時間。
+apt-get install gcin：安裝列於 /etc/apt/sources.list 中可以找到的最高版本的套件，並把其相依套件全自動安裝進來。
+apt-get -t testing install gcin：只安裝 testing 版的 gcin 以及 testing 版的相依套件
+apt-get install gcin=0.9.6-1：安裝 0.9.6-1 版 gcin。配合 apt-cache policy 查詢可安裝之版本。
+apt-get -f install：試著修復套件管理系統的資料庫，安裝時因停機等因素造成失敗時可用左述指令修復。
+/var/cache/apt/archives/partial/：下載中的 deb 檔存放目錄，如果 apt-get 回報說下載到的 deb 檔的 md5 碼有誤，試著刪除這個目錄裡的所有 deb 檔然後再進行下載。
+/var/cache/apt/archives/：下載完成後的 deb 檔存放目錄，可以使用 sshfs 或是 mount --bind 來共用這個目錄，如此就不用浪費時間和頻寬來重複下載 deb 檔。
+dpkg -i XXXX.deb：直接安裝XXXX.deb，但 dpkg 指令並不會自動把相依套件安裝進來，因此可能會導致安裝失敗。必須手動用 apt-get 安裝相依套件。
+dpkg-reconfigure XXXX：修改已經安裝的XXXX套件參數
+
+節省硬碟空間
+apt-get autoclean：根據 dpkg 資料庫的內容清除無用的 deb 檔。比如說,在 /etc/apt/sources.list 裡已沒有任何的 Debian Archiver 提供 gcin 1.4.5 了，那麼下達 apt-get autoclean 就會把 gcin 1.4.5 的所有 deb 檔給刪除掉。
+apt-get clean：清空 /var/cache/apt/archives/ 目錄
+apt-get autoremove：移除因相依性而被安裝進來的套件，若原始主要套件已經移除不用，則可清除該套件之相依套件。
+
+套件升級
+apt-get -t unstable install XXXX：若正使用XXXX套件為 testing 版本，可用左述指令將該套件直接升級至 unstable。
+apt-get upgrade：檢查系統上的原有套件是否有新的版本，並試著在不需新增或移除任何套件的狀況下升級這些套件。
+apt-get dist-upgrade：計算系統裡的所有套件所有的相依性，並試著將其升級到最新版本。因此，必須注意到它會新增或移除哪些套件，必要時可能得先 hold 住某些套件，或是在稍後再把那些被移掉的套件裝回來。
+
+套件降級
+apt-get install pidgin/testing pidgin-data/testing libpurple0/testing：把 Pidgin由 unstable 降級至 testing，有時套件狀況太複雜，像是由 X.org 降級回XFree86，可能在 apt-get 的降級作業完成後，還要手動修正或重新安裝某些套件才能讓系統恢復運作。
+
+保留套件版本
+echo "tree hold" | dpkg --set-selections / echo "tree install" | dpkg --set-selections：將 tree 套件保留版本或解除保留
+echo "tree hold" | dpkg --set-selections / apt-get --ignore-hold upgrade
+aptitude hold tree / aptitude unhold tree：在 aptitude 底下將 tree 套件保留版本或解除保留。注意 dpkg 及 aptitude 的 hold 資料庫並不是共通的，也就是說使用 apt-get 並不會理會被 aptitude 所 hold 的套件。但 aptitude 則不會升級被 dpkg 所 hold 的套件。這是在 hold 套件時所必須注意到的事項。
+
+移除套件
+apt-get remove XXXX：移除XXXX，但保留其設定檔(/var/lib/dpkg/info/XXXX.conffiles)，相依性檔案不會移除
+apt-get purge XXXX：移除XXXX，且不保留其設定檔，相依性檔案不會移除
+dpkg -l | grep "^rc"：檢查系統裡有哪些套件被 remove 了但其設定檔還留在系統之中
+從 Debian Lenny 開始，apt-get 和 aptitude 的 autoremove 資料庫是共通的,但只有 apt-get 提供了命令列的 autoremove 指令。
+apt-mark unmarkauto XXXX：設定XXXX套件並不是因為相依性才自動被安裝進來，亦即不會被 apt-get autoremove 移除。
+
+
+
+GPG error
+====================
+在 Debian 和 Ubuntu 的 APT 系統中，引進了非對稱式金鑰加密、解密法以及 MD5 hash 演算法機制來增加其安全性，以確保從網路下載回來的軟體套件是可信任的。實做中，APT 系統中軟體套件或原始碼本身都是以明文的方式存放於伺服器上並提供所有的 APT 的 Client 程式下載，套件維護者只會對軟體套件先進行 MD5 演算產生 128 位元的碼串，再針對該碼串進行金鑰加密。
+
+然而，這個機制並非堅不可破，通常金鑰組都會每過一段時間要淘汰掉重新產生一組新的來使用，這也是為 什麼 APT 系統中時常都必須重新下載新的公開金鑰的緣故。
+ 
+接收端在進行套件清單更新時(apt-get update)會下載所有 deb 套件的 MD5 碼串以及其加密後的密文，此時 APT Client 則必須擁有該套件發佈者的公開金鑰才有辦法正確的將接收到的密文還原成 MD5 的碼串，以進行比對以確定該 MD5 碼串是可靠的，之後再對所有下載回來要安裝的軟體套件進行一次 MD5 演算以產生一個新的碼串，並將新碼串拿來跟可靠的 MD5 碼串比對，藉以確認軟體套件本身是未被篡改的。
+
+實際操作:
+apt-key list
+  # 察看目前系統中的 APT 所持有公開金鑰列表，指令會產生很多行含有 xxxxx/xxxxxxxx 格式的資料，斜線前的那串碼是金鑰擁有者的 ID，斜線之後的八碼是金鑰指紋的末八碼。
+  # 公鑰是要公佈給大家任意取得的，一般而言都會有所謂的鑰匙伺服器(key server)，上面專門存放大量的公開金鑰供取用，取用的方式就是指定該鑰匙的指紋(finger print)，通常是該金鑰的最末 16 碼(或末八碼)。
+  # 當系統在進行套件清單更新時出現了類似 NO_PUBKEY xxxxxxxxxxxxxxxx 的錯誤訊息時，則表示有公開金鑰已過期或者是有新加入 apt 的 source 但未下載該對應之公開金鑰，而後面那串碼就是新的公開金鑰之指紋。
+
+gpg --keyserver hkp://wwwkeys.eu.pgp.net --recv-keys xxxxxxxxxxxxxxxx
+  # 從 key server 下載到該金鑰。
+
+gpg --armor --export xxxxxxxxxxxxxxxx | apt-key add -
+  # gpg 是一套專門管理金鑰的系統，和 APT 的金鑰管理系統是獨立開來的，因此下載到金鑰後還必須將他匯給 APT 才行。之後使用 APT 的金鑰列表指令應該就可看到新的公開金鑰了。
+
+
+

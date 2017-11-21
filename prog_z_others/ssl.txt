@@ -7,7 +7,6 @@
 
 
 
-
 Web 或者 Service 能夠支援 SSL
 ====================
 產生私有金鑰 (Private Key)
@@ -26,6 +25,12 @@ Web 或者 Service 能夠支援 SSL
 或是從私有金鑰直接產生 Self-signed 的憑證
     openssl req -x509 -new -days 3650 -key private.key -out self-signed-2.crt
 
+參考指令
+	cd /etc/ssl/private
+	openssl genrsa -aes128 -out server.key 2048 # create RSA key
+	openssl rsa -in server.key -out server.key  # remove passphrase from private key
+	openssl req -new -key server.key -out server.csr -days 3650 # create CSR(Crtificate Sign Request)
+	openssl x509 -in server.csr -out server.crt -req -signkey server.key -days 3650  # create self-sign CAT(certificat)
 
 參考資料
 ----------
