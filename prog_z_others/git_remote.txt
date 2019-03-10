@@ -1,3 +1,6 @@
+# vim:ts=2
+
+
 https://github.com/engells/knowlinux.git
 git remote add origin https://github.com/engells/knowlinux.git
 git push -u origin master
@@ -42,29 +45,4 @@ scp ~/.ssh/id_rsa.pub aabbcc@xxyyzz.com.tw:~/.ssh/nnn_key.pub
 	# 如有設定 passphrase，這時會出現輸入畫面，不然，就會直接登入了
 	# 設定 passphrase 只會在第一次登入時確認 passphrase，若認證正確，以後就免除此步驟
 
-----
 
-apt install bridge-utils
-brctl addbr br0
-ifconfig eth0 0.0.0.0 promic # 將實體網路卡設為 promiscuous 模式
-brctl addif br0 eth0
-ifconfig br0 192.168.121.101	# 固定 IP 模式
-dhclient br0 # 動態 IP 模式	
-
-auto br0
-iface br0 inet static
-    bridge_ports eth0
-    bridge_stp off
-    bridge_maxwait 0
-    bridge_fd 0
-    address 192.168.121.2
-    netmask 255.255.255.0
-    gateway xxx.xxx.xxx.1
-    dns-nameservers 8.8.8.8 8.8.8.4
-
-auto br0
-iface br0 inet dhcp
-    bridge_ports eth0
-    bridge_stp off
-    bridge_maxwait 0
-    bridge_fd 0

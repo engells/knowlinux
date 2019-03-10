@@ -23,12 +23,15 @@
 	lxc-stop -n name_of_machine
 
 複製 Container
-	lxc-copy -n old_machine -N new_machine
-	lxc-clone -o 來源虛擬機器名稱 -n 新虛擬機器名稱 # 複製 Conatiner
+	lxc-copy -n old_machine_name -N new_machine_name
+	# lxc-clone -o old_machine_name -n new_machine_name, 舊指令
 
 暫停及恢復 Container
-	lxc-freeze -n name
-	lxc-unfreeze -n name
+	lxc-freeze -n name_of_machine
+	lxc-unfreeze -n name_of_machine
+
+刪除 Container
+	lxc-destroy -n name_of_machine
 
 
 
@@ -59,7 +62,7 @@ Containers share folders
 edit /path/to/name_of_machine/config
 	add 「 lxc.mount = /path/to/name_of_machine/fstab 」
 
-touch /path/to/name_of_machine/config
+touch /path/to/name_of_machine/fstab
 	/path/in/host /path/to/name_of_machine/mount/rootfs/dir none bind,create=dir
 	# /path/to/name_of_machine/rootfs/mount/dir 最好使用 Host 主機的絕對路徑
 
@@ -228,6 +231,7 @@ Install Packages
 	https://www.flockport.com/start
 ====================
 sudo apt install lxc bridge-utils systemd uidmap
+	# systemd uidmap 是 Unprivileged Mode 需要
 mkdir ~/.config/lxc ~/.local/share/lxc ~/.cache/lxc
 ls /sur/share/lxc/templates
 

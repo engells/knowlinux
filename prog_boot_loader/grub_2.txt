@@ -7,7 +7,7 @@ Grub2 chainload syslinux
 假設在隨身碟安裝 GRUB2 作為主要的啟動管理程式，並在不同隨身碟分割區各自裝上作業系統
 編輯 /etc/grub.d/40_custom
 menuentry "XXXXXX" {
-set root='(hd0,2)' # (hd0,2) 指稱第一顆硬碟的第十分割區(/dev/sda2)
+set root='(hd0,2)' # (hd0,2) 指稱第一顆硬碟的第二分割區(/dev/sda2)，Ubuntu 18.04 使用 (hd0,gpt2) 格式
 chainloader +1
 }
 
@@ -21,10 +21,9 @@ Boot on ISO file
 	或 GRUB_HIDDEN_TIMEOUT 和 GRUB_HIDDEN_TIMEOUT_QUIET 這二行前面加上 # 註解
 
 編輯 /etc/grub.d/40_customer，在最下方加入：
-	insmod loopback
-	menuentry 'Install Ubuntu' {
-		loopback loop (hd0,10)/xxxx.iso		# (hd0,10) 指稱第一顆硬碟的第十分割區(/dev/sda10)
-		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=/xxxx.iso boot=live noeject nopromt quiet splash --
+	menuentry "Install Ubuntu 16.04.4" {
+  		loopback loop (hd0,9)/Xenial_x64.iso		# (hd0,9) 指稱第一顆硬碟的第九分割區(/dev/sda9)
+		linux (loop)/casper/vmlinuz.efi boot=casper iso-scan/filename=/Xenial_x64.iso noeject nopromt
 		initrd (loop)/casper/initrd.lz
 	}
 
@@ -37,6 +36,13 @@ Boot on ISO file
 		set imgfile="/iso/ezgo.iso"
 		loopback loop $imgfile
 		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=$imgfile file=/cdrom/preseed/ubuntu.seed persistent
+		initrd (loop)/casper/initrd.lz
+	}
+
+	insmod loopback
+	menuentry 'Install Ubuntu' {
+		loopback loop (hd0,10)/xxxx.iso		# (hd0,10) 指稱第一顆硬碟的第十分割區(/dev/sda10)
+		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=/xxxx.iso boot=live noeject nopromt quiet splash --
 		initrd (loop)/casper/initrd.lz
 	}
 
@@ -71,7 +77,7 @@ setup (hd0)				# 寫入程式碼到第一顆硬碟的 MBR
 quit
 
 
-方法三 以移動裝置開機，執行下列指令
+方法三 以移動裝置開機，執行下列指令，可用於 chroot ZFS 環境
 -------------------------
 sudo -i 或 sudo su
 mount /dev/sdaY /mnt/boot (optional)
@@ -87,6 +93,10 @@ sudo grub-install /dev/sda
 umount /mnt/dev
 umount /mnt
 
+
+加入指定模組
+-------------------------
+grub-install --boot-directory=/tmp/BOOTpool/boot/ --modules="part_msdos ext2 zfs"
 
 
 因 root 分割區 uuid 改變而不能正常啟動，只能進入 grub rescue 模式的修復代碼

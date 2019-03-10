@@ -2,6 +2,46 @@
 
 
 
+無聲音狀況排除
+====================
+方法一
+	pulseaudio -k && sudo alsa force-reload
+
+方法二(接續方法一)
+	sudo apt remove --purge alsa-base pulseaudio && sudo apt install alsa-base pulseaudio && sudo alsa force-reload
+	或 sudo apt remove --purge linux-sound-base alsa-base alsa-utils && sudo apt install linux-sound-base alsa-base alsa-utils && sudo alsa force-reload
+
+方法三(接續方法二，慎用)
+	sudo gedit /etc/default/speech-dispatcher => change RUN=yes to RUN=no
+
+方法四（接續方法二，慎用)
+	sudo apt install --reinstall linux-image-4.4.0-112-generic linux-image-extra-4.4.0-112-generic
+
+方法五
+	pacmd list-cards && pacmd set-card-profile 1 output:analog-stereo profile 數字為硬體設備編號(index)
+
+檢測硬體
+	aplay -l
+	lspci -v | grep Audio
+	cat /proc/asound/cards
+	cat /proc/asound/devices
+
+檢測音效卡驅動
+	sudo apt install alsa-utils => alsamixer
+	或 sudo apt install alsa-utils gnome-alsamixer => gnome-alsamixer
+	或 ls -al /dev/snd 檢視是否有裝置檔案
+
+檢測輸入輸出設備
+	sudo apt install pavucontrol => pavucontrol
+	注意 pavucontrol 或與 Ubuntu 內建公用程式重疊
+
+
+
+
+BlueTooth
+====================
+sudo apt install bluetooth blueman bluez bluez-tools rfkill
+
 
 
 

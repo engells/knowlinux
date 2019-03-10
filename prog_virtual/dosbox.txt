@@ -1,6 +1,7 @@
 # vim:ts=4
 
 
+
 設定檔
 ==============================
 Active dosbox, then run commands: config -writeconf .dosboxrc
@@ -14,6 +15,11 @@ We can find the file as ~/.dosbox/dosbox-x.xx.conf or ~/dosboxrc
 [render] 
 	snapdir=snaps	抓圖的存放位置，預設是 DOSBox 目錄下的 snaps 資料夾
 	scaler=normal2x	類似反鋸齒的效果，預設是normal2x，想加強效果的話，可以改成advmame2x，設成none就關閉此效果
+[sdl]
+	fullresolution=1200x900		全螢幕解析度設為 1200x900
+	windowresolution=1200x900	視窗解析度設為 1200x900，輸出裝置(通常是電腦螢幕)支援硬體縮放時有效
+	output=overlay				啟用上述析度設
+
 
 
 
@@ -32,11 +38,19 @@ We can find the file as ~/.dosbox/dosbox-x.xx.conf or ~/dosboxrc
 指令
 ==============================
 掛載映像檔
-	imgmount d "path/to/xxx.iso" -t iso => 將 iso 檔掛載為 D 槽
-	imgmount 3 "path/to/xxx.iso" -t iso => 0-1 代表軟碟，2-n 代表硬碟或光碟
-	imgmount e "path/to/xxx.img -size a,b,c,d -fs none => a=sector size、b=sectors per track、c=heads、d=cylinders
-	imgmount 4 "path/to/xxx.img -t hdd -fs none -size 512,63,64,1023 
-	imgmount 0 "path/to/xxx.ima -t floppy -fs none => 掛載映像檔為軟碟
+	imgmount drive_leyyer "/path/to/file" -t iso|hdd|floppy -fs none|fat -size xxx,xxx,xxx,xxx
+	imgmount d "/path/to/xxx.iso" -t iso => 將 iso 檔掛載為 D 槽
+	imgmount 3 "/path/to/xxx.iso" -t iso => 0-1 代表軟碟，2-n 代表硬碟或光碟
+	imgmount 4 "/path/to/xxx.img -t hdd -fs none -size 512,63,64,1023 => -size sector_size sectors_per_track heads cylinders 
+		100MB image:	512,63,16,203 dd if=/dev/zero of=/path/to/img_file bs=512 count=204624 204624=63*16*203
+		256MB image:	512,63,16,520
+		512MB image:	512,63,32,520
+		520MB image:	512,63,16,1023
+		1GB image:		512,63,64,520
+		2GB image:		512,63,64,1023
+		掛載硬碟映像檔之前，該映像檔宜以 DOS 原版的 sys 指令製成可開機狀態，以 DOS 原版的 format 指令格式化更佳。否則以 linux mkgs.fat 搭配 DOS sys 指令亦可。
+	imgmount e "/path/to/xxx.img -size a,b,c,d -fs none => a=sector size、b=sectors per track、c=heads、d=cylinders
+	imgmount 0 "/path/to/xxx.ima -t floppy -fs none => 掛載映像檔為軟碟
 
 卸載映像檔
 	imgmount -u d => 卸載 D 槽
@@ -76,7 +90,7 @@ imgmount d "C:\Diskimages\HD_D.IMG" -size 512,17,4,306 -t hdd
 
 boot "C:\Diskimages\DISK_A.IMA" "C:\Diskimages\DISK_B.IMA" -l c
 
-如此在 boot 後就可有兩個軟碟及兩個硬碟可用喔～
+如此在 boot 後就可有兩個軟碟及兩個硬碟可用。
 
 
 
@@ -92,15 +106,15 @@ boot "C:\Diskimages\DISK_A.IMA" "C:\Diskimages\DISK_B.IMA" -l c
 	Stick / IBM_joy，搖桿驅動程式
 	Win32 Subset / ，執行32位元程式
 
-將 Win 31 安裝程式複製到 path/to/doswin/win31，驅動程式複製到 path/to/doswin/drivers，執行 DOSBox
+將 Win 31 安裝程式複製到 /path/to/doswin/win31，驅動程式複製到 /path/to/doswin/drivers，執行 DOSBox
 	安裝 Win 3.1
-		mount c path/to/doswin
+		mount c /path/to/doswin
 		c:
 		cd win31
 		setup，採用預設的安裝選項即可，若選用自訂選項，印表機宜選擇 generic/text。
 		安裝完成，退出安裝程式，並關閉 DOSBox，然後編輯 ~/.dosbox/dosbox-x.xx.conf
 			[autoexec]
-				mount c path/to/doswin
+				mount c /path/to/doswin
 				c:
 				SET PATH=%PATH%;C:\WINDOWS;
 				SET TEMP=C:\WINDOWS\TEMP

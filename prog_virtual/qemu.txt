@@ -2,6 +2,21 @@
 
 
 
+常用指令
+==============================
+qemu-system-i386 -hda /path/to/img_file_name -cdrom /path/to/dos_iso_file_name -boot d -m 32 -L .
+ # 以光碟映像檔開機，安裝 DOS 至虛擬硬碟
+qemu-system-i386 -hda /path/to/img_file_name -boot c -m 32 -L .
+ # 以虛擬硬碟開機
+Ctl+Alt+2
+ # 進入中控台，可執行指令
+  〔change floppy0 file_name〕切換軟碟映像檔
+  〔eject floppy0 〕抽出軟碟映像檔
+Ctl+Alt+2
+ # 回到虛擬機主畫面
+
+
+
 Howto Install QEMU With Accelerator
 url: http://wiki.ubuntu-tw.org/index.php?title=Howto_Install_QEMU_With_Accelerator
 ==============================

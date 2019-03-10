@@ -1,0 +1,13 @@
+# vim:ts=4
+
+
+curl -x 123.45.67.89:1080 -o page1.html -D cookie0002.txt -b cookie0001.txt http://www.yahoo.com
+	-x 指定 http 訪問所使用的 proxy server 及其 port
+  -D 把 http 的 response 裡面的 cookie 信息存到一個特別的文件
+  -b 來把上次的 cookie 信息追加到 http request 裡
+  -e "mail.yahoo.com" 騙對方的服務器，你是從 mail.yahoo.com 鏈接過來
+  -O http://cgi2.tky.3web.ne.jp/~{ zzh,nick }/[001-201].JPG，但是下載下來的文件重名，後面的把前面的文件都給覆蓋掉了
+  -o #2_#1.jpg http://cgi2.tky.3web.ne.jp/~{ zzh,nick }/[001-201].JPG
+  curl -u name:passwd ftp://ip:port/path/file 或者大家熟悉的 curl ftp://name:passwd@ip:port/path/file
+
+
