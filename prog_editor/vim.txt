@@ -1,8 +1,8 @@
 #!/bin/bash
-# vim:ts=4
+# vim:ts=2
 # program: Using to note the knowledge about vim
 # made by: Engells
-# date: Aug 29, 2017
+# date: Mar 14, 2019
 # content: 內容並未最佳化，單純作為書摘使用
 
 
@@ -12,23 +12,29 @@ plugin & plugin-manager
 ====================
 plugin-managr
 ----------
-Pathogen
-  # 把要加入的 plugin 的資料夾放在 bundle/ 底下就完工了！刪除也是，直接砍掉 bundle/ 底下對應資料夾就可以
+vim-plug
+  # 下載 https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim 至 ~/.vim/autoload，編輯 .vimrc 中加入下列內容：
+  # call plug#begin('~/.vim/plugs') Plug 'plug_name'... call plug#end() ，然後在 vim 中輸入 :PlugInstall 就會安裝。
+  # 實作中，將相關內容寫入 ~/.vim/confs/exrc_vim_plug 檔案
+  # 更新 plugin，在 vim 中輸入 :PlugUpdate 指令
+  # 更新 vim-plug 本身，在 vim 中輸入 :PlugUpgrade 指令
+	# 移除 plugin，把不需要的 plugin 刪除或註解掉，接著進入 Vim 輸入 :PlugClean 指令
 
 Vundle
   # 編輯 .vimrc 中加入右列內容：Plugin 'tpope/vim-fugitive'，然後在 vim 中打 :PluginInstall 就會安裝。
 
-vim-plug
-  # 下載 plug.vim 至 ~/.vim/autoload，編輯 .vimrc 中加入右列內容：Plug 'tpope/vim-fugitive'，然後在 vim 中打 :PlugInstall 就會安裝。
+Pathogen
+  # 把要加入的 plugin 的資料夾放在 bundle/ 底下就完工了！刪除也是，直接砍掉 bundle/ 底下對應資料夾就可以
 
 
 常用 plugin
 ----------
 NERDTree
 XMLEdit
-SuperTab	https://github.com/ervandew/supertab
-PowerLine
+SuperTab, ervandew/supertab, https://github.com/ervandew/supertab
+PowerLine, vim-airline/vim-airline
 space-vim，實質上為大型設定集
+syntastic, vim-syntastic/syntastic, syntax checker
 
 
 
@@ -63,19 +69,27 @@ vim
   檔案內容緩衝區    如刪除、yank、置換,給 Put 要用的 registers 緩衝區
   書籤緩衝區        m[a-z] `[a-z] '[a-z]
                     m[A-Z]
-  檔案緩衝區        :n :2n :N                     <= argument list
-                    :bn :bp :bl :b[#] :b檔名      <= buffer list
-                    :files 或 :buffers 或 :ls     <= 會列出目前 buffer 中的所有檔案
-                    # 代表前一次編輯的檔案，% 是目前編輯中的檔案
+  檔案緩衝區      :n :2n :N                     <= argument list
+                :bn :bp :bl :b[#] :b檔名      <= buffer list
+                :files 或 :buffers 或 :ls     <= 會列出目前 buffer 中的所有檔案
+                # 代表前一次編輯的檔案，% 是目前編輯中的檔案
 
 視窗操作
-  Ctrl+w n 即 :new。開一空的新視窗。
-  Ctrl+w s 即 :sp(lit),會開一新視窗,且原檔分屬兩個視窗。
-  Ctrl+w f 開一新視窗,並編輯游標所在處之 word 為檔名的檔案。
-  Ctrl+w q 即 :q 結束分割出來的視窗。
-  Ctrl+w o 即 :only! 使游標所在之視窗,成為目前唯一顯示的視窗其它視窗會隱藏起來。
-  Ctrl+w j 移至下視窗。
-  Ctrl+w k 移至上視窗。還記得 hjkl 的按鍵移動方式
+  <C+w> n 即 :new。開一空的新視窗。
+  <C+w> s 即 :sp(lit),會開一新視窗，且原檔分屬兩個視窗。
+  <C+w> f 開一新視窗，並編輯游標所在處之 word 為檔名的檔案。
+  <C+w> q 即 :q 結束分割出來的視窗。
+  <C+w> o 即 :only! 使游標所在之視窗，成為目前唯一顯示的視窗其它視窗會隱藏起來。
+  <C+w> j 移至下視窗。
+  <C+w> k 移至上視窗。記得 hjkl 的按鍵移動方式
+
+  nnoremap <C-J> <C-W><C-J> 移至下視窗，將原本的 <C-W><C-J> 改為 <C-J>
+  nnoremap <C-K> <C-W><C-K> 移至上視窗，將原本的 <C-W><C-K> 改為 <C-K>
+  nnoremap <C-L> <C-W><C-L>
+  nnoremap <C-H> <C-W><C-H>
+  :sv <filename> 載入檔案＋縱向分割視窗
+  :vs <filename> 載入檔案＋橫向分割視窗
+
 
 標籤頁
   :tabnew 開空白標籤頁
@@ -87,25 +101,22 @@ vim
   :tabr 第一個標籤頁
   :tabl 最後一個標籤頁
   :tabs 顯示所有標籤頁
-  :tabm [N] 移動到第N順位
+  :tabm [N] 移動到第 N 順位
   還可以 :set tabline 來定義 tab 顯示方式
 
 剪貼簿
-  ubuntu環境下需要 vim-gui-common套件
-  vim --version | grep clipboard				<= 查詢是否支援剪貼簿，若有支援會出現 "+某項目" 的訊息
-  剪下 "+x，注意是依序按下"、+及x三個鍵
-  複製 "+y
-  貼上 "+p
--
+  一勞永逸的方式
+      在 ~/.vimrc 裏面加上一行 set clipboard=unnamed，之後所有的複製貼上都會根據系統剪貼簿的內容更變
+			set clipboard=unnamedplus，之後的複製貼上都會根據系統緩衝區內容更變
+  分開操作的方式
+    透過 "+ 這個 prefix，原本複製整行指令是 yy，將複製整行進剪貼簿就是 "+yy
 
-  :sv <filename> 載入檔案＋縱向分割視窗
-  :vs <filename> 載入檔案＋橫向分割視窗
--
-"split navigations
-  nnoremap <C-J> <C-W><C-J>
-  nnoremap <C-K> <C-W><C-K>
-  nnoremap <C-L> <C-W><C-L>
-  nnoremap <C-H> <C-W><C-H>
+  其他
+    ubuntu 環境下需要 vim-gui-common 套件
+    vim --version | grep clipboard				<= 查詢是否支援剪貼簿，若有支援會出現 "+某項目" 的訊息
+    剪下 "+x，注意是依序按下「" + x」三個鍵
+    複製 "+y
+    貼上 "+p
 
 
 
@@ -125,7 +136,7 @@ vim
 <F5> F5 功能鍵
 <C-G> Ctrl+G 鍵
 <K-9> 九宮格數字鍵的 9
-要注意的是,大小寫是不分的
+注意大小寫是不分的
 
 
 
@@ -135,12 +146,15 @@ Themes
 在 vimrc 檔案中寫入下列指令
   colorscheme theme_name
 
+在 Vim 裡下指令：:so % 或 :so ~/.vimrc 或 :so /path/to/佈景設定檔，即可更新佈景
+
 佈景來源
-  Distinguished https://github.com/Lokaltog/vim-distinguished
-  Jellybeans	https://github.com/nanotech/jellybeans.vim
-  Vividchalk    https://github.com/tpope/vim-vividchalk
-  Candy         http://www.vim.org/scripts/script.php?script_id=282
-  Solarized     https://github.com/altercation/vim-colors-solarized
+  Distinguished		https://github.com/Lokaltog/vim-distinguished
+  Jellybeans			https://github.com/nanotech/jellybeans.vim
+  Vividchalk			https://github.com/tpope/vim-vividchalk
+  Candy						http://www.vim.org/scripts/script.php?script_id=282
+  Solarized				https://github.com/altercation/vim-colors-solarized
+	material-theme	https://raw.githubusercontent.com/jdkanani/vim-material-theme/master/colors/material-theme.vim
 
 
 
@@ -214,6 +228,24 @@ Ex 模式 (Ex-mode)
     <script>
     <expr>
     <unique> 
+
+
+
+
+暫存器
+====================
+VIM 中有 9 类暫存器，暫存器的主要功能就是缓存操作过程中删除、複製、搜索等的文本内容，指令 :help registers 查看暫存器的详细帮助说明如下：
+
+無名（unnamed）暫存器 ""              	# 預設暫存器，yy 和 p 指令使用的是这个暫存器，只能在目前編輯檔案中複製貼上
+數字（numbered） "0 ～ "9            	# vim 用来保存最近複製、刪除等操作的内容，其中 0 暫存器保存的是最近一次的操作内容。
+行內刪除（small delete） "-           	# 快取行內刪除內容
+具名（named） "a ～ "z / "A ～ "Z    	# 用户存器，vim 不會使用
+唯讀暫存器 ": ". "% "#              	# 分別快取最近命令、最近插入文字、目前編輯檔案、目前交替檔名
+表示式（expression）暫存器 "=          	# 用於執行表示式命令
+選擇及拖拽（selection and drop）暫存器 "* "+ "~   	# 存取 GUI 選擇文字，可用於與外部應用互動，。"* 與作業系統緩衝區相關，"+ 與作業系統緩剪貼簿衝區相關
+黑洞（black hole）暫存器："_          	# 不快取操作內容（乾淨刪除）
+模式暫存器（last search pattern）："/  # 快取最近的搜尋模式
+
 
 
 
