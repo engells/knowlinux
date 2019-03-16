@@ -9,11 +9,11 @@ C-a [0...9]		# 切換 window
 C-a K 				# 關閉 window
 C-d 					# 關閉 tmux panel
 
+tmux or tmux new -s session_name						# 新增 session
 tmux attach or tmux attach -t session-id		# 連回 session
 tmux rename-session -t 0 session_name				# 將 session 0 命名為 session_name
 tmux detach
 tmux ls
-tmux or tmux new -s session_name						# 新增 session
 tmux kill-session -t 0											# 刪除 session
 tmux kill-server														# 刪除 tmux server
 
@@ -24,6 +24,7 @@ tmux new-window -t session_name:0 -n 'window_name0' '/usr/bin/irssi'			# 在 ses
 tmux new-window -t session_name:1 -n 'window_name1' 'ssh w1.example.com'
 tmux new-window -t session_name:2 -n 'window_name2' 'ssh w2.example.com'
 tmux select-window -t session_name:1				# 選擇 session_name 編號第 1 號 window
+tmux select-pane -t 1												# 選擇編號第 1 號 panel
 
 
 

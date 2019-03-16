@@ -7,6 +7,15 @@
 
 
 
+vim 8.0
+===================
+套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/myplugins/start // ~/.vim/pack/myplugins/opt
+把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
+想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/myplugins/start/ale
+升級所有套件，執行： git submodule update --recursive --remote
+
+
+
 
 plugin & plugin-manager
 ====================
@@ -135,7 +144,10 @@ vim
 <Up> PageUp 向上翻頁鍵
 <F5> F5 功能鍵
 <C-G> Ctrl+G 鍵
+<A-x> Alt+x 鍵、因為某些歷史原因、Alt 幾乎無法對映。
+<Shift> Shift 鍵
 <K-9> 九宮格數字鍵的 9
+
 注意大小寫是不分的
 
 
