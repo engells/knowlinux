@@ -223,7 +223,7 @@ zfs set dd:swap=on pool_name/swap # dd 是自行設定的名稱
 
 
 限量 zfs 使用記憶體
-====================-
+====================
 cat /etc/modprobe.d/zfs.conf
 zfs_arc_max=1073741824
 
@@ -231,6 +231,22 @@ echo "options zfs zfs_arc_max=4294967296" >> /etc/modprobe.d/zfs.conf		# 4294967
 echo "4294967296" > /sys/module/zfs/parameters/zfs_arc_max	# 4294967296 為快取功能使用記憶體限制
 	# ZFS的第一層在記憶體的快取為 arc，第二層為 L2arc。，L2arc 是獨立的裝置，必須另外設定增加到 zpool 組態中，可以用比記憶體大很多的空間來快取資料。
 	# zpool 在組成和存取資料時的基本單位，vdev 可視為 zpool 內虛擬的硬碟裝置，所有的 zpool 都由 vdev 組成，vdev 本身再由單一硬碟、mirror 和 RAID-Z 等組態形成。
+
+
+
+
+ZFS cache and ZFS log
+====================
+Cache, well with SSD
+----------
+dd if=/dev/zero of=/path/to/cache_name.img bs=1M count=40960
+zpool add zpool cache /path/to/cache_name.img -f
+
+
+Log, well with SSD
+----------
+dd if=/dev/zero of=/path/to/log_name.img bs=1M count=40960
+zpool add zpool log /path/to/log_name.img -f
 
 
 
