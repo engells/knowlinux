@@ -2,7 +2,7 @@
 
 
 
-Install zsh and
+Install zsh and Oh My ZSH
 ====================
 安裝 zsh
 	sudo apt install -y zsh

@@ -238,8 +238,8 @@ ls -la /usr/bin | grep kvm
 
 以登入帳號執行 virt-manager
 ----------
-將登入帳號名稱，加入 kvm 及 libvirtd 這二個群組
-  sudo adduser `id -un` kvm && sudo adduser `id -un` libvirtd
+將登入帳號名稱，加入 kvm 及 libvirtd 這二個群組 libvirt libvirt-qemu
+  sudo adduser `id -un` kvm && sudo adduser `id -un` libvirt && sudo adduser `id -un` libvirt-qemu
 編輯 /etc/libvirt/libvirtd.conf
   設定：unix_sock_rw_perms = "0777"
 視情況重新登錄

@@ -148,8 +148,8 @@ tmuxifier new-window window_layout_name
 編輯 ~/.tmux.conf
 	set -g default-terminal "screen-256color"
 
-
-https://aranhase.github.io/2014/08/11/vim_tmux_tmuxifier_setup_with_konsole.html
+Ref
+	https://aranhase.github.io/2014/08/11/vim_tmux_tmuxifier_setup_with_konsole.html
 
 
 
@@ -159,6 +159,9 @@ Tmux 簡介
 tmux = Terminal Multiplexer = Σ sessions = Σ windows = Σ panes => each pane run a terminal instance
 
 執行 tmux 指令會建立一個新的 tmux session，終端機畫面底部多了一條狀態列。狀態列是 tmux 很重要的部分。除了顯示當前的視窗（在左邊）它同時也會顯示一些關於系統的資訊像是時間（在右邊）。狀態列還可以依照需求客製，例如：顯示行事曆，電量等等。
+
+設定檔 ~/.tmux.conf，參考設定檔：	/usr/share/doc/tmux/examples/screen-keys.conf，/usr/share/doc/tmux/examples/vim-keys.conf
+
 
 
 

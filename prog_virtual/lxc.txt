@@ -5,26 +5,23 @@
 ====================
 啟動 Container
 	lxc-start -n name_of_machine -d
-	lxc-restart -n name_of_machine	# 重啟  Container
+	lxc-restart -n name_of_machine			# 重啟  Container
 	lxc-execute -n name_of_machine cmd	# 啟動 Container 並執行指令
 
-查詢 Container 名單
-	lxc-ls -f
-
-查詢 Container 資訊
-	lxc-info -n name_of_machine
-
+查詢 Container
+	lxc-ls -f											# 查詢 Container 名單
+	lxc-info -n name_of_machine		# 查詢 Container 詳細資料
+	
 登入 Conatiner
 	lxc-attach -n name_of_machine
-	lxc-console -n name_of_machine	# 終端機模式
-	ssh -X user@ip_of_container	# SSH 模式登入可執行視窗時程
+	lxc-console -n name_of_machine	# 終端機模式，Ctl+a q 退出 console
+	ssh -X user@ip_of_container			# SSH 模式登入可執行視窗時程
 
 停止 Container
 	lxc-stop -n name_of_machine
 
 複製 Container
 	lxc-copy -n old_machine_name -N new_machine_name
-	# lxc-clone -o old_machine_name -n new_machine_name, 舊指令
 
 暫停及恢復 Container
 	lxc-freeze -n name_of_machine
@@ -32,6 +29,24 @@
 
 刪除 Container
 	lxc-destroy -n name_of_machine
+
+查詢 lxc 版本
+	lxc-start --version
+
+下載範本建立 Container
+	lxc-create -t download -n name_of_machine -- -d ubuntu -r bionic -a amd64
+
+
+
+
+Containers share folders
+====================
+edit /path/to/name_of_machine/config
+	add 「 lxc.mount = /path/to/name_of_machine/fstab 」
+
+touch /path/to/name_of_machine/fstab
+	/path/in/host /path/to/name_of_machine/mount/rootfs/dir none bind,create=dir
+	# /path/to/name_of_machine/rootfs/mount/dir 最好使用 Host 主機的絕對路徑
 
 
 
@@ -57,14 +72,32 @@
 
 
 
-Containers share folders
+X in container
 ====================
-edit /path/to/name_of_machine/config
-	add 「 lxc.mount = /path/to/name_of_machine/fstab 」
+Method 1:
+----------
+apt install xauth
+apt install dbus dbus-x11
+ssh -X ubuntu@10.0.3.101 # run this command in host
+/usr/bin/firefox
 
-touch /path/to/name_of_machine/fstab
-	/path/in/host /path/to/name_of_machine/mount/rootfs/dir none bind,create=dir
-	# /path/to/name_of_machine/rootfs/mount/dir 最好使用 Host 主機的絕對路徑
+
+Method 2:
+----------
+在 /var/lib/lxc/name_container/config 中加入以下内容
+	lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir
+	lxc.mount.entry = /dev/snd dev/snd none bind,optional,create=dir
+	lxc.mount.entry = /tmp/.X11-unix tmp/.X11-unix none bind,optional,create=dir
+	lxc.mount.entry = /dev/video0 dev/video0 none bind,optional,create=file
+	lxc.hook.pre-start = /home/USERNAME/.local/share/lxc/precise-gui/setup-pulse.sh # this line not sure
+
+container:
+	export DISPLAY=:0
+
+
+----------
+url:
+	url:http://www.rendoumi.com/lxcrong-qi-nei-ru-he-yun-xing-firefox/
 
 
 
@@ -120,36 +153,6 @@ container /etc/sysconfig/network-scripts/ifcfg-eth0
 
 
 
-X in container
-====================
-Method 1:
-----------
-apt install xauth
-apt install dbus dbus-x11
-ssh -X ubuntu@10.0.3.101 # run this command in host
-/usr/bin/firefox
-
-
-Method 2:
-----------
-在 /var/lib/lxc/name_container/config 中加入以下内容
-	lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir
-	lxc.mount.entry = /dev/snd dev/snd none bind,optional,create=dir
-	lxc.mount.entry = /tmp/.X11-unix tmp/.X11-unix none bind,optional,create=dir
-	lxc.mount.entry = /dev/video0 dev/video0 none bind,optional,create=file
-	lxc.hook.pre-start = /home/USERNAME/.local/share/lxc/precise-gui/setup-pulse.sh # this line not sure
-
-container:
-	export DISPLAY=:0
-
-
-----------
-url:
-	url:http://www.rendoumi.com/lxcrong-qi-nei-ru-he-yun-xing-firefox/
-
-
-
-
 Unprivileged Mode
 ====================
 config files matching
@@ -175,9 +178,10 @@ mkdir -p ~/.config/lxc
 cp /etc/lxc/default.conf ~/.config/lxc
 
 edit ~/.config/lxc/default.conf
-	lxc.id_map = u 0 100000 65536
-	lxc.id_map = g 0 100000 65536
+	lxc.idmap = u 0 100000 65536
+	lxc.idmap = g 0 100000 65536
 
+ln -s /home/lxcu ~/.local/share/lxc
 chmod a+x ~/.local/share/lxc
 
 
@@ -219,7 +223,7 @@ Creat LXC Container
 sudo lxc-create -t ubuntu -n name_of_machine
 	用預設範本建立 Container	，預設的帳號和密碼都是「ubuntu」
 
-sudo lxc-create -t download -n name_of_machine -- -d ubuntu -r xenial -a amd64
+sudo lxc-create -t download -n name_of_machine -- -d ubuntu -r bionic -a amd64
 	用下載範本建立 Container，建立和操作 Container 時，都不需要用到 sudo 指令
 	# sudo lxc-create -n centos_lxc -t centos -- -R 7 -a x86_64
 
@@ -233,6 +237,6 @@ Install Packages
 sudo apt install lxc bridge-utils systemd uidmap
 	# systemd uidmap 是 Unprivileged Mode 需要
 mkdir ~/.config/lxc ~/.local/share/lxc ~/.cache/lxc
-ls /sur/share/lxc/templates
+ls /usr/share/lxc/templates
 
 

@@ -198,7 +198,7 @@ zfs send pool_name/dataset_name@snapshot_name | file_name
 
 
 
-在 zfs 硬碟上建立 容量為 8G 的 swap (儲存池名稱 pool_name)
+在 zfs 硬碟上建立 swap (儲存池名稱 pool_name)
 ====================
 Method 1:
 ----------

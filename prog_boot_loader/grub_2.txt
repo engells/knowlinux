@@ -40,10 +40,10 @@ Boot on ISO file
 	}
 
 	insmod loopback
-	menuentry 'Install Ubuntu' {
-		loopback loop (hd0,10)/xxxx.iso		# (hd0,10) 指稱第一顆硬碟的第十分割區(/dev/sda10)
-		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=/xxxx.iso boot=live noeject nopromt quiet splash --
-		initrd (loop)/casper/initrd.lz
+	menuentry 'Install Ubuntu 18.04.2' {
+		loopback loop (hd1,9)/Bionic.iso		# (hd1,9) 指稱第二顆硬碟的第九分割區(/dev/sdb9)
+		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=/Bionic.iso boot=live noeject nopromt quiet splash --
+		initrd (loop)/casper/initrd
 	}
 
 依據實際經驗，若 Grub2 無法順利讀到 iso 檔案內的 vmlinuz 及 initrd.lz，可將該兩個檔案複製到硬碟，即可順利開機。
