@@ -39,8 +39,41 @@
 
 
 
+Working environment
+====================
+user: admit
+passed: name_at_lxc_year
+useradd -m -d /home/admit -s /bin/bash admit
+
+Build chinese environment
+	edit var/lib/locales/supported.d/[en,zh-hant]
+	sudo apt install language-pack-zh-hans
+	sudo locale-gen --purge		# sudo locale-gen zh_TW.UTF-8
+	copy fonts, sudo fc-cache -f -v
+
+sudo apt install libcanberra-gtk-module libcanberra-gtk3-module dbus dbus-x11 firefox
+
+
+
+
 Containers share folders
 ====================
+method 1 (work)
+----------
+create folder /path/to/share in host
+chmod 7777 /path/to/share in host
+create folder /path/to/mount in container
+edit /path/to/container/config
+	lxc.mount.entry = /home/virt/share mnt/share none bind 0 0
+		# /home/virt/share <= /path/to/share in host
+		# mnt/share <= /path/to/mount in container
+*****
+lxc.mount.entry = /dev/sde dev/sde none bind,optional,create=file 					# mount a device in container
+lxc.mount.entry = /dev/mapper/lvmfs-home-partition home ext4 defaults 0 2		# mount a filesystem in container
+
+
+method 2 (doesn't work in Ubuntu 1804)
+----------
 edit /path/to/name_of_machine/config
 	add 「 lxc.mount = /path/to/name_of_machine/fstab 」
 
@@ -51,35 +84,17 @@ touch /path/to/name_of_machine/fstab
 
 
 
-搬移 container
-====================
-先在目的電腦上建新的同名 container
-	sudo lxc-create -t ubuntu -n name_of_machine
-
-停止來源電腦 Container
-	sudo lxc-stop -n name_of_machine
-
-以 rsync 指令，透過 ssh 傳送 Container 
-	sudo rsync -av --numberic-ids /path/to/name_of_machine -e ssh name_of_user@url_of_destination:/path/to/clone
-	# 要保留檔案的使用者 ID，一定要使用 rsync 的 --numberic-ids 選項來複製檔案
-	# name_of_user@url_of_destination: 如 xxx@192.168.nn.nn
-	# /path/to/clone: 如 /home/virt/lxdu/u1606u
-
-在目的電腦以複製過來的 container 資料夾覆蓋掉先前 lxc-create 建立的 container 資料夾
-	sudo rmdir /path/to/name_of_machine
-	sudo cp -rf /path/to/clone/. /path/to/name_of_machine
-
-
-
-
 X in container
 ====================
 Method 1:
 ----------
-apt install xauth
-apt install dbus dbus-x11
-ssh -X ubuntu@10.0.3.101 # run this command in host
-/usr/bin/firefox
+apt install openssh-server
+	touch /path/to/home/..Xauthority
+	add "X11UseLocalhost no" to /etc/ssh/sshd_config
+ssh -v -X ubuntu@10.0.3.101
+	# run this command in host
+	# or ssh -v -X -C -o CompressionLevel=9 user_name@remote_computer_ip
+/usr/bin/firefox 								# need packages: xauth dbus dbus-x11 libcanberra-gtk-module libcanberra-gtk3-module
 
 
 Method 2:
@@ -88,8 +103,8 @@ Method 2:
 	lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir
 	lxc.mount.entry = /dev/snd dev/snd none bind,optional,create=dir
 	lxc.mount.entry = /tmp/.X11-unix tmp/.X11-unix none bind,optional,create=dir
-	lxc.mount.entry = /dev/video0 dev/video0 none bind,optional,create=file
-	lxc.hook.pre-start = /home/USERNAME/.local/share/lxc/precise-gui/setup-pulse.sh # this line not sure
+	lxc.mount.entry = /dev/video0 dev/video0 none bind,optional,create=file						# /dev/video0 not exist in Ubuntu 18.04
+	lxc.hook.pre-start = /home/USERNAME/.local/share/lxc/precise-gui/setup-pulse.sh 	# this line not sure
 
 container:
 	export DISPLAY=:0
@@ -113,7 +128,7 @@ Host /etc/default/lxc or /etc/default/lxc-net
 	LXC_DHCP_RANGE="10.0.3.2,10.0.3.254"
 	LXC_DHCP_MAX="253"
 	----------
-	sudo systemctl restart lxc
+	sudo systemctl restart lxc-net
 
 
 Host file: /var/lib/lxc/name_of_machine/config or ~/.local/share/lxc/name_of_machine/config
@@ -214,6 +229,27 @@ Memory and CPU Limit
 	lxc-cgroup.memroy.limit_in_bytes = 256M
 	lxc-cgroup.cpu.shares = 512
 	lxc-cgroup..cpu.shares = 0,3
+
+
+
+
+搬移 container
+====================
+先在目的電腦上建新的同名 container
+	sudo lxc-create -t ubuntu -n name_of_machine
+
+停止來源電腦 Container
+	sudo lxc-stop -n name_of_machine
+
+以 rsync 指令，透過 ssh 傳送 Container 
+	sudo rsync -av --numberic-ids /path/to/name_of_machine -e ssh name_of_user@url_of_destination:/path/to/clone
+	# 要保留檔案的使用者 ID，一定要使用 rsync 的 --numberic-ids 選項來複製檔案
+	# name_of_user@url_of_destination: 如 xxx@192.168.nn.nn
+	# /path/to/clone: 如 /home/virt/lxdu/u1606u
+
+在目的電腦以複製過來的 container 資料夾覆蓋掉先前 lxc-create 建立的 container 資料夾
+	sudo rmdir /path/to/name_of_machine
+	sudo cp -rf /path/to/clone/. /path/to/name_of_machine
 
 
 
