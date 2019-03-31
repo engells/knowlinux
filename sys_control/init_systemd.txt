@@ -1,77 +1,266 @@
 # vim:ts=4
+# program: Using to note the knowledge about systemd
+# made by: Engells
+# date: Mar 26, 2019
+# content: Just for memo
 
-http://linuxtoy.org/archives/more-than-upstart-systemd.html
- 
-簡而言之，systemd是一個init程序。根據之前 Upstart的一些介紹大家應該簡要了解了傳統Sysvinit系統的不足之處。不過，這次的systemd的設計思想更為超前，也可以說是借鑒了OSX上launchd的思路。感謝 comicfans44 投稿
 
-作者在其項目的 blog頁面 有一篇對於init系統很好的介紹。不過內容超長，在此摘錄一些重要部分翻譯如下，如有錯誤還請指正。
 
-init進程由內核啟動，是所有其他進程的父進程（也許應該譯為母進程？:-）因此比其他進程能夠做更多事情，比如在啟動過程中加載服務進程。
+常用指令
+====================
+systemctl enable xxxx			# run the xxxx service when booting
+systemctl disable xxxx			# not run the xxxx service when booting
+systemctl start xxxx			# run the xxxx service immeditely
+systemctl status xxxx			# view the status of xxxx service
+systemctl stop xxxx.service		# stop the xxxx service immeditely
+systemctl kill xxxx.service		# kill the xxxx service immeditely
+systemctl restart xxxx.service	# restart the xxxx service immeditely
+systemctl reload xxxx.service	# reload the xxxx service config file
+systemctl daemon-reload			# reload all modified config files
+systemctl show xxxx.service
+systemctl show -p CPUShares xxxx.service
+systemctl set-property xxxx.service CPUShares=500
 
-傳統的 sysinit 系統不符合一個有效的、快速的init系統標准： 1. 盡可能啟動更少進程 2. 盡可能將更多進程並行啟動
 
-條款1意味著除非必須否則不啟動。不像syslog和DBus，藍牙服務僅在藍牙適配器被插入時才被需要；打印服務僅在打印機連接或程序要打印時才需要；甚至sshd也 不是必須的，管理員常常因幾個月才連接一次的ssh而一直運行 sshd 進行監聽。 條款2意味著不應該像 sysvinit 一樣串行執行啟動進程，以最大化CPU和IO帶寬的效率。
 
-軟硬件的動態改變
+自行定義開機及關機自動執行程式
+====================
+開機自動執行程式
+	撰寫 /ktws/scripts/confs_sys/rc_local，複製為 /etc/rc.local
+	撰寫 /ktws/scripts/confs_sys/rc_local_service，複製為 /lib/systemd/system/rc.local.service，執行 sudo systemctl enable rc.local.service
+	系統將視為傳統的 rc.local 處理
 
-現代的操作系統應具備高度的動態特性：不同的程序啟動、停止，不同的硬件被添加、移除，因此需要服務在被需要時動態的啟動。 大多數當前的系統在盡可能並行化啟動過程時仍對一些守護進程的調用保持同步：比如 Avahi 需要DBus，故僅在DBus啟動、且 DBus 信號准備完成後 Avahi 才被啟動。與之相同的是 libvirtd 和 X11 需要HAL（雖然之後HAL會被移除），在 HAL 啟動前，libvirtd 和 X11 不會啟動。
+關機自動執行程式
+	撰寫 /ktws/scripts/confs_sys/z_mysave_service，複製為 /lib/systemd/system/z.mysave.service，執行 sudo systemctl enable z.mysave.service
+	結果如下：
+		Created symlink /etc/systemd/system/z.mysave.service → /lib/systemd/system/z.mysave.service.
+		Created symlink /etc/systemd/system/halt.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
+		Created symlink /etc/systemd/system/reboot.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
+		Created symlink /etc/systemd/system/shutdown.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
 
-並行化Socket服務
 
-以上的同步過程導致了啟動過程的串行化。能否擺脫同步與串行化的缺點呢？答案是能夠! 首先我們要理解 daemon 對彼此的真正依賴是什麼，為什麼它們在啟動時被延遲了。 對於傳統的 Unix daemon，答案是：它們在所需要的服務所提供的 socket 准備好連接之前一直處於等待狀態。 常見的是 AFUNIX，但也可能是 AFINET。比如，需要DBus服務的客戶程序將在 /var/run/dbus/systembussocket 可以被連接之前等待，syslog 服務的客戶程序將在 /dev/log 上等待...而這是它們唯一需求的內容！（意指只要這一條件滿足，客戶程序即無需等待，不論實際的服務是否已經啟動。下文詳細介紹）
 
-以上就是等待的真正含義。如果能盡早建立客戶程序所必須的 socket 而令客戶程序處於等待狀態而不是在服務程序完全啟動後再啟動客戶程序，我們就能加快啟動進程，進一步並行化進程啟動。如何做到這一點？在 Unix 族系統上非常簡單：在真正需要啟動服務之前先監聽其 socket，然後將 socket 傳遞給 exec() (此處直譯，含義不懂)，如此，在 init 系統中第一步就可建立所有 daemon 所需的所有 socket，在第二步中一次運行所有的 daemon。如果一個服務需要另一個，但被需者未完全啟動號，也完全沒有問題在被需者查詢 socket，處理請求之前，客戶進程將因這個請求而被阻塞，但僅有被這個請求阻塞的客戶進程被阻塞。並且服務之間的依賴關系將不再需要（手動）配置：如果一次建立所有服務所必須的所有 socket（及啟動所有相關服務），則所有服務的所有需求一定在最後會被滿足。
+開機機制
+====================
+機制變更
+	boot script: /etc/init.d + /etc/rc[x].d => /etc/systemd/system + /lib/systemd/system
+	boot config: /etc/inittab + /etc/sysconfig => /etc/systemd + /lib/systemd
 
-下列所說將是重點：如果同時啟動了 syslog 和多個其客戶進程（意指syslog尚未啟動准備好處理請求），而客戶進程開始發送請求，則請求會被寫入 /dev/log 的Socket 緩存中。除非緩存填滿，否則客戶進程無需任何等待即可繼續完成其啟動過程。當 syslog 啟動完全後，處理器所有的消息。另一個例子：DBus與其客戶進程一起啟動，當同步請求發出但沒有接受到預想的回應，客戶進程將阻塞。當 DBus 啟動完成後處理請求，客戶進程繼續。
+開機順序
+	init
+		init => /etc/rcS.d => /etc/rc[x].d => /etc/rc.local
+	systemd
+		/lib/systemd/system/default.target => /lib/systemd/system/graphical.target =>
+		/lib/systemd/system/multi-user.target + /etc/systemd/system/multi-user.target.wants/ =>
+		/lib/systemd/system/basic.target + /etc/systemd/system/basic.target.wants =>
+		/lib/systemd/system/sysinit.target 
+		/lib/systemd/system/local-fs.target + /etc/fstab and /etc/inittab(not in Ubuntu 18.04)
 
-內核的socket 緩存將輔助達成最大的並行化。因為內核完成了同步，不再需要用戶空間的任何的額外管理！如果在 daemon 啟動前所有必須的 socket 都已經可用，依賴關系就變得多餘（至少是次要了）。daemon A 需要另一個 daemon B，簡單的連接到B。若B已經啟動，A的請求成功。若B未完成啟動，假如A發出的不是一個同步請求，甚至無需理會（B沒有完全啟動）。甚至即使B完全沒有執行（比如crash了）時再重啟B也為時不晚對於A而言二者沒有任何分別。借此可達成最佳的並行化和隨意的需求時（on-demand）加載。而且在此基礎上能夠更加魯棒。因為 socket 即使在相應服務是暫時不可用（如crash）時也可用，所以客戶進程不會丟失任何的請求（request入buffer，待重啟服務後處理）
+開機時 systemd 執行 /etc/systemd/system 配置檔案
+執行 sudo systemctl enable httpd，相當於在 /etc/systemd/system 建立 link 至 /lib/systemd/system (或 /usr/lib/systemd/system)
 
-更多有趣之事
+systemctl list-unit-files --type=target				# list current target unit in system
+systemctl list-dependencies xxxx.target				# list units in xxxx.target
+systemctl get-default								# list the default target while booting
+systemctl set-default multi-user.target
+systemctl isolate									# 預設切換 target 時，不結束前 target 的進程，本指令轉為結束前 target 的進程
+systemctl isolate xxxx.target						# 結束前 target 所有不屬於 xxxx.target 的進程
 
-首先，這不是一種全新的邏輯，這正像是Apple的launchd系統所做的：OSX 中所有 daemon 所需的 socket 都由 launchd 建立，然後服務本身並行啟動，無需手動指定相關的依賴性。這一設計創意獨具，也正是OSX急速啟動的原因。但這一思想在Apple之外未有任何系統有所體現。
+Target(/etc/systemd/system/) 與 RunLevel 的對應關係
+    Traditional runlevel      New target name     Symbolically linked to...
+    Runlevel 0           |    runlevel0.target -> poweroff.target
+    Runlevel 1           |    runlevel1.target -> rescue.target
+    Runlevel 2           |    runlevel2.target -> multi-user.target
+    Runlevel 3           |    runlevel3.target -> multi-user.target
+    Runlevel 4           |    runlevel4.target -> multi-user.target
+    Runlevel 5           |    runlevel5.target -> graphical.target
+    Runlevel 6           |    runlevel6.target -> reboot.target
 
-在 launchd 之前,這一思想有更早的體現者：古老的 inetd 就如此工作：socket 被 daemon 建立而實際的服務在daemon通過exec()啟動相關進程時傳遞socket的文件描述符。然而 inetd 所關注的當然不是本地服務，而是網絡上的服務。他也不是並行化啟動或者隱藏依賴的正確工具。
 
-對於 TCP 的 socket inetd 對於每個進入的連接都建立一個新的 daemon 實例，這意味著每個連接將導致一次進程初始化，這無助於高性能服務器。然而此後inetd支持另一種模式單：當第一個連接到來時，第一個實例（單例）被啟動，並將繼續接受後續的請求。
 
-並行化Bus服務
+Service 組態檔案
+====================
+systemctl cat xxxx.service
 
-Linux上現代的daemon都通過DBus而非socket來交互，現在的問題是，對於這些服務，能否施加與啟動傳統的、基於socket的服務邏輯相同的並行化？答案是可以，DBus已經提供了所有必要的hook：使用DBus將會在第一次訪問時加載服務，並且給予最小的、每請求一個的、消費者與生產者同時啟動的同步機制。例如Avahi與CUPS（CUPS需要Avahi進行 mDNS/DNS-SD上打印機掃描）同時啟動，僅僅是簡單的同時啟動二者，若CUPS比Avahi啟動快，則DBus將把請求緩存入隊列，直到 Avahi服務進行了處理。
+[Unit]	# 啟動順序
+Description=OpenSSH server daemon
+Documentation=man:sshd(8) man:sshd_config(5)
+After=network.target sshd-keygen.service		# 在 network 等服務後執行
+Before=yyyy.service								# 在 yyyy 等服務前執行
+Wants=zzzz0.service								# 與 zzzz0.service 為弱相依，zzzz0.service 執行失敗不影響本服務啟動
+Requires=zzzz1.service							# 與 zzzz1.service 為強相依，zzzz1.service 執行失敗不影響本服務不啟動
+	# After 與 Before 只設定執行順序，不處理相依性。Wants 與 Reauires 只設定相依性，不處理執行順序。
+BindsTo=zzzz2.service							# 如 zzzz2.service 結束，本服務與其連帶結束
+Conflicts=zzzz3.service							# 若 zzzz3.service 已執行，本服務不能執行
+Condition...									# 需滿足條件，否則本服務不能執行
+Assert...										# 需滿足條件，否則本服務回報啟動失敗
 
-所以，總結如下：基於Socket和基於DBus的服務可一次並行啟動所有進程，無需任何額外的同步。基於激活的策略還能令我們進行延遲加載服務。如果服務很少被用到，我們可以在第一次被訪問時啟動，而不是在啟動過程中啟動。
 
-這太Great了~
+[Service]	# 啟動執行方式，只有 Service 類型 unit 才有
+EnvironmentFile=/etc/sysconfig/sshd				# 環境參數
+ExecStart=/usr/sbin/sshd -D $OPTIONS			# 啟動時執行，若 ExecStart=-，表示指定之指令(sshd)執行錯誤，不影響其他指令執行。
+ExecReload=/bin/kill -HUP $MAINPID				# 重啟時執行
+ExecStop=										# 停止時執行
+ExecStartPre=									# 啟動前執行
+ExecStartPost=									# 啟動後執行
+ExecStopPost=									# 停止後執行
+Type=simple
+	# simple（默认值）：ExecStart 字段启动的进程为主进程
+	# forking：ExecStart 字段将以 fork() 方式启动，此时父进程将会退出，子进程将成为主进程
+	# oneshot：类似 simple，但只执行一次，Systemd 会等它执行完，才启动其他服务
+	# dbus：类似 simple，但会等待 D-Bus 信号后启动
+	# notify：类似 simple，启动结束后会发出通知信号，然后 Systemd 再启动其他服务
+	# idle：类似 simple，但是要等到其他任务都执行完，才会启动该服务。一种使用场合是为让该服务的输出，不与其他服务的输出相混合
+RemainAfterExit=yes								# 進程結束後，服務仍在背景執行
+KillMode=process
+	# control-group（默认值）：結束所有的子進程
+	# process：只結束主進程
+	# mixed：主進程收到 SIGTERM 訊號，子進程收到 SIGKILL 訊號
+	# none：沒有進程被進程，只執行服務的 stop 指令
+Restart=on-failure
+	# no（默认值）：不重啟本服務
+	# on-success：正常退出時(exit0)，重啟本服務
+	# on-failure：非正常退出時(非 exit0)，重啟本服務
+	# on-abnormal：只有被訊號終止和逾時，重啟本服務
+	# on-abort：只有在收到沒有捕捉到的訊號終止時，重啟本服務
+	# on-watchdog：逾時退出時，重啟本服務
+	# always：無論任何原因退出，均重啟本服務
+RestartSec=42s
 
-並行化文件系統任務
+[Install]	# 開機啟動方式
+WantedBy=multi-user.target
 
-對於當前發行版的啟動序列圖可以看出，文件系統任務所發生的同步點大於 daemon 啟動時的同步點：mount fsck等。現在，啟動時很多時間都花費在空閑等待所有fstab 中列舉的文件系統被加載、 fsck的過程中，僅在完全完成後啟動進程才會繼續。如何改進？答案是autofs系統。就如同connect() 調用表示一個服務對另一個服務感興趣，open() 調用（或相似的調用）表示服務對特定的文件或文件系統有需求。所以，我們應該僅令那些訪問暫時還不可用（暫未完成 mount、fsck）文件系統的服務阻塞，這樣就改進了並行性。首先加載autofs，然後繼續正常的mount過程，當被訪問的文件系統未准備好，內核將會緩存請求調用，訪問進程將被阻塞，一個未成功的訪問僅可能阻塞一個進程。當真正的文件系統加載完成後，啟動進程如同正常般完成，沒有任何缺失的文件，如此我們能夠在所有文件系統都准備好之前就加載服務。
 
-假如有人提出將autofs內置於 init 是不妥當的我並不感覺奇怪，也許這會導致更多 crash。然而經過實驗，我可以說這並不正確。使用autofs意味著無需馬上提供後台 的真實文件系統，這只會導致訪問被延遲。如果進程嘗試訪問autofs但真實的文件系統很長時間都沒能加載，進程將被一個sleep中斷上被掛起，意味著你可以安全的cancel 它。如果最後這個文件系統都沒能加載，那麼令 autofs 返回一個error Code（例如 ENOENT）。所以我認為內置 autofs 到init中是正確的。實驗代碼顯示這一想法在實踐中工作的很好。
 
-保持第一個登錄的用戶的 PID 很小（意即啟動進程中少啟動進程）
+Target 組態檔案
+====================
+systemctl cat multi-user.target
 
-我們可以從MacOS的啟動邏輯中學到的另一個內容是：shell腳本是有害的。Shell很容易 hack，但是執行卻太慢。傳統sysvinit啟動邏輯就是圍繞shell腳本的一種模式不論是/bin/bash還是其他shell（被用來更快執行shell腳本），最後的結果注定很慢在我的系統中，/etc/init.d中的系統腳本至少調用grep 77次，awk92次，cut23次，sed74次。每次調用時這屆進程都被產生一次，庫被搜索一次，有些像i18n這樣的還會加載更多。這些基於瑣碎字串比較的進程導致最終難以置信的慢。只有shell腳本如此工作。除此外shell腳本也非常脆弱，環境變量之類能夠徹底改變腳本的行為（behaviour），最終難於檢查和控制。
+[Unit]
+Description=Multi-User System
+Documentation=man:systemd.special(7)
+Requires=basic.target								# 要求與 basic.target 一起執行
+Conflicts=rescue.service rescue.target				# 若 rescue.service 等已在執行，本 target 不能執行
+After=basic.target rescue.service rescue.target		# 在 basic.target 等之後執行
+AllowIsolate=yes									# 允許以 systemctl isolate 指令切換至 multi-user.target
 
-所以在啟動過程中擺脫shell腳本！在如此之前先要明確使用 shell腳本的實際用意何在：大體上來說，shell 腳本在完成的是些令人厭煩的工作，用於瑣碎的設置和卸載服務。這些內容應該用C來完成，位於分離的可執行程序，或者移至daemon本身，或者交給init。看起來我們還無法馬上在啟動過程中擺脫腳本，用C重寫需要時間，且在有些時候也不行 shell 腳本太過靈活以至於無法脫離，但我們當然能讓它們不像現在這樣突出（被大量使用）。
 
-簡單測量shell 腳本對於啟動過程的危害可以從你在系統完全啟動後加載的第一個進程的PID看出來：啟動、登錄、打開終端，輸入echo $$，對比Linux和MacOS，如下：Linux PID:1823，MacOS PID:154。自己測去吧。
 
-接下來作者分析了Upstart對於這些問題的一些解決方法以及不足之處，接下來介紹了作者的最終結論： putting it all together:systemd
+日誌
+====================
+config file: /etc/systemd/journald.conf
 
-其特性就是...上文中如此多的翻譯已經說明了其核心思路，就不具體介紹其中的詳細概念了。值得一提的是systemd解析傳統的SysVinit 腳本，將其依賴關系轉化為 其原生的依賴關系，因此兼容 Sysvinit 腳本的同時仍能提供並行性，而 Upstart 無法對傳統腳本進行並行化。且可通過DBus界面控制。
+sudo journalctl										# show booting journal
+sudo journalctl -k									# show booting kernel journal						
+sudo journalctl -b
+sudo journalctl -b -0								# show current booting journal
+sudo journalctl -b -1								# show last booting journal
+sudo journalctl --since="2012-10-30 18:17:16"
+sudo journalctl --since "20 min ago"
+sudo journalctl --since yesterday
+sudo journalctl --since "2015-01-10" --until "2015-01-11 03:00"
+sudo journalctl --since 09:00 --until "1 hour ago"
+sudo journalctl -n
+sudo journalctl -n 20								# show last 20 lines of current booting journal
+sudo journalctl -f
+sudo journalctl /usr/lib/systemd/systemd
+sudo journalctl _PID=1
+sudo journalctl /usr/bin/bash
+sudo journalctl _UID=33 --since today
+sudo journalctl -u nginx.service
+sudo journalctl -u nginx.service --since today
+sudo journalctl -u nginx.service -f
+journalctl -u nginx.service -u php-fpm.service --since today
+sudo journalctl -b -u nginx.service -o json			# show output with JSON single line model
+sudo journalctl -b -u nginx.service -o json-pretty	# show output with JSON multi lines model
+sudo journalctl --disk-usage
+sudo journalctl --vacuum-size=1G					# set size of journal
+sudo journalctl --vacuum-time=1years
 
-目前狀態：已經可作為Sysinit或 Upstart的替代來使用，有一個修改過的 Fedora13qemu 鏡像可供下載使用。http://surfsite.org/f13- systemd-livecd.torrent，作者秒表計時 Fedora13用Upstart啟動27s，systemd24s（從grub到 gdm ,相同系統,相同設置，兩次連續的啟動過程中取較少者）。
 
-FAQ
 
-作者是？
+其他指令
+====================
+systemctl reboot
+systemctl poweroff
+systemctl halt					# stop CPU
+sudo systemctl suspend
+systemctl hibernate				# winter sleep status
+systemctl hybrid-sleep
+systemctl rescue				# rescue status, only for single-user model
 
-Lennart Poettering（RedHat，大部分代碼基礎） Kay Sievers（Novell ，與前者共同討論設計了細節） Harald Hoyer （RedHat） Dhaval Giani（前IBM） 此外還有Intel Suse,Nokia等多個公司的雇員
+systemd-analyze					# analysis total boot time
+systemd-analyze blame			# analysis each servive start time
+systemd-analyze critical-chain
+systemd-analyze critical-chain xxxx.service		# show the critical-chain of xxxx start
 
-這是Red Hat的項目嗎？ 否，這只體現了作者自己的設計選擇。
+systemctl status				# show system status
+sysystemctl status xxxx.service
+systemctl -H user@rhel7.example.com status xxxx.service
+systemctl is-active application.service
+systemctl is-failed application.service
+systemctl is-enabled application.service
+systemctl list-dependencies application.service
+systemctl list-dependencies --all application.service
 
-將會在Fedora上使用? 一旦實驗顯示工作良好，社區會給出答案。如果是yes，當然會嘗試令其進入Fedora
+systemctl list-unit-files
+systemctl list-unit-files --type=service
+systemctl cat xxxx.service
 
-將會在OpenSuse上使用？ Kay處理此事，與我在Fedora 上觀點相同
 
-下面還有FAQ和很多細節，就不一一翻譯了
+hostnamectl						# show hostname
+hostnamectl set-hostname xxxx	# set hostname
+
+localectl						# show locale status
+localectl set-locale LANG=en_US.utf8			# set locale to en_US.utf8
+localectl set-keymap en_US
+
+timedatectl						# show time zone
+timedatectl list-timezones 		# show available time zone
+timedatectl set-timezone Asia/Taipei
+timedatectl set-time YYYY-MM-DD
+timedatectl set-time HH:MM:SS
+
+loginctl list-sessions			# show current sessions
+loginctl list-users				# show data of current login user
+loginctl show-user xxxx			# show data of user xxxx
+
+
+
+概說
+====================
+Systemd = Σ Units
+	Service unit：系统服务
+	Target unit：多个 Unit 构成的一个组
+	Device Unit：硬件设备
+	Mount Unit：文件系统的挂载点
+	Automount Unit：自动挂载点
+	Path Unit：文件或路径
+	Scope Unit：不是由 Systemd 启动的外部进程
+	Slice Unit：进程组
+	Snapshot Unit：Systemd 快照，可以切回某个快照
+	Socket Unit：进程间通信的 socket
+ 	Swap Unit：swap 文件
+	Timer Unit：定时器
+
+systemctl list-unit-files
+	UNIT FILE				STATE
+	chronyd.service			enabled
+	clamd@.service			static
+	clamd@scan.service		disabled
+		enabled：已建立启动链接
+		disabled：没建立启动链接
+		static：该配置文件没有[Install]部分（无法执行），只能作为其他配置文件的依赖
+		masked：该配置文件被禁止建立启动链接
+
+相關目錄
+	/etc/systemd/system
+	/lib/systemd/system
+	/usr/lib/sysyemd
+
+
+URL
+====================
+http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html
+http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html
+

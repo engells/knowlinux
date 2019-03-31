@@ -1,4 +1,44 @@
 # vim:ts=4
+# program: Using to note the knowledge about LUKS （Linux Unified Key Setup）in Ubuntu
+# made by: Engells
+# date: Mar 28, 2019
+# content: Just for memo
+
+
+
+相關指令
+==============================
+cryptsetup luksFormat /dev/sd[x][y]
+cryptsetup --verbose --verify-passphrase -c aes-cbc-plain luksFormat /dev/sd[x][y]
+	# 將 /dev/sd[x][y] 裝置予以加密，出现要输入 yes 的地方要大寫输入
+	# 過程中會要求輸入加密之密碼
+
+cryptsetup luksOpen /dev/sd[x][y] crypt_name
+cryptsetup luksOpen -d /path/to/file /dev/sd[x][y] crypt_name
+	# 将分割區射成 crypt_name 裝置，位於 /dev/mapper 目錄下
+	# 必要時需建立 filesystem，再掛載加密分割區
+
+cryptsetup luksClose crypt_name
+	# 卸除加密分割區，注意要先自掛載點卸載
+
+echo "passphrase" > /root/crypasswd
+	# 在 /root/crypasswd 儲存加密密碼，此步驟不是必要，若執行需在掛載加密分割區之前作業
+
+cryptsetup luksAddKey /dev/sd[x][y] /root/crypasswd
+	# 增加加密密碼，並存入 /root/crypasswd
+
+dd if=/dev/urandom of=/path/to/key_file bs=1 count=4096
+	# 產生檔案，作為加密的密碼。dd if=/dev/urandom of=/root/enc.key bs=1 count=4096
+
+cryptsetup luksAddKey /dev/sd[x][y] /path/to/key_file
+	# 增加加密的密碼(檔案) cryptsetup luksAddKey /dev/sd[x][y] /root/enc.key
+
+cryptsetup luksRemoveKey /dev/sd[x][y]
+	# 移除加密的密碼(字串)
+
+cryptsetup luksRemoveKey -d /path/to/file /dev/sd[x][y]
+	# 移除加密的密碼(檔案)。cryptsetup luksRemoveKey -d /root/enc.key /dev/sdd
+
 
 
 
@@ -7,8 +47,8 @@
 
 安裝模組
 -------------------------
-sudo apt-get install dmsetup cryptsetup
-	# Ubuntu 12.04 預設已經安裝 dmsetup
+sudo apt-get install cryptsetup
+	# Ubuntu 18.04 已經沒有 dmsetup 套件
 	# 安裝後會出現 /dev/mapper/control 邏輯裝置
 
 
@@ -122,22 +162,6 @@ dm-crypt/LUKS 技術架構在 kernel 2.6 以上版本的 device-mapper 機制之
 
 推測 ecryptfs，dm-crypt/LUKS 也會以「加密密碼」來對「加密金鑰」作加密，不同的是 dm-crypt/LUKS 將加密後的「加密金鑰」嵌入分割區。如此，就可將裝置攜帶到他處使用。其解密過程為：加密密碼 → 加密金鑰 → 檔案系統(FS)
 
+dm-crypt 在 Ubuntu 18.04 已移出套件庫，但 LUKS 技術仍保留。
 
-
-
-相關指令
-==============================
-sudo cryptsetup luksFormat /dev/sd[x][y]
-	# 將 /dev/sd[x][y] 裝置予以加密，出现要输入yes的地方要大寫输入
-
-sudo cryptsetup --verbose --verify-passphrase -c aes-cbc-plain luksFormat /dev/sd[x][y]
-
-sudo cryptsetup luksOpen /dev/sd[x][y] crypt_name
-	# 将分割區射成 crypt_name 裝置，位於 /dev/mapper 目錄下
-
-sudo echo "passphrase" > /root/crypasswd
-	# 在 /root/crypasswd 儲存加密密碼，此步驟不是必要，若執行需在掛載加密分割區之前作業
-
-sudo cryptsetup luksAddKey /dev/sd[x][y] /root/crypasswd
-	# 增加加密密碼，並存入 /root/crypasswd
 

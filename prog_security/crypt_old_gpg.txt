@@ -1,4 +1,8 @@
 # vim:ts=4
+# program: Using to note the knowledge about GPG in Ubuntu
+# made by: Engells
+# date: Feb 20, 2013
+# content: Just for memo
 
 
 
