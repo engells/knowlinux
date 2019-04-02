@@ -1,4 +1,11 @@
+#!/bin/bash
 # vim:ts=4
+# program: Using to note the knowledge about vim configure
+# made by: Engells
+# date: Apr 1, 2019
+# content: Just for memo
+
+
 " vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
 
 

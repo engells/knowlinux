@@ -2,7 +2,7 @@
 # program: Using to note the knowledge about NERDTree
 # made by: Engells
 # date: Mar 17, 2019
-# content: 內容並未最佳化，單純作為書摘使用
+# content: Just for memo
 
 
 
@@ -37,4 +37,49 @@ q: 關閉 NERDTree
 A: 全螢幕顯示 NERDTree，或者關閉全螢幕
 
 https://www.jianshu.com/p/3066b3191cb1
+
+
+
+增加一些配置
+====================
+使用 NERDTree 过程中有些不太方便的地方就是打开的过个文件不共享 NERDTree，需要配合安装共享插件 vim-nerdtree-tabs
+
+" 关闭NERDTree快捷键
+map <leader>t :NERDTreeToggle<CR>
+" 显示行号
+let NERDTreeShowLineNumbers=1
+let NERDTreeAutoCenter=1
+" 是否显示隐藏文件
+let NERDTreeShowHidden=1
+" 设置宽度
+let NERDTreeWinSize=31
+" 在终端启动vim时，共享NERDTree
+let g:nerdtree_tabs_open_on_console_startup=1
+" 忽略一下文件的显示
+let NERDTreeIgnore=['\.pyc','\~$','\.swp']
+" 显示书签列表
+let NERDTreeShowBookmarks=1
+
+
+
+在 NERDTree 中显示 git 信息
+====================
+希望 git 信息直接在 NERDTree 中显示出来，和 Eclipse一样，修改的文件和增加的文件都给出相应的标注，这时需要安装的插件就是 nerdtree-git-plugin
+
+配置信息如下
+
+let g:NERDTreeIndicatorMapCustom = {
+    \ "Modified"  : "✹",
+    \ "Staged"    : "✚",
+    \ "Untracked" : "✭",
+    \ "Renamed"   : "➜",
+    \ "Unmerged"  : "═",
+    \ "Deleted"   : "✖",
+    \ "Dirty"     : "✗",
+    \ "Clean"     : "✔︎",
+    \ "Unknown"   : "?"
+    \ }
+
+NERDTree 配合使用这两个插件文件管理就很棒了，当然如果再加上ctrlp，那就无敌了。
+
 

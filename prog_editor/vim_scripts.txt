@@ -1,0 +1,96 @@
+#!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim scripts
+# made by: Engells
+# date: Apr 1, 2019
+# content: Just for memo
+
+" vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
+
+option
+====================
+commands:
+	set <name1> <name2>=<value2>
+	setlocal <name1> <name2>=<value2>
+
+examples:
+	:set number :set nonumber :set number! :set number?
+	:set numberwidth=4
+	:set wrap?
+	:set shiftround?
+	:set matchtime?
+
+
+
+
+mappings
+====================
+commands:
+	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行。
+	unmap <left-keys>								" 取消 <left-keys> 之映射
+  mapclear												" 取消所有映射
+	noremap													" 非遞迴方式映射熱鍵，nore + map，nore，即 no recirsing 意指非遞迴方式
+	let mapleader = "-"							" 設置 Leader 符號 
+	let localmapleader = "\\"
+  特殊參數
+    <buffer>
+    <silent> → nmap <silent> b a							" 所映射指令不會在底部命令列顯現
+    <special>
+    <script>
+    <expr>
+    <unique>
+
+examples:
+  :map b a 																		" 將 b 映射為 a
+  :map b a ＋ map c b													" 輸入 c 映射為 b，b 再映射為 a，產生遞迴(recirsing)效果 
+	:nnoremap <leader>sv :source $MYVIMRC<cr>		" 設置 <leader>sv，以重載 .vimrc
+	:nnoremap <buffer> <leader>x dd							" 僅在目前作業檔案啟用 <leader>x 作為 dd 的熱鍵
+  :imap <c-d> <esc>ddi												" 在插入模式下定義 Ctrl + D 等於 ESC + dd + i 之複合作用
+	:inoremap <esc> <nop>												" 在插入模式下取消 ESC 鍵作用
+  :unmap {lhs}																" 取消普通模式下 lhs 的映射，其他模式不受影響
+
+
+
+
+abbreviations
+====================
+ => insert、replace、command 模式 => :iabbrev adn and 在插入模式下，adn 字串由 and 字串取代。:iabbrev @@ steve@stevelosh.com
+
+
+
+" autocmd
+====================
+ :help autocmd-events
+"	:autocmd BufNewFile * :write； :autocmd BufNewFile *.txt :write； :autocmd BufWritePre *.html :normal gg=G
+"	:autocmd BufNewFile,BufRead *.html setlocal nowrap
+"	:autocmd FileType python  nnoremap <buffer> <localleader>c I#<esc>  Python文件（后缀为.py的文件）,将光标移动到某一行，敲击<localleader>c，注释掉該行
+"	:augroup testgroup
+"	:    autocmd!  <= 清除同名 autocmd group 所定義命令
+"	:    autocmd BufWrite * :echom "Foo"
+"	:    autocmd BufWrite * :echom "Bar"
+"	:augroup END
+" Operator-Pending 常用到的 Operator 有d，y 和 c
+
+
+ 
+
+一些按鍵的書寫方法
+====================
+<Esc> Esc 鍵
+<Tab> Tab 鍵
+<Space> Space 鍵
+<Home> Home 鍵
+<Del> Del 鍵
+<CR> Enter 鍵
+<Enter> Enter 鍵，和上面的相同
+<LT> 就是 <，在和 < 字元本身會有混淆、疑義時使用。也可以使用 \<。
+<BS> Backspace 倒退鍵
+<Up> PageUp 向上翻頁鍵
+<F5> F5 功能鍵
+<C-G> Ctrl+G 鍵
+<A-x> Alt+x 鍵、因為某些歷史原因、Alt 幾乎無法對映。
+<Shift> Shift 鍵
+<K-9> 九宮格數字鍵的 9
+
+注意大小寫是不分的
+
