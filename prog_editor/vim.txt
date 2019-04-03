@@ -49,7 +49,7 @@ vim
   句子 ( )
   段落 { }
   區塊 [[ ]]
-  螢幕 H M L Ctrl+f Ctrl+b Ctrl+D Ctrl+U
+  螢幕 H M L ; <C-F> <C-B> <C-D> <C-U> ; z + <CR> z + . z + -
   檔案 G 1G/gg
 
 編輯

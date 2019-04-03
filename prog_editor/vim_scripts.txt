@@ -26,7 +26,7 @@ examples:
 mappings
 ====================
 commands:
-	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行。
+	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行
 	unmap <left-keys>								" 取消 <left-keys> 之映射
   mapclear												" 取消所有映射
 	noremap													" 非遞迴方式映射熱鍵，nore + map，nore，即 no recirsing 意指非遞迴方式
@@ -54,11 +54,19 @@ examples:
 
 abbreviations
 ====================
- => insert、replace、command 模式 => :iabbrev adn and 在插入模式下，adn 字串由 and 字串取代。:iabbrev @@ steve@stevelosh.com
+通常用於 insert、replace、command 模式
+
+commands:
+  abbrev <left-string> <right-string>		" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
+
+examples:
+  :iabbrev adn and											" 在插入模式下，adn 字串由 and 字串取代
+  :iabbrev @@ steve@stevelosh.com				" 在插入模式下，@@ 字串由 steve@stevelosh.com 字串取代，變相成為簡易輸入電郵地址
 
 
 
-" autocmd
+
+autocmd
 ====================
  :help autocmd-events
 "	:autocmd BufNewFile * :write； :autocmd BufNewFile *.txt :write； :autocmd BufWritePre *.html :normal gg=G
@@ -72,7 +80,46 @@ abbreviations
 " Operator-Pending 常用到的 Operator 有d，y 和 c
 
 
- 
+
+
+Operator-Pending
+====================
+:onoremap il( :<c-u>normal! F)vi(<cr>
+  <c-u> => make sure mapping active
+  normal! => 模擬按下按鍵，但不能識別特殊符號如 <CR>，故常搭配 execute
+  F) => 向後移動至最近的 ) 字元
+  vi( => 進入可視模式選取括弧內所有內容
+:onoremap ih :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rkvg_"<cr>
+  execute => run a vim script
+  ?^==\+$ => 向上搜尋兩個或以上 = 字元所組成之行，行內無 = 以外之字元。? ^$ ==\+
+  \r => <Enter>
+  nohlsearch => no high light search
+  k => 向上一列
+  v => 進入可視模式
+  g_ => 移到最後非空白字元
+:onoremap ah :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rg_vk0"<cr>
+
+
+
+
+Status line
+====================
+:set statusline=%f\ -\ FileType:\ %y
+  %f => file name
+  %y => file type 
+  %l => cursor line number
+  %L => the numbers of a file
+:set statusline=Current:\ %4l\ Total:\ %4L
+  %4l => 以四位數字顯示游標所在列數
+:set statusline=Current:\ %-4l\ Total:\ %-4L
+  %-4l => 以四位數字顯示游標所在列數，不足位數放在右邊
+  %04l => 以四位數字顯示游標所在列數，不足位數以 0 替代
+  %F => 檔案完整路徑
+  %.20F => 檔案完整路徑，最多 20 字元
+  %= => 所有之後的訊息靠右對齊
+
+
+
 
 一些按鍵的書寫方法
 ====================
