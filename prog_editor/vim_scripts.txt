@@ -5,11 +5,11 @@
 # date: Apr 1, 2019
 # content: Just for memo
 
-" vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
+
 
 option
 ====================
-commands:
+commands pattern:
 	set <name1> <name2>=<value2>
 	setlocal <name1> <name2>=<value2>
 
@@ -25,7 +25,7 @@ examples:
 
 mappings
 ====================
-commands:
+commands pattern:
 	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行
 	unmap <left-keys>								" 取消 <left-keys> 之映射
   mapclear												" 取消所有映射
@@ -56,7 +56,7 @@ abbreviations
 ====================
 通常用於 insert、replace、command 模式
 
-commands:
+commands pattern:
   abbrev <left-string> <right-string>		" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
 
 examples:
@@ -68,16 +68,29 @@ examples:
 
 autocmd
 ====================
- :help autocmd-events
-"	:autocmd BufNewFile * :write； :autocmd BufNewFile *.txt :write； :autocmd BufWritePre *.html :normal gg=G
-"	:autocmd BufNewFile,BufRead *.html setlocal nowrap
-"	:autocmd FileType python  nnoremap <buffer> <localleader>c I#<esc>  Python文件（后缀为.py的文件）,将光标移动到某一行，敲击<localleader>c，注释掉該行
-"	:augroup testgroup
-"	:    autocmd!  <= 清除同名 autocmd group 所定義命令
-"	:    autocmd BufWrite * :echom "Foo"
-"	:    autocmd BufWrite * :echom "Bar"
-"	:augroup END
-" Operator-Pending 常用到的 Operator 有d，y 和 c
+commands pattern:
+	autocmd event1,event2,... filter_pattern command
+
+examples:
+	:autocmd BufNewFile * :write								" 開新檔案時，立刻儲存
+	:autocmd BufNewFile *.txt :write						" 開 txt 類型新檔案時，立刻儲存
+	:autocmd BufWritePre *.html :normal gg=G		" 對 html 類型檔案存檔前，對檔案內容縮排
+	:autocmd BufNewFile,BufRead *.html setlocal nowrap
+	:autocmd FileType python  nnoremap <buffer> <localleader>c I#<esc>	" Python文件（副檔名 .py）,將游標移至任一列，敲鍵盤<localleader>c 即可註釋該列
+
+	:augroup testgroup
+	:	autocmd!  <= 清除同名 autocmd group 所定義命令
+	:	autocmd BufWrite * :echom "Foo"
+	:	autocmd BufWrite * :echom "Bar"
+	:augroup END
+
+
+
+
+Operator-Pending 常用到的 Operator 有d，y 和 c
+
+help documents
+	:help autocmd-events
 
 
 
@@ -121,8 +134,57 @@ Status line
 
 
 
-一些按鍵的書寫方法
+variables
 ====================
+let variable=value
+let &l:number = 1						" 將內部變數 &number 改為 &l:number
+let @a = "hello!"						" @a 是暫存器 a
+let b:hello = "world"				" b:hello 表示該變數只應用於現在 buffer
+
+boolean 0 => false others => true
+
+
+
+
+condition and loop
+====================
+if elseif else endif
+
+:set noignorecase
+:if "foo" ==? "FOO"					<= '==?' 忽略大小寫，'==#' 強制分辨大小寫
+:    echom "first"
+:elseif "foo" ==? "foo"
+:    echom "second"
+:endif
+
+function function_name() ... endfunction
+
+:function DisplayName(name)
+:  echom "Hello!  My name is:"
+:  echom a:name						<= a: 代表後接之參數為區域型，注意已提到 a:參數 b:參數
+:endfunction
+
+
+
+
+
+
+
+
+
+help documents
+	:help ignorecase
+	:help expr4
+
+
+
+
+General
+====================
+vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
+
+一些按鍵的書寫方法
+----------
 <Esc> Esc 鍵
 <Tab> Tab 鍵
 <Space> Space 鍵
