@@ -1,4 +1,9 @@
 # vim:ts=2
+# program: Using to note the knowledge about lxc
+# made by: Engells
+# date: Mar 31, 2019
+# content: Just for memo
+
 
 
 常用指令
@@ -47,11 +52,12 @@ useradd -m -d /home/admit -s /bin/bash admit
 
 Build chinese environment
 	edit var/lib/locales/supported.d/[en,zh-hant]
-	sudo apt install language-pack-zh-hans
-	sudo locale-gen --purge		# sudo locale-gen zh_TW.UTF-8
-	copy fonts, sudo fc-cache -f -v
+	apt install fontconfig	localepurge language-pack-zh-hans
+	locale-gen --purge		# sudo locale-gen zh_TW.UTF-8
+	dpkg-reconfigure localepurge
+	copy fonts, fc-cache -f -v
 
-sudo apt install libcanberra-gtk-module libcanberra-gtk3-module dbus dbus-x11 firefox
+sudo apt install fontconfig	xauth libcanberra-gtk-module libcanberra-gtk3-module dbus dbus-x11 firefox
 
 
 

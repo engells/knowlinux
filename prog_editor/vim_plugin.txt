@@ -1,9 +1,20 @@
 #!/bin/bash
 # vim:ts=4
-# program: Using to note the knowledge about vim
+# program: Using to note the knowledge about vim plugins
 # made by: Engells
-# date: Aug 29, 2017
-# content: 內容並未最佳化，單純作為書摘使用
+# date: Apr 1, 2019
+# content: Just for memo
+
+
+
+常用 plugin
+====================
+NERDTree
+XMLEdit
+SuperTab, ervandew/supertab, https://github.com/ervandew/supertab
+PowerLine, vim-airline/vim-airline
+space-vim，實質上為大型設定集
+syntastic, vim-syntastic/syntastic, syntax checker
 
 
 

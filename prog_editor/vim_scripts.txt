@@ -1,0 +1,205 @@
+#!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim scripts
+# made by: Engells
+# date: Apr 1, 2019
+# content: Just for memo
+
+
+
+option
+====================
+commands pattern:
+	set <name1> <name2>=<value2>
+	setlocal <name1> <name2>=<value2>
+
+examples:
+	:set number :set nonumber :set number! :set number?
+	:set numberwidth=4
+	:set wrap?
+	:set shiftround?
+	:set matchtime?
+
+
+
+
+mappings
+====================
+commands pattern:
+	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行
+	unmap <left-keys>								" 取消 <left-keys> 之映射
+  mapclear												" 取消所有映射
+	noremap													" 非遞迴方式映射熱鍵，nore + map，nore，即 no recirsing 意指非遞迴方式
+	let mapleader = "-"							" 設置 Leader 符號 
+	let localmapleader = "\\"
+  特殊參數
+    <buffer>
+    <silent> → nmap <silent> b a							" 所映射指令不會在底部命令列顯現
+    <special>
+    <script>
+    <expr>
+    <unique>
+
+examples:
+  :map b a 																		" 將 b 映射為 a
+  :map b a ＋ map c b													" 輸入 c 映射為 b，b 再映射為 a，產生遞迴(recirsing)效果 
+	:nnoremap <leader>sv :source $MYVIMRC<cr>		" 設置 <leader>sv，以重載 .vimrc
+	:nnoremap <buffer> <leader>x dd							" 僅在目前作業檔案啟用 <leader>x 作為 dd 的熱鍵
+  :imap <c-d> <esc>ddi												" 在插入模式下定義 Ctrl + D 等於 ESC + dd + i 之複合作用
+	:inoremap <esc> <nop>												" 在插入模式下取消 ESC 鍵作用
+  :unmap {lhs}																" 取消普通模式下 lhs 的映射，其他模式不受影響
+
+
+
+
+abbreviations
+====================
+通常用於 insert、replace、command 模式
+
+commands pattern:
+  abbrev <left-string> <right-string>		" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
+
+examples:
+  :iabbrev adn and											" 在插入模式下，adn 字串由 and 字串取代
+  :iabbrev @@ steve@stevelosh.com				" 在插入模式下，@@ 字串由 steve@stevelosh.com 字串取代，變相成為簡易輸入電郵地址
+
+
+
+
+autocmd
+====================
+commands pattern:
+	autocmd event1,event2,... filter_pattern command
+
+examples:
+	:autocmd BufNewFile * :write								" 開新檔案時，立刻儲存
+	:autocmd BufNewFile *.txt :write						" 開 txt 類型新檔案時，立刻儲存
+	:autocmd BufWritePre *.html :normal gg=G		" 對 html 類型檔案存檔前，對檔案內容縮排
+	:autocmd BufNewFile,BufRead *.html setlocal nowrap
+	:autocmd FileType python  nnoremap <buffer> <localleader>c I#<esc>	" Python文件（副檔名 .py）,將游標移至任一列，敲鍵盤<localleader>c 即可註釋該列
+
+	:augroup testgroup
+	:	autocmd!  <= 清除同名 autocmd group 所定義命令
+	:	autocmd BufWrite * :echom "Foo"
+	:	autocmd BufWrite * :echom "Bar"
+	:augroup END
+
+
+
+
+Operator-Pending 常用到的 Operator 有d，y 和 c
+
+help documents
+	:help autocmd-events
+
+
+
+
+Operator-Pending
+====================
+:onoremap il( :<c-u>normal! F)vi(<cr>
+  <c-u> => make sure mapping active
+  normal! => 模擬按下按鍵，但不能識別特殊符號如 <CR>，故常搭配 execute
+  F) => 向後移動至最近的 ) 字元
+  vi( => 進入可視模式選取括弧內所有內容
+:onoremap ih :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rkvg_"<cr>
+  execute => run a vim script
+  ?^==\+$ => 向上搜尋兩個或以上 = 字元所組成之行，行內無 = 以外之字元。? ^$ ==\+
+  \r => <Enter>
+  nohlsearch => no high light search
+  k => 向上一列
+  v => 進入可視模式
+  g_ => 移到最後非空白字元
+:onoremap ah :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rg_vk0"<cr>
+
+
+
+
+Status line
+====================
+:set statusline=%f\ -\ FileType:\ %y
+  %f => file name
+  %y => file type 
+  %l => cursor line number
+  %L => the numbers of a file
+:set statusline=Current:\ %4l\ Total:\ %4L
+  %4l => 以四位數字顯示游標所在列數
+:set statusline=Current:\ %-4l\ Total:\ %-4L
+  %-4l => 以四位數字顯示游標所在列數，不足位數放在右邊
+  %04l => 以四位數字顯示游標所在列數，不足位數以 0 替代
+  %F => 檔案完整路徑
+  %.20F => 檔案完整路徑，最多 20 字元
+  %= => 所有之後的訊息靠右對齊
+
+
+
+
+variables
+====================
+let variable=value
+let &l:number = 1						" 將內部變數 &number 改為 &l:number
+let @a = "hello!"						" @a 是暫存器 a
+let b:hello = "world"				" b:hello 表示該變數只應用於現在 buffer
+
+boolean 0 => false others => true
+
+
+
+
+condition and loop
+====================
+if elseif else endif
+
+:set noignorecase
+:if "foo" ==? "FOO"					<= '==?' 忽略大小寫，'==#' 強制分辨大小寫
+:    echom "first"
+:elseif "foo" ==? "foo"
+:    echom "second"
+:endif
+
+function function_name() ... endfunction
+
+:function DisplayName(name)
+:  echom "Hello!  My name is:"
+:  echom a:name						<= a: 代表後接之參數為區域型，注意已提到 a:參數 b:參數
+:endfunction
+
+
+
+
+
+
+
+
+
+help documents
+	:help ignorecase
+	:help expr4
+
+
+
+
+General
+====================
+vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
+
+一些按鍵的書寫方法
+----------
+<Esc> Esc 鍵
+<Tab> Tab 鍵
+<Space> Space 鍵
+<Home> Home 鍵
+<Del> Del 鍵
+<CR> Enter 鍵
+<Enter> Enter 鍵，和上面的相同
+<LT> 就是 <，在和 < 字元本身會有混淆、疑義時使用。也可以使用 \<。
+<BS> Backspace 倒退鍵
+<Up> PageUp 向上翻頁鍵
+<F5> F5 功能鍵
+<C-G> Ctrl+G 鍵
+<A-x> Alt+x 鍵、因為某些歷史原因、Alt 幾乎無法對映。
+<Shift> Shift 鍵
+<K-9> 九宮格數字鍵的 9
+
+注意大小寫是不分的
+

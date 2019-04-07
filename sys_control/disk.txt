@@ -1,9 +1,42 @@
 # vim:ts=4
+# program: Knowhow about disk utilities
+# made by: Engells
+# date: Mar 29, 2019
+# content: Just for memo
+
+
+
+Check HD Health
+====================
+sudo badblocks -wsv /dev/sd[x][y]
+	# badblocks 需要在離線時才能執行
+	# -w 參數，讀寫測試，設會 0xaa、0x55、0xff 與 0x00 這四個 patterns 進行寫入與讀取的測試，硬碟等儲存設備的資料會被抹除
+	# -t 參數將 pattern 指定為 random：sudo badblocks -wsv -t random /dev/sd[x][y]
+	# -p 參數，定通過測試的次數。指定儲存設備就必須連續通過 3 次的完整測試才會停止：sudo badblocks -wsv -p 3 /dev/sd[x][y]
+	# -s 與 -v 參數，顯示測試進度與詳細的測試結果。測試結果的 errors 值若有出現不是 0 的數字，就代表硬碟應該是有問題了
+	# -n 參數，保留資料的模式進行壞軌測試。sudo badblocks -nsv /dev/sd[x][y]
+	# -o 參數，將壞軌資訊輸出至檔案。接著用 mkfs 依壞軌資訊建立新的檔案系統：mkfs.fat -l file_bad_blocks_dumps /dev/sd[x][y]
+	#	 另外一種方式是直接使用 mkfs 的 -c 參數，在建立檔案系統之前，自動檢查壞軌並且排除：mkfs.fat -c /dev/sdb1
+
+sudo shred -vz /dev/sda
+	# 參數「v」是顯示進度，「z」是增加一道程序填入零值。 shred 預設填入亂數值三次，因此上述指令代表三次亂數值和一次零值，總共填滿硬碟四次。
+
+fsck.fat /dev/sdb1
+	# 修復既存檔案系統
+
+sudo hdparm -I /dev/sda											# 確認該硬碟是否支援 Secure Erase，需要 not frozen 訊息
+sudo hdparm -user-master u --security-set-pass 1234 /dev/sda	# 確認支援 Secure Erase 後，對硬碟設置 Security 功能的密碼
+sudo hdparm -user-master u --security-erase 1234 /dev/sda		# 使用密碼執行 Secure Erase
+
+baobab									#  磁碟空間使用分析程式
+du -B M --max-depth=1 /path | sort -g	#  磁碟空間使用分析指令
+
+lsblk		# 顯示儲存設備
 
 
 
 GPT disk
-==============================
+====================
 經 2012-01-17 以 VirtualBox + gdisk + grub2 測試，使用傳統 BIOS 加 GPT 格式硬碟的分割配置為：
 	Primary GPT + BIOS boot partition + Linux Partitions
 

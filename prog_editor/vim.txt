@@ -3,13 +3,15 @@
 # program: Using to note the knowledge about vim
 # made by: Engells
 # date: Mar 14, 2019
-# content: 內容並未最佳化，單純作為書摘使用
+# content: Just for memo
 
 
 
 vim 8.0
 ===================
 套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/myplugins/start // ~/.vim/pack/myplugins/opt
+	示例安裝 NERDTree：git clone git@github.com:scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
+
 把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
 想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/myplugins/start/ale
 升級所有套件，執行： git submodule update --recursive --remote
@@ -36,51 +38,43 @@ Pathogen
   # 把要加入的 plugin 的資料夾放在 bundle/ 底下就完工了！刪除也是，直接砍掉 bundle/ 底下對應資料夾就可以
 
 
-常用 plugin
-----------
-NERDTree
-XMLEdit
-SuperTab, ervandew/supertab, https://github.com/ervandew/supertab
-PowerLine, vim-airline/vim-airline
-space-vim，實質上為大型設定集
-syntastic, vim-syntastic/syntastic, syntax checker
-
-
-
-
-folding
-====================
-url:	http://ctwyw.com/?p=43
-:set foldmethod=expr
-:set foldexpr=v:lnum>=2&&v:<=33?1:0         //折疊2到33行
-:set foldexpr=v:lnum%3-1?1:'>1'             //三行一折疊
-:set foldexpr=getline(v:lnum)=~'^#f'?1:0    //行匹配到#f開頭的返回層級1，其餘0
-:set foldexpr=getline(v:lnum)=~'.'?1:0      //折疊連續非空行
-:set foldcolumn=1                           // 左側可以顯示折疊的+-號，通過鼠標可以打開關閉折疊效果
-:set foldtext=foldtext()                    //可以設置折疊顯示的文字 
-
-
 
 
 vim
 ====================
 游標移動
-  字元 hjkl
-  字詞 wWeEbB
-  行 0^$ n| :n
+  字元 h j k l ; <num><Space> ; n|
+  字詞 w W e E b B
+  行 0 ^ $ ; <CR> ; + - ; :<num>
   句子 ( )
   段落 { }
-  區塊 
-  螢幕 H M L Ctrl+f Ctrl+b Ctrl+D Ctrl+U
+  區塊 [[ ]]
+  螢幕 H M L ; <C-F> <C-B> <C-D> <C-U> ; z + <CR> z + . z + -
   檔案 G 1G/gg
 
+編輯
+  插入 I i a A
+  取代 cw c0 c^ c$ cc <num>cc ; <num>s S ; r R
+  刪除 dw d0 d^ d$ dd <num>dd ; <num>x X
+	複製 yw y0 y^ y$ yy <num>yy
+  貼上 p P ; [Ctrl]-R → 0	在下一行貼上複製或刪除的內容，適用於編輯模式及指令行
+  選取 v V
+
+搜尋與取代
+  向下搜尋 /搜尋字串 ; /\c搜尋字串 ; *(將游標移到字串上，直接按 "*" 也可以做向下搜尋) ; :set ic ; 	:set noic	搜尋時要分大小寫
+  向上搜尋 ?搜尋字串 ; 	?\c搜尋字串 ; 
+  繼續下一個搜尋結果	n					
+  繼續上一個搜尋結果	N					
+  取代  :起始行,終止行s/搜尋字串/取代字串/gic	從第 n 行到第 n 行取代字串 (後面的 g: 整行全部 i: 不分大小寫 c: 詢問)
+  取代  :1,$s/搜尋字串/取代字串/gic		全部取代字串 (後面的 g: 整行全部 i: 不分大小寫 c: 詢問)
+
 緩衝區
-  檔案內容緩衝區    如刪除、yank、置換,給 Put 要用的 registers 緩衝區
-  書籤緩衝區        m[a-z] `[a-z] '[a-z]
-                    m[A-Z]
-  檔案緩衝區      :n :2n :N                     <= argument list
-                :bn :bp :bl :b[#] :b檔名      <= buffer list
-                :files 或 :buffers 或 :ls     <= 會列出目前 buffer 中的所有檔案
+  檔案內容緩衝區			如刪除、yank、置換,給 Put 要用的 registers 緩衝區
+  書籤緩衝區				m[a-z] `[a-z] '[a-z] `` ''
+									m[A-Z]
+  檔案間緩衝區    :n :2n :N											<= argument list
+                :bn :bp :bl :b[#] :b檔名				<= buffer list
+                :files 或 :buffers 或 :ls			<= 會列出目前 buffer 中的所有檔案
                 # 代表前一次編輯的檔案，% 是目前編輯中的檔案
 
 視窗操作
@@ -113,6 +107,7 @@ vim
   :tabm [N] 移動到第 N 順位
   還可以 :set tabline 來定義 tab 顯示方式
 
+
 剪貼簿
   一勞永逸的方式
       在 ~/.vimrc 裏面加上一行 set clipboard=unnamed，之後所有的複製貼上都會根據系統剪貼簿的內容更變
@@ -130,25 +125,16 @@ vim
 
 
 
-一些按鍵的書寫方法
+folding
 ====================
-<Esc> Esc 鍵
-<Tab> Tab 鍵
-<Space> Space 鍵
-<Home> Home 鍵
-<Del> Del 鍵
-<CR> Enter 鍵
-<Enter> Enter 鍵，和上面的相同
-<LT> 就是 <，在和 < 字元本身會有混淆、疑義時使用。也可以使用 \<。
-<BS> Backspace 倒退鍵
-<Up> PageUp 向上翻頁鍵
-<F5> F5 功能鍵
-<C-G> Ctrl+G 鍵
-<A-x> Alt+x 鍵、因為某些歷史原因、Alt 幾乎無法對映。
-<Shift> Shift 鍵
-<K-9> 九宮格數字鍵的 9
-
-注意大小寫是不分的
+url:	http://ctwyw.com/?p=43
+:set foldmethod=expr
+:set foldexpr=v:lnum>=2&&v:<=33?1:0         //折疊2到33行
+:set foldexpr=v:lnum%3-1?1:'>1'             //三行一折疊
+:set foldexpr=getline(v:lnum)=~'^#f'?1:0    //行匹配到#f開頭的返回層級1，其餘0
+:set foldexpr=getline(v:lnum)=~'.'?1:0      //折疊連續非空行
+:set foldcolumn=1                           // 左側可以顯示折疊的+-號，通過鼠標可以打開關閉折疊效果
+:set foldtext=foldtext()                    //可以設置折疊顯示的文字 
 
 
 
@@ -207,6 +193,25 @@ Ex 模式 (Ex-mode)
 
 
 
+暫存器
+====================
+VIM 中有 9 类暫存器，暫存器的主要功能就是缓存操作过程中删除、複製、搜索等的文本内容，指令 :help registers 查看暫存器的详细帮助说明如下：
+
+無名（unnamed）暫存器 ""              	# 預設暫存器，yy 和 p 指令使用的是这个暫存器，只能在目前編輯檔案中複製貼上
+數字（numbered） "0 ～ "9            	# vim 用来保存最近複製、刪除等操作的内容，其中 0 暫存器保存的是最近一次的操作内容。
+行內刪除（small delete） "-           	# 快取行內刪除內容
+具名（named） "a ～ "z / "A ～ "Z    	# 用户存器，vim 不會使用
+唯讀暫存器 ": ". "% "#              	# 分別快取最近命令、最近插入文字、目前編輯檔案、目前交替檔名
+表示式（expression）暫存器 "=          	# 用於執行表示式命令
+選擇及拖拽（selection and drop）暫存器 "* "+ "~   	# 存取 GUI 選擇文字，可用於與外部應用互動，。"* 與作業系統緩衝區相關，"+ 與作業系統緩剪貼簿衝區相關
+黑洞（black hole）暫存器："_          	# 不快取操作內容（乾淨刪除）
+模式暫存器（last search pattern）："/  # 快取最近的搜尋模式
+
+在 script 內以 @" 代稱 ""
+
+
+
+
 設定檔
 ====================
 變數
@@ -226,38 +231,6 @@ Ex 模式 (Ex-mode)
     for CONFIG in split(glob('~/.vim/vimrc.d/*.vim'), '\n')
       exe 'source' CONFIG
     endfor
-
-熱鍵(指令映射)
-  map b a → 將 b 映射為 a
-  map b a ＋ map c b → 輸入 c 映射為 b，b 再映射為 a，產生遞迴(recirsing)效果 
-  noremap b a → 將 b 映射為 a，無遞迴(recirsing)效果
-  unmap {lhs} → 取消普通模式下 lhs 的映射，其他模式不受影響
-  mapclear → 取消所有映射
-  特殊參數
-    <buffer>
-    <silent> → nmap <silent> b a → 所映射指令不會在底部命令列顯現
-    <special>
-    <script>
-    <expr>
-    <unique> 
-
-
-
-
-暫存器
-====================
-VIM 中有 9 类暫存器，暫存器的主要功能就是缓存操作过程中删除、複製、搜索等的文本内容，指令 :help registers 查看暫存器的详细帮助说明如下：
-
-無名（unnamed）暫存器 ""              	# 預設暫存器，yy 和 p 指令使用的是这个暫存器，只能在目前編輯檔案中複製貼上
-數字（numbered） "0 ～ "9            	# vim 用来保存最近複製、刪除等操作的内容，其中 0 暫存器保存的是最近一次的操作内容。
-行內刪除（small delete） "-           	# 快取行內刪除內容
-具名（named） "a ～ "z / "A ～ "Z    	# 用户存器，vim 不會使用
-唯讀暫存器 ": ". "% "#              	# 分別快取最近命令、最近插入文字、目前編輯檔案、目前交替檔名
-表示式（expression）暫存器 "=          	# 用於執行表示式命令
-選擇及拖拽（selection and drop）暫存器 "* "+ "~   	# 存取 GUI 選擇文字，可用於與外部應用互動，。"* 與作業系統緩衝區相關，"+ 與作業系統緩剪貼簿衝區相關
-黑洞（black hole）暫存器："_          	# 不快取操作內容（乾淨刪除）
-模式暫存器（last search pattern）："/  # 快取最近的搜尋模式
-
 
 
 

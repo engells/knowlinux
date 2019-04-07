@@ -1,9 +1,9 @@
 #!/bin/bash
 # vim:ts=4
-# program:Using to note the knowledge about KVM
+# program: Using to note the knowledge about KVM
 # made by: Engells
-# date: Mar 6, 2019
-# content: 內容並未最佳化，單純作為書摘使用
+# date: Mar 28, 2019
+# content: Just for memo
 
 
 
@@ -11,13 +11,15 @@
 指令示例：
 ====================
 在虛擬機安裝作業系統
-  kvm -enable-kvm -bios /usr/share/ovmf/OVMF.fd vdisk.img -cdrom /path/to/boot-media.iso -smp 2 -boot d -m 512
+  kvm -enable-kvm -bios /usr/share/ovmf/OVMF.fd -hda vdisk.img -cdrom /path/to/boot-media.iso -smp 2 -boot d -m 2048 -usb -usbdevice tablet
    -enable-kvm: 啟用 kvm 功能
+   -hda: 指向要安裝映像檔或硬碟代號（如: /dev/sda），不要指向分割區（如: /dev/sda8）
    -bios: 指定 bios 檔案，本例 OVMF.fd 為 UEFI，virtsh 使用 /usr/share/OVMF/OVMF_CODE.fd 檔案作為 UEFI
    -cdrom: 掛載光碟印象檔
    -smp: CPU 核心數
    -boot: 選擇開機方法，d 是指光碟開機
    -m: 記憶體大小，單位 MB
+   -usb -usbdevice tablet 讓虛擬機器的滑鼠游標與本機游標同步，若以文字介面進行安裝可免用這項設定
 
 由硬碟分割啟動虛擬機
   kvm -monitor stdio -m 1024 -vga -kernel vmlinuz -initrd initrd.img -append 'root=/dev/sda' /dev/sdz99
@@ -59,41 +61,6 @@ url:
 
 
 
-與 Virtual Box 相容性問題
-====================
-KVM 可在 Virtual Box 載入系統核心時執行，但 Virtual Box 不可在 KVM 載入核心時執行。因此較佳的方式是同一時間只執行其中之一。
-
-執行 KVM 時，先停止 Virtual Box，再啟動 KVM
-----------
-sudo service vboxdrv stop
-lsmod | grep vbox
-sudo service kvm start ← 需先確定沒有執行 VirtualBox 
-
-
-執行 Virtual Box 時，先停止 KVM，再啟動 Virtual Box
-----------
-sudo service kvm stop
-lsmod | grep kvm → 確定已經移除 kvm 模組
-sudo service vboxdrv start
-
-
-開機時不載入 kvm 模組
-----------
-編輯 /etc/init/kvm.conf
-  #start on runlevel [2345]
-
-
-相關指令
-----------
-modprobe -clfr module_name
-  -c：列出目前系統所有的模組
-  -l：列出 /lib/modules/$(uname -r)/kernel 目錄下所有的模組
-  -f：強制載入模組
-  -r：移除模組
-
-
-
-
 在虛擬機加入新硬體及驅動程式
 ====================
 qxl 顯示卡
@@ -105,7 +72,6 @@ virtio 介面裝置
     NIC： /path/to/iso/NetKVM
     PCI： /path/to/iso/vioserial
     PCI SCSI： /path/to/iso/Balloon
-
 
 
 
@@ -138,35 +104,11 @@ mount /dev/nbd0p1 /path/to/folder
 umount /path/to/folder
 
 
+
+
 使用實體硬碟
-----------
-產生 NewStorage.xml:
-  <disk type='block' device='disk'>
-    <driver name='qemu' type='raw' cache='none'/>
-    <source dev='/dev/sr0'/>
-    <target dev='vdc' bus='virtio'/>
-  </disk>
-  # vd[X], the disk is connected to a virtio controller
-  # sd[X], the disk is connected to a scsi controller
-  # hd[X], the disk is connected to an IDE controller
-
-
-將硬碟設定檔匯入虛擬機
-  virsh attach-disk machine_name /dev/sr0 vdc
-    # 單純匯入硬碟
-  virsh attach-disk machine_name /dev/sr0 vdc --config --type disk
-    # 加入 type 參數
-  virsh attach-disk machine_name /dev/sr0 vdc --config --type cdrom --mode readonly
-    # 加入唯讀光碟
-
-
-注意：
-  至此在虛擬機產生 /dev/vdc 的裝置，其實體位置對應至 Host 的 /dev/sr0
-  將整個硬碟映射至虛擬機，應先將該實體硬碟的 MBR 備份，以預防在虛擬機操作時變更到實體硬碟原本的 boot-loader
-    # dd if=/dev/sda of=sda.mbr bs=446 count=1
-
-
-或是在 /etc/libvirt/qemu/<your-vm>.xml 組態檔的 <device> section 增加：
+====================
+在 /etc/libvirt/qemu/<your-vm>.xml 組態檔的 <device> section 增加：
   <disk type='block' device='disk'>
    <driver name='qemu' type='raw'/>
    <source dev='/dev/md/storage'/>
@@ -174,22 +116,37 @@ umount /path/to/folder
   </disk>
 執行指令  virsh define /etc/libvirt/qemu/guest_name.xml，使上述修改生效。實做可行。
 
+注意：
+  將整個硬碟映射至虛擬機，應先將該實體硬碟的 MBR 備份，以預防在虛擬機操作時變更到實體硬碟原本的 boot-loader
+  # dd if=/dev/sda of=sda.mbr bs=446 count=1
+  另參 virsh attach-disk 指令
 
 
-利用 kvm 虛擬技術將 Linux 安裝於實體硬碟
+
+RedHat Physical-to-Virtual（P2V)
+====================
+virt-p2v
+  1.製作 virt-p2v 的可開機隨身碟
+  2.找一台機器作為 p2v 的中轉機器(此轉換機器啟動 virt-p2v-server服務)，轉化物理機傳輸過來的資料
+  3.以隨身碟開機 p2v 的機器(要轉虛擬化的物理機)，通過網路將物理機的資料傳送給第二步的 virt-p2v-server 服務
+  4.virt-p2v-server 服務接收到資料，轉換為相應的虛擬機器檔
+
+url:
+  http://fanli7.net/a/bianchengyuyan/PHP/20130907/420675.html
+  https://read01.com/zh-tw/8kjaMG.html
+  http://guwenwu285.iteye.com/blog/1633748
+  http://blog.csdn.net/tantexian/article/category/2833561
+
+
+
+
+利用 KVM 虛擬技術將 Linux 安裝於實體硬碟
 ====================
 備份 MBR (非必要)
   sudo dd if=/dev/sda of=sda.mbr bs=446 count=1
 
-
-以 kvm 載入 Linux 安裝光碟, 開始進行安裝作業
-  sudo kvm -hda /dev/sda -cdrom /path/to/fedora18-live-cd.iso -smp 2 -m 1024 -usb -usbdevice tablet -boot d
-    # -hda 指向要安裝的硬碟代號（如: /dev/sda），不要指向分割區（如: /dev/sda8）
-    # -boot d 強制以光碟開機，否則會跑硬碟的 Bootloader
-    # -usb -usbdevice tablet 讓虛擬機器的滑鼠游標與本機游標同步，若以文字介面進行安裝可免用這項設定
-    # 選擇自訂安裝, 將 / 安裝於指定分割區（如: /dev/sda8）
-    # 把 Bootloader 安裝於上述分割區
-
+以 KVM 載入 Linux 安裝光碟, 開始進行安裝作業
+  sudo kvm -hda /dev/sda -cdrom /path/to/iso_file -smp 2 -m 2048 -usb -usbdevice tablet -boot d
 
 安裝後, 在 GRUB 2 選單增添或修改選項
   vi /etc/grub.d/40_custom
@@ -199,11 +156,9 @@ umount /path/to/folder
     }
   grub2-mkconfig -o /boot/grub2/grub.cfg
 
-
 把 Bootloader 另外寫入磁碟分割區 (first sector of boot partition)
   grub2-install --force /dev/sda7
     目的: 若 MBR 的 Bootloader 毀損或改寫，仍可用其他 Linux 系統的 GRUB 以 chainloader +1 方式啟動本分割區的 Linux 系統
-
 
 若安裝時不小心把 Bootloader 寫入 MBR, 想改回原設定
   方式一：寫回備份內容
@@ -211,9 +166,43 @@ umount /path/to/folder
   方式二：以目前設定重新寫入 MBR
     grub2-install /dev/sda
 
-
 參考網址
   http://jamyy.us.to/blog/2013/01/4431.html
+
+
+
+
+與 Virtual Box 相容性問題
+====================
+KVM 可在 Virtual Box 載入系統核心時執行，但 Virtual Box 不可在 KVM 載入核心時執行。因此較佳的方式是同一時間只執行其中之一。
+
+執行 KVM 時，先停止 Virtual Box，再啟動 KVM
+----------
+sudo service vboxdrv stop
+lsmod | grep vbox
+sudo service kvm start ← 需先確定沒有執行 VirtualBox 
+
+
+執行 Virtual Box 時，先停止 KVM，再啟動 Virtual Box
+----------
+sudo service kvm stop
+lsmod | grep kvm → 確定已經移除 kvm 模組
+sudo service vboxdrv start
+
+
+開機時不載入 kvm 模組
+----------
+編輯 /etc/init/kvm.conf
+  #start on runlevel [2345]
+
+
+相關指令
+----------
+modprobe -clfr module_name
+  -c：列出目前系統所有的模組
+  -l：列出 /lib/modules/$(uname -r)/kernel 目錄下所有的模組
+  -f：強制載入模組
+  -r：移除模組
 
 
 

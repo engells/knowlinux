@@ -11,10 +11,12 @@
 ssh X forwarding
 ====================
 ssh -v -X user_name@remote_computer_ip
+ssh -YC4c user_name@remote_computer_ip
 ssh -v -X user_name@remote_computer_ip nautilus --new-window
 
 設定 remote_computer
     編輯 /etc/ssh/sshd_config 加一句 X11UseLocalhost no，再重新啟動服務： systemctl restart sshd
+		# ForwardX11 yes、ForwardX11Trusted yes
 		# 不確定參數： AllowTcpForwarding yes、X11Forwarding yes、AllowAgentForwarding yes、X11DisplayOffset 10
     編輯 root 的 .bashrc 裡面設定 export XAUTHORITY=/home/user_name/.Xauthority
 

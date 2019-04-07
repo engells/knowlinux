@@ -1,13 +1,26 @@
 # vim:ts=2
 # program: knowhow about ZFS
 # made by: Engells
-# date: Mar 11, 2019
+# date: Apr 7, 2019
 # content: 
 
 
 
+常用指令
+====================
+zpool import pool_name
+zpool export pool_name
+zpool scrub pool_name
+zpool status pool_name
+zfs list pool_name/dataset_name
+zfs mount pool_name/dataset_name
+zfs umount pool_name/dataset_name
+
+
+
+
 安裝 Ubuntu 18.04 至 XFS
-====================-
+====================
 1. 分割硬碟，產生分割區：ESP(200M, ef00)、BIOS(2M, ef02)、ZFS(bf00)、EXT4(10~20G,8300)
 2. 以隨身碟等開機，安裝 Ubuntu 18.04 至 EXT4 分割區，並安裝 zfsutils-linux、zfs-initramfs zfs-dkms 套件
 3. 以硬碟 EXT4 開機，在保留予 ZFS 之分割區建立 pool，並建立 dataset，例如 rpool/os/u1804，注意相關屬性設定，
@@ -67,7 +80,7 @@ zpool add pool_name DeviceNode
 	# 將儲存裝置加入 pool
 
 zpool remove pool_name DeviceNode
-	# 將儲存裝置移出 pool
+	# 將儲存裝置移出 pool，可應用於移除 zpool cache
 
 zpool attach or zpool detach
 	# for mirror?
@@ -111,6 +124,9 @@ zpool destroy pool_name
 
 zpool iostat -v pool_name
 	# 可查看檔案寫到 pool 裡的位置
+
+zpool clear pool_name
+	# clears device errors in a pool
 
 zpool set bootfs=pool_name/dataset_name pool_name
 	# 範例 zpool set bootfs=zroot/ROOT/default zroot
@@ -251,8 +267,24 @@ zpool add zpool log /path/to/log_name.img -f
 
 
 
+Others
+====================
+Modify time sleep on booting
+----------
+/etc/default/zfs
+	ZFS_INITRD_POST_MODPROBE_SLEEP='0'
+update-initramfs -u
+update-grub
+
+Query the version of zfs packages
+----------
+dpkg --list | grep zfs
+
+
+
+
 Grub2
-====================-
+====================
 menuentry "FreeBSD" --class freebsd --class bsd --class os {
     insmod zfs
     insmod bsd
@@ -275,83 +307,4 @@ menuentry "Arch Linux" {
 
 ----
 
-安裝 pv, 監看寫入進度: pv usb.raw | dd bs=1M oflag=sync of=/dev/sdc 2>/dev/null
 
-本機 "圖標" > "滑鼠右鍵" > "管理" > "服務與應用程式" > "服務" > "Windows Update 內容" > "啟動類型"的下拉式選單 > "已停用"
-
-----
-
-vi /etc/network/interfaces
-auto lo
-iface lo inet loopback
-
-auto vmbr0
-iface vmbr0 inet static
-	 address 192.168.15.130
-	 netmask 255.255.255.0
-	 gateway 192.168.15.254
-	 bridge_ports eth0
-	 bridge_stp off
-	 bridge_fd 0
-
-----
-
-libguestfs-tools => virt-p2v, virt-v2v
-ssh root@remote.example.com "dd if=/dev/sda bs=1024k" > p2v.img
-
-https://goo.gl/bqW6ez  密碼：Upload_by_pp.vincent
-
-----
-du -s /home/* | sort -rn | head -5
-du -s /path/to/dir  # 計算指定目錄及其子目錄所各自使用空間，單位為 KB
-du -sh /path/to/dir # 計算指定目錄及其子目錄所使用總空間，單位為 MB
-du --exclude="proc" | sort -g  # 排在越後面的佔用磁碟空間越多
-
-
-
-sudo add-apt-repository ppa:moka/daily
-sudo apt-get update
-sudo apt-get install moka-icon-theme
-
-sudo add-apt-repository ppa:moka/daily
-sudo apt-get update
-sudo apt-get install faba-icon-theme faba-mono-icons
-
-https://www.snwh.org/
-7035873Star
-cvv6ciym
-
-深度學習, 強化學習
-
-----
-diskpart
-list disk
-select disk X # X 為整數
-list vol
-create vdisk file=e:\win10.vhd type=expandable maximum=30000	 
-	 # type 可以是 expandable（動態擴展）、fixed（固定容量）與 Differencing（差異擴增）
-	 # maximum=30000，單位為 MB，建立 30G 大小的 vhd
-select vdisk file=e:\win10.vhd
-attach vdisk
-	 # 連結虛擬磁碟，中斷連結指令為：detach vdisk
-	 # assign letter=p，將掛載磁區設為 p 槽
-exit
-
-msconfig => [開機]標籤分頁 => 選擇項目刪除
-----
-cd v:\windows\system32
-bcdboot v:\windows /s s:
-	 # 將 s 槽加入開機選項
-----
-BCDboot 工具建立 BCD，設定從 VHD 開機
-	 bcdedit /export c:\bcdbackup	 # 備份 BCD 存放區
-	 bcdedit /copy {default} /d "vhd boot (locate)"  # 複製現有開機項目
-	 bcdedit /set {guid} device vhd=[locate]\windows7.vhd
-	 bcdedit /set {guid} osdevice vhd=[locate]\windows7.vhd
-	 bcdedit /default {guid}
-----
-
-非人類基因統合體
-sudo apt-get install xen-hypervisor-4.6-amd64 xenwatch xen-tools xen-utils-4.6 xen-utils-common xenstore-utils
-
-----
