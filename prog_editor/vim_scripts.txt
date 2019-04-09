@@ -9,7 +9,7 @@
 
 option
 ====================
-commands pattern:
+commands stntax:
 	set <name1> <name2>=<value2>
 	setlocal <name1> <name2>=<value2>
 
@@ -25,7 +25,7 @@ examples:
 
 mappings
 ====================
-commands pattern:
+commands stntax:
 	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行
 	unmap <left-keys>								" 取消 <left-keys> 之映射
   mapclear												" 取消所有映射
@@ -56,7 +56,7 @@ abbreviations
 ====================
 通常用於 insert、replace、command 模式
 
-commands pattern:
+commands stntax:
   abbrev <left-string> <right-string>		" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
 
 examples:
@@ -68,7 +68,7 @@ examples:
 
 autocmd
 ====================
-commands pattern:
+commands stntax:
 	autocmd event1,event2,... filter_pattern command
 
 examples:
@@ -136,6 +136,30 @@ Status line
 
 variables
 ====================
+general variables name rule:
+  a:var_name	=> variable local to a function
+  b:var_name	=> variable local to a buffer
+  w:var_name	=> variable local to a window
+  g:var_name	=> global variable (also in a function)
+  l:var_name	=> variable local
+  s:var_name	=> variable local to a script
+  t:var_name	=> variable local to current tab
+  v:var_name	=> variable predefined by Vim
+
+pseudovariables name rule:
+  &var_name		=> option（default local, otherwise is global, &mouse 意謂取用滑鼠控制參數
+  &l:var_name	=> local option, &l:number = 1
+  &g:varname	=> golbal opnion
+  @var_name		=> register (list all by :reg)
+  $VAR_NAME		=> system environment variable 
+
+
+command syntax:
+  let
+  unlet
+  exists("s:call_count")
+
+
 let variable=value
 let &l:number = 1						" 將內部變數 &number 改為 &l:number
 let @a = "hello!"						" @a 是暫存器 a
@@ -162,27 +186,64 @@ function function_name() ... endfunction
 :function DisplayName(name)
 :  echom "Hello!  My name is:"
 :  echom a:name						<= a: 代表後接之參數為區域型，注意已提到 a:參數 b:參數
+:  if &l:textwidth ># 80
+:    return "xxxx"
+:  endif
 :endfunction
 
+:function Varg(foo, ...)
+:  echom a:foo
+:  echom a:0							<= quantity of *variables
+:  echom a:1
+:  echo a:000							<= list of *variables
+:endfunction
 
+:call Varg("aaa", "bbb", "ccc")
 
+Vimscript function 如果不回傳值，則會回傳 0，似乎是意謂 false
 
-
-
-
-
+examples:
+  :echo split("one,two,three", ",")
+  :echo join(["foo", "bar"], "...")
+  :echo join(split("foo bar"), ";")
 
 help documents
 	:help ignorecase
 	:help expr4
+	:help :call
+	:help return
+  :echom tolower("Foo")
+  :echom toupper("Foo")
 
+
+
+
+Execute
+====================
+examples:
+  :execute "rightbelow vsplit " . bufname("#")		"在第二個檔案的右邊打開第一個檔案的垂直分割窗口
+  :normal G																				" 移至檔首，受熱鍵映射干擾
+  :normal ggdd
+  :normal! G																			" 建議使用方式，避免熱鍵映射干擾
+  :execute "normal! gg/foo\<cr>dd"
+  :execute "normal! mqA;\<esc>`q"
+  execute "normal! ..."：执行命令序列，一如它们是在normal模式下输入的，忽略所有映射， 并替换转义字符串。
+    " mq			=> 將目前位置標誌為 q
+    " A 			=> 移至現行列的尾端進入插入模式
+    " ; 			=> 在列尾插入 ; 字元
+    " \<esc>	=> 即 <Esc> 鍵，離開插入模式
+    " `q			=> 回到標誌 q 所在位置
+
+help documents
+  :help leftabove
+  :help rightbelow
+  :help normal
+  :help expr-quote
 
 
 
 General
 ====================
-vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
-
 一些按鍵的書寫方法
 ----------
 <Esc> Esc 鍵

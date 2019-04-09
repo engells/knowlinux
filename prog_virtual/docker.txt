@@ -1,42 +1,14 @@
 # vim:ts=2
-
+# program: Using to memo common commands
+# made by: Engells
+# date: Apr 8, 2019
+# content: Just for memo
 
 
 docker logs [container id or name]
 docker network create cdb-net
 docker network rm cdb-net
 docker commit containrt_name image_ref
-
-
-
-Image 指令
-====================
-查詢 repository images
-	docker search ubuntu:16.04
-
-查詢 local images
-	docker images
-
-下載 image
-	docker pull ubuntu:16.04
-	docker pull centos:latest
-
-登錄 Docker Repository
-	docker login
-
-刪除 image
-	docker rmi ubuntu:16.04
-	docker rmi $(docker images -q -f "dangling=true")
-		-q：--quiet
-		-f：--filter
-		"dangling=true"：表示無標籤之 local image
-
-將 image 備份為檔案及回存至 local image pool
-	docker save -o xenial.tar ubuntu:16.04
-	docker load --input xenial.tar 或 docker load < xenial.tar
-
-修改 image 的 tag
-	docker tag
 
 
 
@@ -93,8 +65,44 @@ Container 指令
 
 
 
+Image 指令
+====================
+查詢 repository images
+	docker search ubuntu:16.04
+
+查詢 local images
+	docker images
+
+下載 image
+	docker pull ubuntu:16.04
+	docker pull centos:latest
+
+登錄 Docker Repository
+	docker login
+
+刪除 image
+	docker rmi ubuntu:16.04
+	docker rmi $(docker images -q -f "dangling=true")
+		-q：--quiet
+		-f：--filter
+		"dangling=true"：表示無標籤之 local image
+
+將 image 備份為檔案及回存至 local image pool
+	docker save -o xenial.tar ubuntu:16.04
+	docker load --input xenial.tar 或 docker load < xenial.tar
+
+修改 image 的 tag
+	docker tag
+
+
+
+
 Network bridge
 ====================
+docker network create -d bridge bridge-network
+	# -d => --driver
+
+
 network config
 ----------
 edit /etc/default/docker
@@ -111,18 +119,38 @@ systemctl restart docker
 
 
 
+Unpriviledge mode
+====================
+usermod -aG docker user_name
+	# useradd -m -s /bin/bash user_name
+	# passwd user_name
+
+
+
+
 Install Docker
 ====================
-Ubuntu
+Ubuntu form apt
+----------
+apt remove docker docker-engine docker.io
+apt install docker.io
+systemctl start docker
+systemctl enable docker	 # optional
+docker --version
+
+
+Ubuntu from docker.com
 ----------
 apt update
-apt install apt-transport-https ca-certificates
-apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" | sudo tee /etc/apt/sources.list.d/docker.list
+apt install apt-transport-https ca-certificates	software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+apt-key fingerprint 0EBFCD88
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 apt update
-apt install linux-image-extra-$(uname -r) linux-image-extra-virtual
-apt install docker-engine
-systenctl start docker
+#apt install linux-image-extra-$(uname -r) linux-image-extra-virtual
+apt install docker-ce docker-engine		# apt-cache madison docker-ce 可查詢軟體版本
+systemctl start docker
+systemctl enable docker
 docker version
 docker info
 

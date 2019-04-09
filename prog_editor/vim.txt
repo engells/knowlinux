@@ -49,7 +49,7 @@ vim
   句子 ( )
   段落 { }
   區塊 [[ ]]
-  螢幕 H M L ; <C-F> <C-B> <C-D> <C-U> ; z + <CR> z + . z + -
+  螢幕 H M L ; <C-F> <C-B> <C-D> <C-U> ; <z-<CR>> <z-.> <z-->
   檔案 G 1G/gg
 
 編輯
@@ -85,6 +85,8 @@ vim
   <C+w> o 即 :only! 使游標所在之視窗，成為目前唯一顯示的視窗其它視窗會隱藏起來。
   <C+w> j 移至下視窗。
   <C+w> k 移至上視窗。記得 hjkl 的按鍵移動方式
+  <C+w> t 移至左上視窗 top window
+  <C+w> b 移至右上視窗 bottom window
 
   nnoremap <C-J> <C-W><C-J> 移至下視窗，將原本的 <C-W><C-J> 改為 <C-J>
   nnoremap <C-K> <C-W><C-K> 移至上視窗，將原本的 <C-W><C-K> 改為 <C-K>
@@ -193,7 +195,7 @@ Ex 模式 (Ex-mode)
 
 
 
-暫存器
+暫存器(registers)
 ====================
 VIM 中有 9 类暫存器，暫存器的主要功能就是缓存操作过程中删除、複製、搜索等的文本内容，指令 :help registers 查看暫存器的详细帮助说明如下：
 
