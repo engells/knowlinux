@@ -170,7 +170,7 @@ boolean 0 => false others => true
 
 
 
-condition and loop
+if and function
 ====================
 if elseif else endif
 
@@ -201,6 +201,9 @@ function function_name() ... endfunction
 :call Varg("aaa", "bbb", "ccc")
 
 Vimscript function 如果不回傳值，則會回傳 0，似乎是意謂 false
+
+:function! xxxx(）					<= 允许在需要时指出某个函数声明可以被安全地重载
+
 
 examples:
   :echo split("one,two,three", ",")
@@ -239,6 +242,105 @@ help documents
   :help rightbelow
   :help normal
   :help expr-quote
+
+
+
+List
+====================
+:echo [0, [1, 2]][1]
+:echo [0, [1, 2]][-2]
+:echo ['a', 'b', 'c', 'd', 'e'][0:2]
+:echo ['a', 'b', 'c', 'd', 'e'][-2:-1]
+:echo ['a', 'b', 'c', 'd', 'e'][:1]
+:echo "abcd"[0:2]								" 不可使用複數索引字串，如 :echo "abcd"[-2:-1]
+:echo "abcd"[-1] . "abcd"[-2:]	" 使用負數切割字串
+:echo ['a', 'b'] + ['c']
+:call add(foo, 'b')							" 將字元 b 加入變數 foo
+:echo len(foo)
+:echo get(foo, 100, 'default')
+:echo index(foo, 'b')
+:echo index(foo, 'nope')				" 若在變數 foo 中搜尋不到 nope，則回報 -1
+:echo join(foo, '---')					" 以 --- 連結列表變數 foo 中各個元素
+:call reverse(foo)
+:call sort(foo)
+:call remove(foo)
+
+
+
+
+loop
+====================
+:let c = 1
+:for i in [1, 2, 3, 4]
+:  let c += i
+:endfor
+
+:let c = 1
+:let total = 0
+:while c <= 4
+:  let total += c
+:  let c += 1
+:endwhile
+
+
+
+
+dictionary
+====================
+:echo {'a': 1, 100: 'foo',}['a']
+:echo {'a': 1, 100: 'foo',}.a					" if key is named by a-Z 0-9 _
+
+:let foo = {'a': 1}
+:let foo.a = 100
+:let foo.b = 200
+:echo foo
+
+:let test = remove(foo, 'a')
+:unlet foo.b
+:echo foo
+:echo test
+
+:echom get({'a': 100}, 'a', 'default')
+:echom get({'a': 100}, 'b', 'default')
+
+:echom has_key({'a': 100}, 'a')
+:echom has_key({'a': 100}, 'b')
+
+:echo items({'a': 100, 'b': 200})
+:echo keys({'a': 100, 'b': 200})
+:echo values({'a': 100, 'b': 200})
+
+
+
+
+customized functions in ~/.vim/plugins
+====================
+nnoremap <leader>f :call FoldColumnToggle()<cr>
+
+function! FoldColumnToggle()
+    if &foldcolumn
+        setlocal foldcolumn=0
+    else
+        setlocal foldcolumn=4
+    endif
+endfunction
+
+:help foldcolumn.
+:help winnr()
+:help ctrl-w_w.
+:help wincmd.
+
+
+function! Reversed(l)
+    let new_list = deepcopy(a:l)
+    call reverse(new_list)
+    return new_list
+endfunction
+
+:help deepcopy()
+:help 
+
+
 
 
 
