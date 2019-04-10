@@ -9,8 +9,9 @@
 
 vim 8.0
 ===================
-套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/myplugins/start // ~/.vim/pack/myplugins/opt
+套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/xxxx/start 或 ~/.vim/pack/xxxx/opt
 	示例安裝 NERDTree：git clone git@github.com:scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
+	安裝非自動啟用套件： :packadd package_name 套件位置在： ~/.vim/pack/xxxx/opt/package_name
 
 把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
 想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/myplugins/start/ale

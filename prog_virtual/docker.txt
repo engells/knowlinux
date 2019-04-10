@@ -160,3 +160,24 @@ Centos
 yum install -y docker  
 systemctl start docker  
 
+
+
+
+Reference
+=======================
+圖形介面的管理工具
+	sudo docker pull portainer/portainer
+	sudo docker volume create portainer_data
+	sudo docker run --name=portainer -d -p 9453:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer
+
+	打開網址 http://host_ip:9453，第一次登入需要設定 admin 帳號的密碼及管理方式(選本地 Local)
+
+
+docker-compose
+----------
+安裝
+	curl -L https://github.com/docker/compose/releases/download/1.24.0-rc3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+	chmod +x /usr/local/bin/docker-compose
+URL:
+	https://github.com/docker/compose/releases
+

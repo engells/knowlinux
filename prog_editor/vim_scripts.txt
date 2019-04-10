@@ -3,7 +3,7 @@
 # program: Using to note the knowledge about vim scripts
 # made by: Engells
 # date: Apr 1, 2019
-# content: Just for memo
+# content: Just for memo, http://learnvimscriptthehardway.onefloweroneworld.com/chapters/00.html
 
 
 
@@ -330,17 +330,68 @@ endfunction
 :help ctrl-w_w.
 :help wincmd.
 
-
+----------
 function! Reversed(l)
     let new_list = deepcopy(a:l)
     call reverse(new_list)
     return new_list
 endfunction
 
+function! Append(l, val)
+    let new_list = deepcopy(a:l)
+    call add(new_list, a:val)
+    return new_list
+endfunction
+
+function! Assoc(l, i, val)
+    let new_list = deepcopy(a:l)
+    let new_list[a:i] = a:val
+    return new_list
+endfunction
+
+function! Pop(l, i)
+    let new_list = deepcopy(a:l)
+    call remove(new_list, a:i)
+    return new_list
+endfunction
+
+:let Myfunc = function("Append")
+:echo Myfunc([1, 2], 3)
+
+:let funcs = [function("Append"), function("Pop")]
+:echo funcs[1](['a', 'b', 'c'], 1)		" funcs变量不需要以大写字母开头，因为它储存的是列表，而不是函数。 列表的内容不会造成任何影响。
+
+----------
+function! Mapped(fn, l)
+    let new_list = deepcopy(a:l)
+    call map(new_list, string(a:fn) . '(v:val)')
+    return new_list
+endfunction
+
+:let mylist = [[1, 2], [3, 4]]
+:echo Mapped(function("Reversed"), mylist)
+	" Mapped()接受两个参数：一个funcref("储存一个函数的变量"在 Vim 里的说法)和一个列表。 使用内置的 map()函数实现真正的工作
+
+
+:help sort()
+:help reverse()
+:help copy()
 :help deepcopy()
-:help 
+:help map()
+:help filter()
 
 
+
+
+path
+====================
+:echom expand('%')										" 目前檔案的相對路徑
+:echom expand('%:p')									" 目前檔案的絕對路徑
+:echom fnamemodify('foo.txt', ':p')		" foo.txt 的絕對路徑
+:echo globpath('.', '*')
+:echo split(globpath('.', '*.txt'), '\n') " 顯示目前目錄下所有的 txt 檔案
+:echo split(globpath('.', '*'), '\n')
+:echo split(globpath('.', '**'), '\n')		" 顯示目前目錄及所有子目錄的檔案
 
 
 
