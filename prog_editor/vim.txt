@@ -10,12 +10,30 @@
 vim 8.0
 ===================
 套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/xxxx/start 或 ~/.vim/pack/xxxx/opt
-	示例安裝 NERDTree：git clone git@github.com:scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
-	安裝非自動啟用套件： :packadd package_name 套件位置在： ~/.vim/pack/xxxx/opt/package_name
+	示例安裝 NERDTree：git clone https://github.com/scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
+  安裝非自動啟用套件： 在 vim 內執行指令 :packadd nerdtree 套件位置在： ~/.vim/pack/xxxx/opt/package_name
 
 把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
 想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/myplugins/start/ale
 升級所有套件，執行： git submodule update --recursive --remote
+
+git submodule init
+git submodule add https://github.com/vim-airline/vim-airline.git vim/pack/shapeshed/start/vim-airline
+git add .gitmodules vim/pack/shapeshed/start/vim-airline
+git commit
+
+git submodule update --remote --merge
+git commit
+
+git submodule deinit vim/pack/shapeshed/start/vim-airline
+git rm vim/pack/shapeshed/start/vim-airline
+rm -Rf .git/modules/vim/pack/shapeshed/start/vim-airline
+git commit
+
+:mksession ~/.vim/sessions/foo.vim
+:source ~/.vim/sessions/foo.vim or vim -S ~/.vim/sessions/foo.vim
+:help viminfo
+
 
 
 
@@ -88,11 +106,16 @@ vim
   <C+w> k 移至上視窗。記得 hjkl 的按鍵移動方式
   <C+w> t 移至左上視窗 top window
   <C+w> b 移至右上視窗 bottom window
+  <C+w> > 視窗向右擴張
+  <C+w> < 視窗向左縮減
+  <C+w> + 視窗縱向擴張
+  <C+w> - 視窗縱向縮減
+  <C+w> Shift H 視窗往左移
+  <C+w> Shift J 視窗往下移
+  <C+w> Shift K 視窗往上移
+  <C+w> Shift L 視窗往右移
 
-  nnoremap <C-J> <C-W><C-J> 移至下視窗，將原本的 <C-W><C-J> 改為 <C-J>
-  nnoremap <C-K> <C-W><C-K> 移至上視窗，將原本的 <C-W><C-K> 改為 <C-K>
-  nnoremap <C-L> <C-W><C-L>
-  nnoremap <C-H> <C-W><C-H>
+
   :sv <filename> 載入檔案＋縱向分割視窗
   :vs <filename> 載入檔案＋橫向分割視窗
 
@@ -163,6 +186,7 @@ Themes
 UTL
 ====================
 Vim 的顏色設定：http://aknow-work.blogspot.tw/2013/05/vim-color.html
+Path: /usr/share/vim/vimxx/colors/, ~/vim/colors/
 
 
 

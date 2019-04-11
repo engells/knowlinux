@@ -12,7 +12,7 @@
 "---- Basic Setup ----
 set nocompatible	" 不相容 vi 模式 <=> set compatible
 set t_Co=256 		" 256 色顯示
-colo lucid 			" 採用 lucid 佈景主題，完整指令 colorscheme lucid 
+colo lucid 			" 採用 lucid 佈景主題，完整指令 colorscheme lucid
 set fileencodings=utf-8,utf-16,big5,gb2312,gbk,gb18030,euc-jp,euc-kr,latin1
 set encoding=utf-8	" 使用 utf-8 編碼
 let mapleader=";"   " 使用「;」作為快捷鍵(熱鍵)的起始(導引)字元，也就是 <Leader> 參數
@@ -106,4 +106,18 @@ set set statusline=[%{expand('%:p')}][%{strlen(&fenc)?&fenc:&enc},\ %{&ff},\ %{s
 
 "---- Commands ----
 retab               " 將檔案內現有之「TAB」字元替換為空白字元
+
+
+"---- Memo ----
+:swapname				" 查詢 swap
+:preserve				" 將修改保存至 swap
+:recover				" 自 swap 回復文件
+set swapfile			" 啟用 swap
+set noswapfile			" 停用 swap
+set directory			" 設定 swap 檔案所在目錄
+set updatetime=23000	" 每隔 23 秒自動更新
+set updatecount=4000	"
+
+
+
 
