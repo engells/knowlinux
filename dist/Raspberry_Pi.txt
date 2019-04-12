@@ -1,20 +1,53 @@
+# vim:ts=4
+# program: Knowhow about Raspberry Pi
+# made by: Engells
+# date: Apr 12, 2019
+# content: Just for memo
 
 
-
-
-omxplayer --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc --subtitles test.cht.srt test.avi
-RaspBMC
-XBMC
-
-
-
-
-設定無線網路
+Environment
 ====================
-Raspberry
-sudo vim /etc/wpa_supplicant/wpa_supplicant.conf
-        ssid="wifi_domain"
-        psk="wifi_passwd"
+account:	admit
+passwd:		acctatpi~year5
+
+
+
+
+設定無線網路固定網址
+====================
+Method 1: work
+----------
+edit /etc/network/interfaces
+	auto lo
+	iface lo inet loopback
+	iface eth0 inet dhcp
+
+	allow-hotplug wlan0
+	auto wlan0
+	iface wlan0 inet static
+	address 192.168.1.121   
+	gateway 192.168.1.1
+	netmask 255.255.255.0
+	network 192.168.1.1
+	broadcast 192.168.1.255
+	wpa-ssid "xxxx"
+	wpa-psk "xxxx"
+
+	wireless-power off
+	iface default inet dhcp
+
+sudo reboot
+
+
+Method 2:
+----------
+sudo cp dhcpcd.conf dhcpcd.conf.old
+sudo nano /etc/dhcpcd.conf
+	interface wlan0 
+	static ip_address=192.168.1.121 
+	static routers=192.168.1.1 
+	static domain_name_servers=192.168.1.1
+sudo reboot
 
 
 
@@ -22,9 +55,9 @@ sudo vim /etc/wpa_supplicant/wpa_supplicant.conf
 設定螢幕解析度
 ====================
 config.txt 取消註解
-	hdmi_safe=1
-	hdmi_drive=2
-	config_hdmi_boost=4 
+	hdmi_safe=1				# 安全啟動 HDMI
+	hdmi_drive=2			# 強制使用 HDMI
+	config_hdmi_boost=4		# 640x480 60Hz，mode=9  => 800x600 60Hz；mode=16 => 1024x768 60Hz； mode=82 => 1080p 60Hz
 
 進入 Raspbian 終端機
 	tvservice -d edid.dat
@@ -32,8 +65,8 @@ config.txt 取消註解
 
 編輯 Raspbian /boot/config.txt
 	# hdmi_safe=1
-	hdmi_group=2 #DMT=2, CEA=1
-	hdmi_mode=47 => hdmi_mode=47   1440x900   60 Hz
+	hdmi_group=2			# DMT=2, CEA=1
+	hdmi_mode=47			# mode=47   1440x900   60 Hz
 
 重開機
 	sudo reboot
@@ -85,6 +118,39 @@ vncserver :1
 
 
 
+安裝 Raspberry
+====================
+下載 raspbian stretch lite 或其他鏡像 img
+以 dd 將上述鏡像 dump 至 SD Card
+設定無線網路環境
+	touch /boot/wpa_supplicant.conf, add the follows:
+	country=TW
+	ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+	update_config=1
+
+	network={
+	    ssid="SSID_NAME"
+	    psk="SSID_KEY"
+	    key_mgmt=WPA-PSK
+	    scan_ssid=1
+	} 
+組態設定： sudo raspi-config
+
+
+
+
 外殼
 ====================
 Kodi
+
+
+
+
+Others
+====================
+omxplayer --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc --subtitles test.cht.srt test.avi
+RaspBMC
+XBMC
+
+
+

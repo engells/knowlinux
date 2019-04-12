@@ -15,21 +15,44 @@ vim 8.0
 
 把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
 想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/myplugins/start/ale
-升級所有套件，執行： git submodule update --recursive --remote
+升級所有套件，執行： git submodule update --recursive --remote 或 git submodule foreach --recursive git pull origin master
 
-git submodule init
-git submodule add https://github.com/vim-airline/vim-airline.git vim/pack/shapeshed/start/vim-airline
-git add .gitmodules vim/pack/shapeshed/start/vim-airline
-git commit
 
-git submodule update --remote --merge
-git commit
+git submoudle
+----------
+add submodule
+	git submodule init
+	git submodule add https://github.com/vim-airline/vim-airline.git path/to/submodule
+	git add .gitmodules path/to/submodule
+	git commit
 
-git submodule deinit vim/pack/shapeshed/start/vim-airline
-git rm vim/pack/shapeshed/start/vim-airline
-rm -Rf .git/modules/vim/pack/shapeshed/start/vim-airline
-git commit
+update submodule
+----------
+	git submodule update --remote --merge or git submodule update --init --remote --recursive --merge
+	git commit
+	****
+	git submodule foreach git pull origin master
+	git commit -am "Updated plugins."
 
+remove submodule
+----------
+	git submodule deinit path/to/submodule
+	git rm path/to/submodule
+	rm -Rf .git/modules/path/to/submodule
+	git commit
+	****
+	git rm --cached path/to/submodule
+	rm -rf path/to/submodule
+	edit .gitmodules and .git/config
+	git add .gitmodules
+	git commit -m "Remove a submodule"
+	git submodule sync
+
+
+
+
+Session
+====================
 :mksession ~/.vim/sessions/foo.vim
 :source ~/.vim/sessions/foo.vim or vim -S ~/.vim/sessions/foo.vim
 :help viminfo
