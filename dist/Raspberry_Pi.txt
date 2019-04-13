@@ -1,14 +1,60 @@
 # vim:ts=4
 # program: Knowhow about Raspberry Pi
 # made by: Engells
-# date: Apr 12, 2019
+# date: Apr 13, 2019
 # content: Just for memo
+
 
 
 Environment
 ====================
 account:	admit
 passwd:		acctatpi~year5
+
+先插好 HDMI 接線再開機，避免訊號輸出至 RC
+
+常用指令
+----------
+sudo poweroff							# 關機指令
+startx									# 進入 X 視窗
+sudo raspi-config						# 系統設定
+sudo /etc/rc.local						# 顯示 IP
+sudo update-rc.d -f ssh defaults 20		# 允許 SSH 遠端登入
+sudo reboot								# 重新啟動 (reboot)
+sudo sync && sudo shutdown -r now		# 重新啟動 (reboot)
+
+
+
+Docker
+====================
+Install
+----------
+curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
+sudo groupadd docker					# optional
+sudo usermod -aG docker user_name		# sudo gpasswd -a user_name docker
+sudo systemctl restart docker
+newgrp - docker
+
+docker run hello-world
+
+sudo systemctl enable docker
+
+
+Registry
+----------
+https://hub.docker.com/u/armhf/
+https://hub.docker.com/u/hypriot/
+https://hub.docker.com/u/resin/
+https://hub.docker.com/u/armbuild/
+https://hub.docker.com/u/armv7/
+
+
+Trobule shooting docker engine fail
+----------
+edit /etc/login.defs
+	#SYS_GID_MIN 100 =>	SYS_GID_MIN 100
+	#SYS_GID_MAX 999 => SYS_GID_MAX 999
+
 
 
 
@@ -118,10 +164,47 @@ vncserver :1
 
 
 
+設定 SWAP
+====================
+cutomized swap size
+----------
+edit /etc/dphys-swapfile
+	#CONF_SWAPSIZE=100
+	CONF_SWAPFACTOR=2
+	CONF_MAXSWAP=xxxx	# MiB
+
+sudo service dphys-swapfile restart && swapon -s
+
+
+auto swap size
+----------
+edit /etc/dphys-swapfile
+	CONF_SWAPSIZE=xxxx	# MiB
+
+sudo service dphys-swapfile restart && swapon -s
+
+
+swap on USB
+----------
+make a ext4 system on a usb sticker, as /dev/sda1
+blkid
+edit /etc/fstab, add /dev/sda
+	UUID=xxxx-xxxx...	/usbdisk	ext4	defaults	0	0
+sudo mkdir /usbdisk
+mount -a && df -h
+edit /etc/dphys-swapfile
+	CONF_SWAPFILE=/usbdisk/swap
+sudo service dphys-swapfile restart && swapon -s
+sudo swapoff /var/swap
+
+
+
+
 安裝 Raspberry
 ====================
 下載 raspbian stretch lite 或其他鏡像 img
-以 dd 將上述鏡像 dump 至 SD Card
+鏡像 dump 至 SD Card
+	dd if=/path/to/img_file of=/dev/sd_card bs=1M
 設定無線網路環境
 	touch /boot/wpa_supplicant.conf, add the follows:
 	country=TW
@@ -133,24 +216,10 @@ vncserver :1
 	    psk="SSID_KEY"
 	    key_mgmt=WPA-PSK
 	    scan_ssid=1
-	} 
-組態設定： sudo raspi-config
-
-
-
-
-外殼
-====================
-Kodi
-
-
-
-
-Others
-====================
-omxplayer --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc --subtitles test.cht.srt test.avi
-RaspBMC
-XBMC
-
+	}
+啟用 SSH
+	touch /path/to/raspberry_pi/boot/ssh 
+組態設定
+	sudo raspi-config
 
 

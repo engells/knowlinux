@@ -25,16 +25,21 @@ ssh -v -X user_name@remote_computer_ip nautilus --new-window
 
 以金鑰使用 SSH
 ====================
-ssh-keygen -t rsa
-    # 可從 linux shell 或 git bash for Windows 執行該指令
-
-產生 id_rsa、id_rsa.pub 兩個檔案
-    # Linux 系統裏檔案位置在 ~/.ssh，Windows 系統裏檔案位置在 path\to\usrs\xxxx\.ssh
-    # id_rsa 檔案為私鑰，id_rsa.pub 檔案為公鑰
-
-將私鑰留在預定位置
+本機端產生金鑰
+	ssh-keygen -t rsa  -b 4096
+		# 可從 linux shell 或 git bash for Windows 執行該指令
+		# 產生 id_rsa、id_rsa.pub 兩個檔案
+		# Linux 系統裏檔案位置在 ~/.ssh，Windows 系統裏檔案位置在 path\to\usrs\xxxx\.ssh
+		# id_rsa 檔案為私鑰，id_rsa.pub 檔案為公鑰
 
 將公鑰送至執行服務的伺服器
+	ssh-copy-id -i ~/.ssh/id_rsa.pub user_name@machine
+
+回到伺服器端，開啟 SSH 設定檔 /etc/ssh/sshd_config，將以下一行的注解取消，改成：
+	AuthorizedKeysFile %h/.ssh/authorized_keys
+
+重新啟動 SSH 伺服器:
+	systemctl restart sshd
 
 
 
@@ -51,12 +56,5 @@ SSH 安全性設定
 5. 只開啟 Protocol 2 版本
    /etc/ssh/sshd_config => Protocol 2
 6. 使用金鑰登入
-    a. 本機端產生金鑰
-       ssh-keygen -t rsa -b 4096
-    b. 自本機端將 id_rsa.pub (public key) 上載到伺服器 ~/.ssh/authorized_keys/ 內
-       ssh-copy-id -i ~/.ssh/id_rsa.pub user_name@machine
-    c. 回到伺服器端，開啟 SSH 設定檔 /etc/ssh/sshd_config，將以下一行的注解取消，改成：
-       AuthorizedKeysFile %h/.ssh/authorized_keys
-    d. 重新啟動 SSH 伺服器:
-       systemctl restart sshd 
+
 

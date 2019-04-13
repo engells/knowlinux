@@ -1,33 +1,24 @@
+#!/bin/bash
 # vim:ts=4
+# program: Using to note the knowledge about Firefox
+# made by: Engells
+# date: Mar 14, 2019
+# content: Just for memo
 
 
-Blacking Mozilla Firefox Web Browser
-==============================
 
-佈景主題
--------------------------
-NASA Night Launch
-	https://addons.mozilla.org/zh-TW/firefox/addon/nasa-night-launch/
-
-附加元件
--------------------------
-Stylish
-	https://addons.mozilla.org/zh-TW/firefox/addon/stylish/?src=external-userstyleshome
-	userstyles.org - About:Blank Black Firefox
-		http://userstyles.org/styles/6603/about-blank-black-firefox
-	userstyles.org - Global dark style - changes everything to DARK
-		http://userstyles.org/styles/31267/global-dark-style-changes-everything-to-dark
-	userstyles.org - Firefox - Hide Forward Button
-		http://userstyles.org/styles/31039/firefox-hide-forward-button
-
-URL
--------------------------
-https://jamyy.dyndns.org/blog/2013/03/4652.html
+使用套件
+====================
+NotScripts: 禁止執行 scripts
+Privacy Badger: 禁止追蹤
+HTTPS Everywhere: 強制使用 HTTPS 協定
+Stylish: 搭配 Darker Google
+FVD: 下載 Flash Video
 
 
 
 
-To Reed Novels With FireFox and Stylish
+To Read Novels With FireFox and Stylish
 ==============================
 
 To add a enrty in Stylish as below:

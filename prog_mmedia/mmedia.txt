@@ -1,7 +1,8 @@
 #!/bin/bash
+# vim:ts=4
 # program: 多媒體轉換
 # made by: Engells
-# date: Oct 5, 2012
+# date: Apr 13, 2019
 # content: 多媒體轉換的釋例
 
 #多媒體轉檔，使用 mencoder
@@ -26,3 +27,9 @@ mp3splt-gtk
 mp3wrap 1.mp3 20.mp3 21.mp3
 
 
+
+applications
+====================
+omxplayer --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc --subtitles test.cht.srt test.avi
+RaspBMC
+XBMC(Kodi)

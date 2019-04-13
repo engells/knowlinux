@@ -1,24 +1,39 @@
+#!/bin/bash
 # vim:ts=4
+# program: Using to note the knowledge about Chromium
+# made by: Engells
+# date: Mar 14, 2019
+# content: Just for memo
+
+
+
+使用環境
+===================
+Run in a container
+  alias cbn='chromium-browser --incognito 1>/dev/null 2>/dev/null &'
+
+
 
 
 使用套件
-==============================
-Change Colors: 將網頁背景變黑
-Stylish: 搭配 Darker Google
-New Tab Redirect: 設定新分頁初始網址
+====================
 NotScripts: 禁止執行 scripts
+Privacy Badger: 禁止追蹤
+HTTPS Everywhere: 強制使用 HTTPS 協定
+Stylish: 搭配 Darker Google
 
+#Change Colors: 將網頁背景變黑
+#New Tab Redirect: 設定新分頁初始網址
 
 
 
 Stylish 套件
-==============================
+====================
 http://userstyles.org/styles/83862/night-shift-eye-care-fix-chrome
 
 
 
-
 設定檔
-==============================
+====================
 /.config/chromium/Default/User StyleSheets/Custom.css	?
 
