@@ -1,4 +1,8 @@
 # vim:ts=4
+# program: Using to memo knowhow about Virtual Box
+# made by: Engells
+# date: Apr 14, 2019
+# content: Just for memo
 
 
 
@@ -28,7 +32,10 @@
 	VBoxManage internalcommands createrawvmdk -filename ~/path/to/file_target.vmdk -rawdisk /dev/sda -partitions 1,2
 		# 將 /dev/sda 的第一及第二分割區納入虛擬磁碟
 	VBoxManage internalcommands createrawvmdk -filename \path\to\file_target.vmdk -rawdisk \\.\PhysicalDrive[#]
-		# 此指令在 Win 平台上使用，指令最後的 # 字意指磁碟編號，第一顆硬碟編號為 0
+		# 此指令在 Win 平台上使用，指令最後的 # 字意指磁碟編號，第一顆硬碟編號為 0，可由磁碟管理工具查詢，下方欄位的磁碟 0、磁碟 1 等編號即是。
+	sudo vboxmanage internalcommands listpartitions -rawdisk /dev/disk0
+	sudo vboxmanage internalcommands createrawvmdk -rawdisk /dev/disk0s3 -filename bootcamp.vmdk
+		# 此指令在 Mac 平台上使用
 
 建立及開機虛擬電腦
 	VBoxManage createvm --name "machine_name" --ostype "Microsoft Windows" --register

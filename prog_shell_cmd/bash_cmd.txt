@@ -1,9 +1,71 @@
 # vim:ts=4
+# program: Using to memo knowhow about bash
+# made by: Engells
+# date: Apr 14, 2019
+# content: Just for memo
+
+
+
+color prompt:
+====================
+PS1='\033[01;32m\]\u@\h \033[01;34m\]\W\033[0m\]\$ '
+	# \033[01;32m\] 指定色彩，或指令 \033[文字樣式色碼;文字顏色色碼;背景顏色色碼m\]
+	# \033[0m\] 還原回原始色彩
+	# \u 使用者名稱
+	# \h 主機名稱 the hostname up to the first "."
+	# \W 工作目錄
+
+文字樣式色碼
+	ANSI code	Meaning
+	01			Normal Characters with highlight
+	00			Normal Characters without highlight
+	0			Normal Characters
+	1			Bold Characters
+	4			Underlined Characters
+	5			Blinking Characters
+	7			Reverse video Characters
+
+文字顏色色碼
+	Color 	Foreground	Background
+	Black 	30			40			<= 3<0~7> means foreground; 4<0~7> means background
+	Red 	31			41
+	Green 	32			42
+	Yellow 	33			43
+	Blue 	34			44
+	Purple 	35			45
+	Cyan 	36			46
+	White 	37			47
+
+功能參數
+	\a     an ASCII bell character (07)
+	\d     the  date  in  "Weekday  Month  Date" format (e.g., "Tue May 26")
+	\e     an ASCII escape character (033)
+	\h     the hostname up to the first `.'
+	\H     the hostname
+	\n     newline
+	\r     carriage return
+	\s     the name of the shell, the basename of $0 (the portion following the final slash)
+	\t     the current time in 24-hour HH:MM:SS format
+	\T     the current time in 12-hour HH:MM:SS format
+	\@     the current time in 12-hour am/pm format
+	\u     the username of the current user
+	\v     the version of bash (e.g., 2.00)
+	\V     the release of bash, version + patchlevel (e.g., 2.00.0)
+	\w     the current working directory
+	\W     the basename of the current  working  directory
+	\!     the history number of this command
+	\#     the command number of this command
+	\$     if the effective UID is 0, a #, otherwise a $
+	\nnn   the character corresponding to the octal number nnn, \033 means 'e'
+	\\     a backslash
+	\[     begin a sequence of non-printing characters, which could be used to embed a terminal control sequence into the prompt
+	\]     end a sequence of non-printing characters
+
 
 
 
 some useful commands of bash
-==============================
+====================
 dirname		/home/aaa/bbb/cc => /home/aaa/bbb
 basename	/home/aaa/bbb/cc => cc
 name
