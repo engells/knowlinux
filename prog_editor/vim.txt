@@ -196,6 +196,7 @@ Themes
 在 Vim 裡下指令：:so % 或 :so ~/.vimrc 或 :so /path/to/佈景設定檔，即可更新佈景
 
 佈景來源
+	Ubuntu Bionic		/usr/share/vim/vim80/color
   Distinguished		https://github.com/Lokaltog/vim-distinguished
   Jellybeans			https://github.com/nanotech/jellybeans.vim
   Vividchalk			https://github.com/tpope/vim-vividchalk

@@ -10,18 +10,26 @@ Environment
 ====================
 account:	admit
 passwd:		acctatpi~year5
+vncserver:	abcd1234
 
 先插好 HDMI 接線再開機，避免訊號輸出至 RC
 
 常用指令
 ----------
-sudo poweroff							# 關機指令
-startx									# 進入 X 視窗
-sudo raspi-config						# 系統設定
-sudo /etc/rc.local						# 顯示 IP
-sudo update-rc.d -f ssh defaults 20		# 允許 SSH 遠端登入
-sudo reboot								# 重新啟動 (reboot)
-sudo sync && sudo shutdown -r now		# 重新啟動 (reboot)
+sudo poweroff
+startx
+sudo raspi-config
+sudo /etc/rc.local
+sudo update-rc.d -f ssh defaults 20		# allow ssh login
+sudo reboot
+sudo sync && sudo shutdown -r now
+
+sudo apt install tightvncserver	passwd:1234abcd
+	vncpasswd
+	vncserver -geometry 1024x768 :1
+	vnc://192.168.1.121:5901 
+dosbox
+	edit conf => usescancodes=false
 
 
 
@@ -49,7 +57,7 @@ https://hub.docker.com/u/armbuild/
 https://hub.docker.com/u/armv7/
 
 
-Trobule shooting docker engine fail
+Trobule shooting docker-engine fail
 ----------
 edit /etc/login.defs
 	#SYS_GID_MIN 100 =>	SYS_GID_MIN 100
@@ -66,6 +74,8 @@ Method 1: work
 edit /etc/network/interfaces
 	auto lo
 	iface lo inet loopback
+
+	auto eth0
 	iface eth0 inet dhcp
 
 	allow-hotplug wlan0
@@ -78,6 +88,7 @@ edit /etc/network/interfaces
 	broadcast 192.168.1.255
 	wpa-ssid "xxxx"
 	wpa-psk "xxxx"
+	key_mgmt=WPA-PSK
 
 	wireless-power off
 	iface default inet dhcp
@@ -93,6 +104,7 @@ sudo nano /etc/dhcpcd.conf
 	static ip_address=192.168.1.121 
 	static routers=192.168.1.1 
 	static domain_name_servers=192.168.1.1
+	static domain_name_servers=8.8.8.8
 sudo reboot
 
 
@@ -146,20 +158,19 @@ sudo raspi-config
 
 遠端桌面控制
 ====================
-XRDP
-----------
-sudo apt-get install xrdp tightvncserver
-sudo systemctl enable xrdp
-
-
 使用 VNC
 ----------
-sudo apt-get update
-sudo apt-get install tightvncserver
+sudo apt install tightvncserver
 sudo tightvncserver
 	# 設定密碼 & 完全存取
 vncserver :1 
 	# 設定 VNC Server 連線位置為 1。也可為 2 或其他號碼
+
+
+XRDP
+----------
+sudo apt install xrdp tightvncserver
+sudo systemctl enable xrdp
 
 
 
@@ -204,7 +215,7 @@ sudo swapoff /var/swap
 ====================
 下載 raspbian stretch lite 或其他鏡像 img
 鏡像 dump 至 SD Card
-	dd if=/path/to/img_file of=/dev/sd_card bs=1M
+	dd if=/path/to/img_file of=/dev/sd_card bs=8M
 設定無線網路環境
 	touch /boot/wpa_supplicant.conf, add the follows:
 	country=TW
@@ -212,10 +223,10 @@ sudo swapoff /var/swap
 	update_config=1
 
 	network={
-	    ssid="SSID_NAME"
-	    psk="SSID_KEY"
-	    key_mgmt=WPA-PSK
-	    scan_ssid=1
+		ssid="SSID_NAME"
+		psk="SSID_KEY"
+		key_mgmt=WPA-PSK
+		scan_ssid=1
 	}
 啟用 SSH
 	touch /path/to/raspberry_pi/boot/ssh 
