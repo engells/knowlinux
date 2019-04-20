@@ -83,3 +83,17 @@ let g:NERDTreeIndicatorMapCustom = {
 NERDTree 配合使用这两个插件文件管理就很棒了，当然如果再加上ctrlp，那就无敌了。
 
 
+
+安裝與設定
+====================
+安裝
+	git clone https://github.com:scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
+
+設定
+	vimrc
+		map <F4> :NERDTreeToggle<CR>
+		autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+
+
+
+

@@ -24,14 +24,17 @@ cryptsetup luksClose crypt_name
 echo "passphrase" > /root/crypasswd
 	# 在 /root/crypasswd 儲存加密密碼，此步驟不是必要，若執行需在掛載加密分割區之前作業
 
-cryptsetup luksAddKey /dev/sd[x][y] /root/crypasswd
-	# 增加加密密碼，並存入 /root/crypasswd
+cryptsetup luksAddKey /dev/sd[x][y] /path/to/key_file
+	# 增加加密密碼，cryptsetup luksAddKey /dev/sd[x][y] /root/crypasswd
 
 dd if=/dev/urandom of=/path/to/key_file bs=1 count=4096
-	# 產生檔案，作為加密的密碼。dd if=/dev/urandom of=/root/enc.key bs=1 count=4096
+	# 產生檔案，作為加密的密碼。dd if=/dev/urandom of=/root/enc.key bs=1k count=4
 
 cryptsetup luksAddKey /dev/sd[x][y] /path/to/key_file
 	# 增加加密的密碼(檔案) cryptsetup luksAddKey /dev/sd[x][y] /root/enc.key
+	# 開機掛載加密分割區
+	# vi /etc/crypttab  => crypt_name    /dev/sd[x][y]       /path/to/keyfile   luks
+	# vi /etc/fstab  => /dev/mapper/name	/luks 	ext4	_netdev	0	0
 
 cryptsetup luksRemoveKey /dev/sd[x][y]
 	# 移除加密的密碼(字串)
