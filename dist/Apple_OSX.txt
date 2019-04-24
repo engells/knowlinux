@@ -81,3 +81,45 @@ XHCI Hand-off 設定為啟動、晶片組的 VT-d 選項關閉、、、、、、
 黑蘋果的中的引導程式（ BootLoader ）：Chameleon、Clover
 
 
+
+快速下載 OS X 和 macOS 作業系統的安裝程式
+	http://blog.itist.tw/2018/01/download-install-osx-or-macos-app-by-mas-cli.html
+	http://blog.itist.tw/2017/03/how-to-use-homebrew-package-manager-for-macos.html
+====================
+Install Homebrew, https://brew.sh/index_zh-tw.html, default path is /usr/local
+----------
+Install
+	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+Maint
+	brew update, brew install pack_name
+	brew outdated, brew outdated pack_name
+	brew upgrade, brew upgrade pack_name
+	brew uninstall pack_name,
+	brew config, brew help, brew help info, brew search, 
+Uninstall
+	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"
+Trouble shoot
+	echo 'export PATH="/usr/local/sbin:SPATH"' >> ~/.bash_profile
+	brew prune, brew cleanup
+
+
+Install mas-cli
+----------
+brew install mas
+mas
+mas list
+mas outdated
+mas upgrade
+mas search "xxx"
+OSX and MacOS id
+    OS X 10.7 Lion：444303913
+    OS X 10.8 Mountain Lion：537386512
+    OS X 10.9 Mavericks：675248567
+    OS X 10.10 Yosemite：915041082
+    OS X 10.11 El Capitan：1018109117
+    macOS 10.12 Sierra：1127487414
+    macOS 10.13 High Sierra：1246284741
+
+
+
+
