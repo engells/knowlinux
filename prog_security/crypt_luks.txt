@@ -51,7 +51,6 @@ cryptsetup luksRemoveKey -d /path/to/file /dev/sd[x][y]
 安裝模組
 -------------------------
 sudo apt-get install cryptsetup
-	# Ubuntu 18.04 已經沒有 dmsetup 套件
 	# 安裝後會出現 /dev/mapper/control 邏輯裝置
 
 
