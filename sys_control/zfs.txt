@@ -28,8 +28,10 @@ zfs umount pool_name/dataset_name
 4. 以隨身碟等開機，安裝 zfsutils-linux，將 EXT4 分區所有資料複製至 rpool/os/u1804 之 dataset
 5. 以硬碟 EXT4 開機，chroot 至 rpool/os/u1804，重新安裝並更新 grub，注意 /boot/efi、proc、sys、dev 等目錄必須先綁定至 rpool/os/u1804
    安裝 64 位元 grub:
+			apt purge grub-pc
       apt install --yes grub-efi-amd64-signed shim-signed
-      grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-flopp
+			grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-floppy
+			ls /boot/grub/*/zfs.mod
 6. 以硬碟 ZFS 開機，建立 swap dataset，並更新 rpool/os/u1804/etc/fstab，此步驟非必要
 7. 參考 datasets
 		zfs create -o canmount=off -o mountpoint=none					pool_name/xxx
