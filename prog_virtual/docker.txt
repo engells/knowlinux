@@ -5,10 +5,29 @@
 # content: Just for memo
 
 
+
+常用指令
+====================
 docker logs [container id or name]
 docker network create cdb-net
 docker network rm cdb-net
 docker commit containrt_name image_ref
+
+
+
+
+X11
+====================
+Method 1:
+	https://blog.stackoverflow.club/99/
+----------
+docker run -ti –net=host –rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix
+sudo apt-get install x11-xserver-utils && xhost +
+apt install dbus-x11 
+apt-get install libcanberra-gtk3-module
+apt install firefox
+firefox
+
 
 
 
@@ -34,6 +53,8 @@ Container 指令
 		-e MYSQL_ROOT_PASSWORD='123'：設定環境參數，資料庫管理密碼為 123
 		-e MYSQL_DATABASE='ayu'：設定環境參數，資料庫為 ayu
 		--net=net_name：指定使用 net_name 網路，該網路由 docker network create 指令建立
+		--rm
+		--restart=xxx
 
 	docker run -d --name dbshare -v /host/folder:/container/folder image_ref
 	docker run -d --name db01 --volumes-from dbshare image_ref
@@ -124,35 +145,36 @@ Unpriviledge mode
 usermod -aG docker user_name
 	# useradd -m -s /bin/bash user_name
 	# passwd user_name
+logout and login
 
 
 
 
 Install Docker
 ====================
-Ubuntu form apt
+Ubuntu from docker.com
+----------
+sudo apt update
+sudo apt install apt-transport-https ca-certificates	software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt update
+#apt install linux-image-extra-$(uname -r) linux-image-extra-virtual
+sudo apt install docker-ce			# apt-cache madison docker-ce 可查詢軟體版本。docker-engine 不需安裝。
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo docker version
+sudo docker info
+
+
+Ubuntu from apt
 ----------
 apt remove docker docker-engine docker.io
 apt install docker.io
 systemctl start docker
 systemctl enable docker	 # optional
 docker --version
-
-
-Ubuntu from docker.com
-----------
-apt update
-apt install apt-transport-https ca-certificates	software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-apt update
-#apt install linux-image-extra-$(uname -r) linux-image-extra-virtual
-apt install docker-ce docker-engine		# apt-cache madison docker-ce 可查詢軟體版本
-systemctl start docker
-systemctl enable docker
-docker version
-docker info
 
 
 Centos
@@ -175,7 +197,7 @@ Reference
 
 docker-compose
 ----------
-安裝
+安裝(with root authority)
 	curl -L https://github.com/docker/compose/releases/download/1.24.0-rc3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 	chmod +x /usr/local/bin/docker-compose
 URL:

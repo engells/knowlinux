@@ -1,4 +1,20 @@
 # vim:ts=4
+# program: Using to memo common commands
+# made by: Engells
+# date: Apr 29, 2019
+# content: Just for memo.
+
+
+
+常用指令
+====================
+sudo grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-floppy /dev/sd[x]
+sudo update-grub
+sudo grub-probe -t device /boot/grub
+sudo grub-probe -t fs_uuid /boot/grub
+apt purge grub-pc
+apt install --yes grub-efi-amd64-signed shim-signed
+
 
 
 

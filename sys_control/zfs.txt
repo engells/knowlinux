@@ -30,7 +30,7 @@ zfs umount pool_name/dataset_name
    安裝 64 位元 grub:
 			apt purge grub-pc
       apt install --yes grub-efi-amd64-signed shim-signed
-			grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-floppy
+			grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-floppy /dev/sd[x]
 			ls /boot/grub/*/zfs.mod
 6. 以硬碟 ZFS 開機，建立 swap dataset，並更新 rpool/os/u1804/etc/fstab，此步驟非必要
 7. 參考 datasets
