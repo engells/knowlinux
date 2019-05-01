@@ -47,7 +47,7 @@
 Working environment
 ====================
 user: admit
-passed: name_at_lxc_year
+passed: name_at_lxc_~year
 useradd -m -d /home/admit -s /bin/bash admit
 
 Build chinese environment
@@ -57,7 +57,14 @@ Build chinese environment
 	dpkg-reconfigure localepurge
 	copy fonts, fc-cache -f -v
 
-sudo apt install fontconfig	xauth libcanberra-gtk-module libcanberra-gtk3-module dbus dbus-x11 firefox
+Package install
+	sudo apt install fontconfig xauth libcanberra-gtk-module libcanberra-gtk3-module dbus dbus-x11 firefox
+
+Network
+	build thaubr0 in host, and link veth to thaubr0
+
+Physiacal hard disk partition
+	work in privileged mode
 
 
 
@@ -155,16 +162,16 @@ Ubuntu container with static IP
 ----------
 container /etc/netplan/10-lxc.yaml
 network:
-version: 2
-ethernets:
-  eth0:
-    addresses: [172.25.3.11/24]
-    gateway4: 172.25.3.1
-    dhcp4: no
-    dhcp6: no
-    optional: true
-    nameservers:
-      addresses: [8.8.8.8, 8.8.4.4]
+  version: 2
+  ethernets:
+    eth0:
+      addresses: [172.25.3.11/24]
+      gateway4: 172.25.3.1
+      dhcp4: no
+      dhcp6: no
+      optional: true
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
 
 container /etc/network/interfaces
 	auto eth0
@@ -202,6 +209,7 @@ Method 1: Working
 -----------
 /etc/lxc/lxc-usernet 
 	name_of_user veth lxcbr0 2
+	# 若使用 lxcbr0 以外的橋接器，則需同步修改 /etc/lxc/lxc-usernet 及 /path/to/lxc/config
 
 grep 'name_of_user' /etc/sub?id
 	/etc/subgid:name_of_user:100000:65536
@@ -289,7 +297,7 @@ Install Packages
 	https://www.flockport.com/lxc-using-unprivileged-containers/
 	https://www.flockport.com/start
 ====================
-sudo apt install lxc bridge-utils systemd uidmap
+sudo apt install lxc bridge-utils uidmap systemd
 	# systemd uidmap 是 Unprivileged Mode 需要
 mkdir ~/.config/lxc ~/.local/share/lxc ~/.cache/lxc
 ls /usr/share/lxc/templates
