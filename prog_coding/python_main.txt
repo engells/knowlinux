@@ -1,0 +1,88 @@
+# vim:ts=4
+# program: Using to memo knowhow about pythonh
+# made by: Engells
+# date: Apr 14, 2019
+# content: Just for memo
+
+
+鄧文淵Python 大數據特訓班
+
+安裝台股技術分析套件 TA-Lib :(successful in lxc)
+
+wget https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz 
+tar -xvf ta-lib-0.4.0-src.tar.gz 
+cd ta-lib 
+./configure --prefix=/usr 
+sudo make 
+sudo make install 
+sudo pip3 install ta-lib 
+
+三. 安裝台股行情擷取套件 twstock : 
+
+pip3 install analytics							(相依套件)，套件衝突 python-dateutil==1.5
+sudo apt-get install python3-lxml python-lxm	(相依套件)
+pip3 install twstock     
+
+
+四. 安裝台銀外匯行情擷取套件 twder :
+
+sudo apt-get install libxml2-dev libxslt-dev	(相依套件)
+wget  https://files.pythonhosted.org/packages/d9/f6/c8c8683aa1c3599d0168bb9476d94af43f0248c0be86b53e2c796614a120/twder-0.1.4.tar.gz     (下載原始碼)
+tar -xvf twder-0.1.4.tar.gz						(解壓縮)
+cd twder-0.1.4									(切換目錄)
+sudo python3 setup.py install					(安裝)  
+
+
+
+pip3 install numpy				(科學計算)
+pip3 install scipy				(科學計算)
+pip3 install matplotlib			(2D 繪圖)
+pip3 install pandas				(數據處理)
+pip3 install requests			(網頁擷取)
+pip3 install beautifulsoup4		(網頁解析)
+pip3 install selenium			(自動化工具)
+
+
+
+install pip3
+====================
+sudo apt install python3-pip
+pip3 install --upgrade pip
+sudo apt remove python3-pip
+
+pip3 install package_name or pip3 install -v package_name==1.2.3
+pip3 uninstall package_name
+
+python3 -m site --user-base	=> $HOME/.local
+python3 -m site --user-site	=> $HOME/.local/lib/python3.6/site-packages
+python3 -m site
+
+
+
+
+tutorial
+====================
+pydoc3 -p 9999		# open a local help center
+
+
+
+build-in function
+====================
+type()
+int()
+float()
+list()
+tuple()
+str()
+range(start [, end, sep]) range(3,8,2) => create a list 
+
+print(項目1 [, 項目2, ...., sep="分隔字元", end="結束字元", file=sys.stdout])
+	print(100, 200, 300, sep="&", end="--")
+	print("%s 贏的機率為 %8.2f%s " % ("兄弟象",99.9,"%")) #(8代表固定輸出8個字元(含小數點))
+
+input()
+
+list_obj.len() .min() .max() .index() .count() .append .extend(list) .insert() .pop() .remove() .reverse() .sort()
+dict_obj.clear() .items .keys .values || del dict_obj || del dict_obj[key]
+file_obj.read .readline .write .close
+

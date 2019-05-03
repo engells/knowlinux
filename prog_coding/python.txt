@@ -2,22 +2,59 @@
 # vim:ts=4
 # program: Using to note the knowledge about vim
 # made by: Engells
-# date: Aug 29, 2017
+# date: May 3, 2019
 # content: Just for memo
+
+
+
+Memo
+====================
+pip
+
+conda
+----------
+Anaconda
+	https://www.anaconda.com/download/
+	cd /tmp && curl -O https://repo.anaconda.com/archive/Anaconda3-5.1.0-Linux-x86_64.sh
+	sha256sum Anaconda3-5.1.0-Linux-x86_64.sh
+	bash Anaconda3-5.1.0-Linux-x86_64.sh
+	source ~/.bashrc
+	conda list
+	conda create --name env_xxx python=3
+	source activate env_xxx
+
+Miniconda
+
+Berryconda
 
 
 
 
 虛擬環境
 ====================
-套件：virtualenv
+套件：pip3 install virtualenv
 
-virtualenv xyz
-cd xyz
-source ./bin/activate
+virtualenv -p /path/to/python3 env_name
+cd env_name
+source ./bin/activate or source path/to/env_name/bin/activate
 
 url：
   http://pythonguidecn.readthedocs.io/zh/latest/dev/virtualenvs.html
+
+
+.vimrc
+----------
+function Py2()
+  let g:syntastic_python_python_exec = '/usr/local/bin/python2.7'
+endfunction
+
+function Py3()
+  let g:syntastic_python_python_exec = '/usr/local/bin/python3.6'
+endfunction
+
+call Py3()   " default to Py3 because I try to use it when possible
+
+let g:syntastic_python_checkers = ['python3'] <= ???
 
 
 
@@ -43,3 +80,4 @@ Ubuntu 16.04 及 Debian 8 已預設安裝 python，以 python3 -V 查詢安裝�
 
 參考資料：
   http://www.pandacademy.com/如何在Ubuntu 16.04上安装Python 3以及设置本地编程环境
+
