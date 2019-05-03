@@ -148,7 +148,7 @@ http://homtang.com/retropie/
 
 設定無線網路固定網址
 ====================
-edit /etc/network/interfaces
+edit /etc/network/interfaces/wlana
 	auto lo
 	iface lo inet loopback
 
@@ -163,14 +163,18 @@ edit /etc/network/interfaces
 	netmask 255.255.255.0
 	network 192.168.1.1
 	broadcast 192.168.1.255
-	wpa-ssid "xxxx"
-	wpa-psk "xxxx"
-	key_mgmt=WPA-PSK
+	pre-up wpa_supplicant -Dwext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -B 
+	#wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+	#wpa-ssid "xxxx"
+	#wpa-psk "xxxx"
+	#key_mgmt=WPA-PSK
 
 	wireless-power off
 	iface default inet dhcp
 
-sudo reboot
+sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
+# sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+# 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces/xxxx 有無語法錯誤
 
 
 
@@ -289,9 +293,10 @@ sudo swapoff /var/swap
 
 	network={
 		ssid="SSID_NAME"
+		scan_ssid=1
 		psk="SSID_KEY"
 		key_mgmt=WPA-PSK
-		scan_ssid=1
+		priority=2
 	}
 啟用 SSH
 	touch /path/to/raspberry_pi/boot/ssh
