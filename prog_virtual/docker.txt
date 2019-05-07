@@ -186,7 +186,7 @@ systemctl start docker
 
 
 Reference
-=======================
+====================
 圖形介面的管理工具
 	sudo docker pull portainer/portainer
 	sudo docker volume create portainer_data
@@ -202,4 +202,29 @@ docker-compose
 	chmod +x /usr/local/bin/docker-compose
 URL:
 	https://github.com/docker/compose/releases
+
+
+
+
+Memo
+====================
+Minimum image file
+----------
+FROM golang:alpine AS build-env
+WORKDIR /app
+ADD . /app
+RUN cd /app && go build -o goapp
+
+FROM alpine
+RUN apk update && \
+   apk add ca-certificates && \
+   update-ca-certificates && \
+   rm -rf /var/cache/apk/*
+WORKDIR /app
+COPY --from=build-env /app/goapp /app
+EXPOSE 8080
+ENTRYPOINT ./goapp
+
+
+
 

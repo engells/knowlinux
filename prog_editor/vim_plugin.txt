@@ -13,19 +13,21 @@ To build ide for python
 ----------
 scrooloose/nerdtree
 YouCompleteMe
-python-mode/python-mode
-vim-scripts/taglist.vim
 majutsushi/tagbar
+kien/ctrlp.vim
 jiangmiao/auto-pairs
 Yggdroot/indentLine
 vim-scripts/indentpython.vim
+
+python-mode/python-mode?
+vim-scripts/taglist.vim?
 
 scrooloose/syntastic (optional)				# check syatax while saving file
 tell-k/vim-autopep8 (optional)				# check pep8 rules while saving file, note apt package python3-pep8
 nvie/vim-flake8 (optional)						# check flake8 rules while saving file, note apt package python3-flake8
 
 tmhedberg/SimpylFold
-kien/ctrlp.vim
+ludovicchabant/vim-gutentags
 
 參考資料
 	fzuwwl's blog						https://coderatwork.cn/ide/2019/01/28/turn-vim-as-an-ide.html
@@ -49,12 +51,16 @@ space-vim
 
 YouCompleteMe
 ====================
-安裝
+安裝(可運作於 pipenv 虛擬環境)
 ----------
 apt install build-essential cmake python-dev? python3-dev
 git clone https://github.com/Valloric/YouCompleteMe.git  ~/.vim/pack/plugins/start/YouCompleteMe
+  # 可考慮 git clone --recurse-submodules https://github.com/Valloric/YouCompleteMe.git ~/.vim/pack/plugins/start/YouCompleteMe
   # 若出現下載中斷的情形，執行：cd path/to/YouCompleteMe && git submodule update --init --recursive
-cd path/to/YouCompleteMe && chmod a+x install.sh  &&  ./install.sh --clang-completer
+cd ~/.vim/pack/plugins/start/YouCompleteMe && git submodule update --init --recursive
+  # 官方建議執行 git submodule update --init --recursive 再執行安裝程式
+cd ~/.vim/pack/plugins/start/YouCompleteMe && python3 install.py
+	# 不建議使用 chmod a+x install.sh  &&  ./install.sh --clang-completer
   # 不需要 sudo 權限，參數 --clang-completer 可不加入
 
 
@@ -171,6 +177,55 @@ majutsushi/tagbar
 ====================
 https://github.com/majutsushi/tagbar
 
+.vimrc 組態
+----------
+nmap <F12> :TagbarToggle<CR>
+" 启动时自动focus
+let g:tagbar_autofocus = 1
+
+"让tagbar在页面左侧显示，默认右边
+let g:tagbar_left = 1
+"设置tagbar的宽度为30列，默认40
+let g:tagbar_width = 30
+"这是tagbar一打开，光标即在tagbar页面内，默认在vim打开的文件内
+let g:tagbar_autofocus = 1
+"设置标签不排序，默认排序
+let g:tagbar_sort = 0
+
+"NerdTree + TagBar in the same panel
+"NerdTree####################################################
+"去除第一行的帮助提示
+let NERDTreeMinimalUI=1
+"在左边占多宽
+let NERDTreeWinSize=28
+"不高亮显示光标所在的文件
+let NERDTreeHighlightCursorline=0
+"当前目录的设定
+let NERDTreeChDirMode = 2
+"自动退出
+autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+"打开vim时自动打开
+autocmd VimEnter * NERDTree
+"<F11>作为toggle
+nmap <F11> :NERDTreeToggle<CR>
+
+"Tagbar######################################################
+"在这儿设定二者的分布
+let g:tagbar_vertical = 25
+"去除第一行的帮助信息
+let g:tagbar_compact = 1
+"当编辑代码时，在Tagbar自动追踪变量
+let g:tagbar_autoshowtag = 1
+"个人爱好，展开关闭文件夹的图标
+let g:tagbar_iconchars = ['▸', '▾']
+"<F12>作为toggle
+nmap <F12> :TagbarToggle<CR>
+"打开vim时自动打开
+autocmd VimEnter * nested :TagbarOpen
+wincmd l
+"如果不加这句，打开vim的时候当前光标会在Nerdtree区域
+autocmd VimEnter * wincmd l
+
 
 
 
@@ -185,7 +240,7 @@ git clone https://github.com/jiangmiao/auto-pairs ~/.vim/pack/plugins/start/auto
 ----------
 let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"'}
 let g:AutoPairs['<']='>'																				" add pair of <>
-let b:AutoPairs = g:AutoParis																		" set AutoPair applies in buff
+let b:AutoPairs = g:AutoPairs																		" set AutoPair applies in buff
 let g:AutoPairsShortcutToggle = '<M-p>'													" default ALT+p
 let g:AutoPairsShortcutFastWrap = '<M-e>'												" add a '()', default ALT+e
 let g:AutoPairsShortcutJump = '<M-n>'														" downlevel (),, default ALT+b
@@ -373,38 +428,3 @@ map <leader>7 :b 7<CR>
 map <leader>8 :b 8<CR>
 map <leader>9 :b 9<CR>
 
-
-
-
-Another case
-====================
-sudo apt install ctags + cd /path/to/project + sudo ctags -R * + vimrc set tags=/path/to/project/tags
-sudo apt install vim-scripts vim-addon-manager exuberant-ctags?
-git clone https://github.com/rkulla/pydiction.git ~/.vim/pack/plugins/start/pydiction	# https://www.vim.org/scripts/script.php?script_id=850
-cp /usr/share/vim/pydiction/after/ftplugin/python_pydiction.vim ~/.vim/after/ftplugin
-cp /usr/share/vim/pydiction/complete-dict ~/.vim/tools/pydiction/complete-dict
-
-let Tlist_Auto_Highlight_Tag=1
-let Tlist_Auto_Open=1 
-let Tlist_Auto_Update=1
-let Tlist_Display_Tag_Scope=1 
-let Tlist_Exit_OnlyWindow=1
-let Tlist_Enable_Dold_Column=1 
-let Tlist_File_Fold_Auto_Close=1
-let Tlist_Show_One_File=1 
-let Tlist_Use_Right_Window=1 
-let Tlist_Use_SingleClick=1
-nnoremap <silent> <F8> :TlistToggle<CR> // <F8> is taglist
- 
-filetype plugin on 
-let g:pydiction_location = '/path/to/complete-dict'
-let g:pydiction_menu_height = 3 
-autocmd FileType python set omnifunc=pythoncomplete#Complete
-autocmd FileType javascrīpt set omnifunc=javascriptcomplete#CompleteJS 
-autocmd FileType html set omnifunc=htmlcomplete#CompleteTags 
-autocmd FileType css set omnifunc=csscomplete#CompleteCSS
-autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
-autocmd FileType php set omnifunc=phpcomplete#CompletePHP
-autocmd FileType c set omnifunc=ccomplete#Complete
- 
-let g:pydiction_location='~/.vim/tools/pydiction/complete-dict'

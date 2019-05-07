@@ -2,48 +2,100 @@
 # vim:ts=4
 # program: Using to note the knowledge about vim
 # made by: Engells
-# date: May 3, 2019
+# date: May 7, 2019
 # content: Just for memo
 
 
 
-Memo
+pipenv = pip + virtualenv + pyenv(pkg_manage)
 ====================
-pip
+commands
+----
+cd /path/to/project env && pipenv --three
+    # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。參數 --two 可產生 Python 2 虛擬環境
+    # 預設後續套件安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/lib/python3.6/site-packages/
+    # export WORKON_HOME=~/.venvs，可指定虛擬環境後續套件安裝位置
+    # export PIPENV_VENV_IN_PROJECT=1，在目前目錄下建立 .venv 目錄以代替 $HOME/.local/share/virtualenvs/xxxx-yyyyyy/
+    # 自行建立 .venv 目錄，執行 pipenv run 或 pipenv shell pipenv，會有 PIPENV_VENV_IN_PROJECT=1 相同效果
+    # PIPENV_CACHE_DIR=/path/to/cache
+pipenv shell
+    # 進入虛擬環境中，類似於 source venv/bin/activate
+exit
+    # 退出虛擬環境，相當於 deactive
+pipenv rm
+    # 刪除虛擬環境
+pipenv run python test.py
+    # 根據 virtualenv 執行相關 python 指令 （不進入虛擬環境中）
 
-conda
-----------
-Anaconda
-	https://www.anaconda.com/download/
-	cd /tmp && curl -O https://repo.anaconda.com/archive/Anaconda3-5.1.0-Linux-x86_64.sh
-	sha256sum Anaconda3-5.1.0-Linux-x86_64.sh
-	bash Anaconda3-5.1.0-Linux-x86_64.sh
-	source ~/.bashrc
-	conda list
-	conda create --name env_xxx python=3
-	source activate env_xxx
+pipenv --venv
+    # 檢視虛擬環境資訊 $HOME/.local/share/virtualenvs/xxxx-yyyyyy  
+pipenv install package_name
+    # 安裝套件
+    # 必要時設定語系：export LANG=en_US.UTF-8 && ~/.bashrc or ~/.zshrc
+    # 安裝開發過程使用之套件：pipenv install package_name --dev
+    # 安裝開發過程使用之套件：pipenv install package_name --dev  --three
+pipenv uninstall package_name
+    # 移除套件
 
-Miniconda
+pipenv check
+    # 根據 PEP 508 執行套件安全性檢查
+pipenv graph
+    # 印出套件的相依圖
+pipenv lock --requirements > requirements.txt
+    # 產生 requirements.txt 給特定平台如：AWS Elastic Beanstalk
 
-Berryconda
+
+install
+----
+pip3 install --user pipenv or pip3 install pipenv
+edit $HOME/.bashrc, 將 $HOME/.local/bin 加入 $PATH
+
+
+url
+----
+  https://github.com/pypa/pipenv
+  https://docs.pipenv.org/
+  https://docs.pipenv.org/en/latest/
+  https://www.jianshu.com/p/8c6ae288ba48 <= advanced guideline
 
 
 
 
-虛擬環境
+install pip3
 ====================
-套件：pip3 install virtualenv
+sudo apt install python3-pip => /usr/local/lib/python3.6/site-packages
+pip3 install --upgrade pip
+sudo apt remove python3-pip
 
-virtualenv -p /path/to/python3 env_name
-cd env_name
-source ./bin/activate or source path/to/env_name/bin/activate
+pip3 install package_name or pip3 install -v package_name==1.2.3
+pip3 uninstall package_name
+pip3 install -U package_name
+pip3 freeze                    # show installed packages name and version
+pip3 list
+pip3 show --files package_name 
 
-url：
-  http://pythonguidecn.readthedocs.io/zh/latest/dev/virtualenvs.html
+python3 -m site
+python3 -m site -help          # find config which define USER_SITE and USER_BASE
+python3 -m site --user-base	   # $HOME/.local
+python3 -m site --user-site    # $HOME/.local/lib/python3.6/site-packages
+python3 -m site
+    sys.path = [
+        '$HOME/',
+        '/usr/lib/python36.zip',
+        '/usr/lib/python3.6',
+        '/usr/lib/python3.6/lib-dynload',
+        '/usr/local/lib/python3.6/dist-packages',
+        '/usr/lib/python3/dist-packages',
+    ]
+
+pip3 freeze > requirements.txt
+pip3 install -r requirements.txt
 
 
-.vimrc
-----------
+
+
+vimrc
+====================
 function Py2()
   let g:syntastic_python_python_exec = '/usr/local/bin/python2.7'
 endfunction
@@ -59,25 +111,98 @@ let g:syntastic_python_checkers = ['python3'] <= ???
 
 
 
+Set config in Windows OS
+====================
+右鍵點擊 [本機] → [內容] → [進階系統設定] → [環境變數] 或是以系統管理員身分進入 CMD (Ctrl+Shift+Enter)：執行：rundll32 sysdm.cpl,EditEnvironmentVariables
+開啟環境變數視窗後，找到 [系統變數] → 雙擊 [path]，再將 Python 的路徑貼到系統變數的 path 裡面即可。
+	C:\Python36
+	C:\Users\(Your logged in User)\AppData\Local\Programs\Python\Python36
+
+
+
+
+虛擬環境
+====================
+venv
+----------
+安裝 venv 模組：apt install python3-venv
+建立目錄供虛擬環境使用：mkdir dir_name && cd dir_name
+建立虛擬環境：pyvenv env_name; ls env_name or python3.6 -m venv /path/to/env_name
+啟用虛擬環境：source env_name/bin/activate，啟用後命令列出現類似提示文字 (env_name) user_name@ubuntu:~/dir_name$
+離開虛擬環境：deactivate
+
+url：
+  http://www.pandacademy.com/如何在Ubuntu 16.04上安装Python 3以及设置本地编程环境
+
+
+virtualenv
+----------
+安裝套件：pip3 install virtualenv
+建立虛擬環境：virtualenv -p /path/to/python3 env_name
+啟用虛擬環境：cd env_name && source ./bin/activate or source path/to/env_name/bin/activate
+
+url：
+  http://pythonguidecn.readthedocs.io/zh/latest/dev/virtualenvs.html
+
+
+virtualenvwrapper
+----------
+安裝套件：pip3 install virtualenvwrapper
+建立虛擬環境：
+  export WORKON_HOME=/pat/to/env_parent
+  source /usr/local/bin/virtualenvwrapper.sh
+  mkvirtualenv env_name => create a virtual environment in /pat/to/env_parent/env_name
+啟用虛擬環境：
+  workon env_name
+  mkproject env_name => mkvirtualenv env_name + workon env_name
+離開虛擬環境：
+  deactivate
+其他指令：
+  rmvirtualenv env_name
+  lsvirtualenv
+  cdvirtualenv
+  cdsitepackages
+  lssitepackages
+
+
+
+
 環境建置
 ====================
-基本安裝
-----------
 Ubuntu 16.04 及 Debian 8 已預設安裝 python，以 python3 -V 查詢安裝版本
 安裝 pip 工具程式：apt install -y python3-pip
 安裝 python 套件：pip3 install package_name
 安裝輔助套件：apt install build-essential libssl-dev libffi-dev python3-dev
+	# 其他輔助套件 libxml2-dev libxslt1-dev zlib1g-dev
 
 
-虛擬環境
-----------
-安裝 venv 模組：apt install python3-venv
-建立目錄供虛擬環境使用：mkdir dir_name && cd dir_name
-建立虛擬環境：pyvenv env_name; ls env_name
-啟用虛擬環境：source env_name/bin/activate，啟用後命令列出現類似提示文字 (env_name) user_name@ubuntu:~/dir_name$
-離開虛擬環境：deactivate
 
 
-參考資料：
-  http://www.pandacademy.com/如何在Ubuntu 16.04上安装Python 3以及设置本地编程环境
+conda
+====================
+Anaconda
+	https://www.anaconda.com/download/
+	cd /tmp && curl -O https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh
+	sha256sum Anaconda3-5.1.0-Linux-x86_64.sh
+	bash Anaconda3-5.1.0-Linux-x86_64.sh
+	source ~/.bashrc
+	conda list
+	conda search "^python$"		# check to see which versions of Python are available
+	conda create --name env_xxx python=3.7
+	conda activate env_xxx
+	conda deactivate
+	conda info --envs
+	conda install --name env_xxx numpy
+	conda remove --name my_env35 --all or conda env remove --name myenv
+	conda update conda
+	conda update anaconda
+	conda install anaconda-clean		# install anaconda-clean package
+	anaconda-clean --yes				# remove configuration files
+	rm -rf ~/anaconda3
+	nano ~/.bashrc
+
+Miniconda
+
+Berryconda
+
 
