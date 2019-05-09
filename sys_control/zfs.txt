@@ -64,6 +64,9 @@ zfs umount pool_name/dataset_name
 建立及管理資料儲存池(pool， volume management)
 ====================-
 zpool create pool_name DeviceNode
+  zpool create -o ashift=12 -O acltype=posixacl -O canmount=off -O compression=lz4 \
+               -O dnodesize=auto -O relatime=on -O xattr=sa -O mountpoint=/mnt/xpl \
+               pool_name /dev/disk/by-id/ata-ST2000DM001-1CH164_Z1E44119-part4
 	zpool create XXXX /dev/sda[#]
 		# 設備代號建議採用 UUID，即 /dev/disk/by-uuid/xxxxxx，可用 ls -lh /dev/disk/by-uuid 查詢分割區與 UUID 對應關係
 		# 凡建立了 pool，其 pool 對應的實體硬碟裝置內即產生可供 import 之 pool 設定檔。

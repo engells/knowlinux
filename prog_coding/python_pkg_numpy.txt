@@ -1,0 +1,202 @@
+# vim:ts=4
+# program: Memo thr package of numpy
+# made by: Engells
+# date: May 5, 2019
+# content: Just for memo
+
+
+
+ndarray
+====================
+import numpy as np
+
+data = np.zeros(10, dtype=int)      # 建立一個內容為0 長度為10的整數陣列
+data = np.ones((3,5) ,dtype=float)  # 建立一個內容為1 3x5 的浮點數陣列
+data = np.empty((3,2) )             # 建立一個內容為1 3x2 的無初始值陣列
+data = np.full((4,2), 2.2)          # 建立一個內容為2.2 4x2 的浮點數陣列
+data = np.arange(0,20,2)            # 建立一個依序填滿的陣列 0 到 20 間隔為2
+data = np.linspace(0,1,5)           # 建立一個 5 個值的陣列，在 0 到 1 間平均分布
+
+data = np.random.random((3,3))      # 建立一個 3*3 陣列，在 0 到 1 間亂數值
+data = np.random.ranf((5))          # 建立一個 5 陣列，在 0 到 1 間亂數值
+data = np.random.sample((2,3))      # 建立一個 2*3 陣列，在 0 到 1 間亂數值
+
+data = np.random.normal(0,1,(3,3))  # 建立一個 3*3 陣列，內容為常態分佈的亂數值 平均 0，標準差 1
+data = np.random.randint(0,10,(3,3))# 建立一個 3*3 陣列，內容介於 0 到 10 的整數
+
+data = np.array([[ 0.226, -0.23 , -0.86],
+                 [ 0.5639, 0.2379, 0.904]])
+
+data = np.array([1, 2, 3], dtype=complex)
+
+data1 = [6, 7.5, 8, 0, 1]
+arr1 = np.array(data1)
+
+data2 = [[1, 2, 3, 4], [5, 6, 7, 8]]
+arr2 = np.array(data2)
+arr2.ndim       # how many dimentions in array2
+arr2.shape      # how many rows and columns in array2
+arr2.dtype
+
+Numpy 陣列屬性
+----------
+ndim()：取得陣列的維度數量
+shape()：陣列的形狀
+size()：陣列的數量
+dtype()：資料型態
+itemsize()：陣列中元素的大小(位元組為單位)
+nbytes()：陣列的大小(位元組為單位) 一般來說 nbytes = itemsize * size
+
+
+arr_x = np.random.randint(10, size=(3,4))
+print(arr_x)
+np.all(x<8,axis = 0)
+np.sum(arr_x>5,axis = 1)          # 計算大於 5 的數量，應用了 True 相當於數值 1 的效果
+np.sum((arr_x > 5) & (arr_x <8))
+arr_x[(x>5) & (x <8)]
+
+
+
+
+index
+====================
+arr = np.arange(10) => array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+arr[5]
+arr[5:8]
+narr[5:8] = 7
+arr[::-1] <= reverse the array, 9,8,7...
+
+arr_x3 = np.random.randint(10, size=(3,4,7))
+print("arr_x3[1,2,1]----->", arr_x3[1,2,1])
+print("arr_x3[1,2,1]----->", arr_x3[1:, :, :5:2])
+
+
+
+Slicing and Reshape
+====================
+myarr = np.arange(10)
+slice = myarr[5:8]
+myarr[5:8] = 7
+slice[1] = 87
+myarr
+
+arr = np.array([1,2,3])
+arr_reshape = arr.reshape((3,1))  
+
+
+
+Concatenate, VStack, HStack
+====================
+arr_x = np.array([1,2,3])
+arr_y = np.array([4,5,6])
+np.concatenate([arr_x,arr_y])
+
+
+
+Split,HSplit,VSplit
+====================
+arr_z = np.array([1,2,3,4,5,6,7,8,9])
+arr_z1,arr_z2,arr_z3 = np.split(arr_z,[3,5])
+    # 分割3個陣列 [index 0~(3-1) ] [ index 3~(5-1)] [index (5~end)]
+
+
+
+
+
+Broadcasting
+====================
+a = np.array([1,2,3])
+b = np.array([2,2,2])
+a * b => array([2, 4, 6])
+
+c = np.array([1.0, 2.0, 3.0])
+d = 2
+c * d => array([2, 4, 6])
+
+x = np.arange(4)        # x is a 1*4 array
+xx = x.reshape(4,1)     # xx is a 4*1 array
+y = np.ones(5)
+(xx + y)
+
+s = np.arange(6)
+s = s.reshape((3, 2))
+     # s => array([[0,1],[2,3],[4,5]])
+
+x = np.zeros((5, 2))
+	# x => array([0,0],[0,0],[0,0],[0,0],[0,0])
+y = x.T
+    # T means transpose
+	# y => array([0,0,0,0,0],[0,0,0,0,0])
+
+y = np.array([1,2,3,4])
+y.base is None
+
+x = np.arange(4)
+xx = x.reshape(4,1)
+y = np.ones(5)
+(xx + y)
+xx.base is x
+
+
+
+Statistac
+====================
+np.random.randn()    # create a random data
+np.random.randn(2, 4) + 1.920929
+
+np.random.randint(low=4,high=10,size=10)
+
+x = np.random.randn(5, 4)
+x.mean()
+x.sum()
+x.min()
+x.max()
+np.cumsum(x)    # accumulated sum
+np..std()
+
+
+
+File input and output
+====================
+x = np.arange(10)
+np.save('my_array', x)   # save a file with name of my_array.npy
+np.load('my_array.npy')  # load a file with name of my_array.npy
+
+aData = [1,2,3,4,5,6]
+bData = [7,8,9,10,11,12]
+np.savez('my_archive.npz', a=aData, b=bData)
+myArch = np.load('my_archive.npz')
+myArch['b']    # get aData
+myArch['a']
+
+!cat my_txt.txt
+myArr = np.loadtxt('my_txt.txt', delimiter=',')
+np.savetxt('txtfile.txt', myArr)
+
+
+
+Ufuncs
+====================
+絕對值：abs()
+三角函數：abs()、cos()、tan()
+指數和對數：exp()、exp2()、power()、log()、log2()、log10()
+外積：outer()
+陣列：加總 sum()、最小值 min()、最大值 max()
+  ironman_int_multi = np.random.randint(0,10000,(3,4))
+  ironman_int_multi.min(axis=0)  # 縱向取值
+  ironman_int_multi.min(axis=1)  # 橫向取值
+  np.sum       所有元素的加總
+  np.prod      所有元素的乘積
+  np.mean      所有元素的平均值
+  np.std       標準差
+  np.var       變異量
+  np.min       找出元素的最小值
+  np.max       找出元素的最大值
+  np.argmin    找出最小值的索引
+  np.argmax    找出最大值的索引
+  np.median    元素的中位數
+  np.any       當陣列中有任一值是True或是非零值時傳回True
+  np.all       當陣列中有所有值是True或是非零值時傳回True
+
+
+

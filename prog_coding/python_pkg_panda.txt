@@ -141,6 +141,59 @@ bond.drop(labels=["Box Office","Actor"], axis=1)
 
 
 
+
+MultiIndex
+====================
+index1 = [('Taichung',2018),('Taichung',2017),
+          ('Changhua',2018),('Changhua',2017),
+          ('Taipei',2018),('Taipei',2017),
+          ('Kaohsiung',2018),('Kaohsiung',2017)]
+index2 = pd.MultiIndex.from_tuples(index)
+elementary = [
+    800,780,
+    620,580,
+    1500,1350,
+    1100,998
+]
+
+ironman = pd.Series(elementary, index=index2)
+  Taichung   2018     800
+             2017     780
+  Changhua   2018     620
+             2017     580
+  Taipei     2018    1500
+             2017    1350
+  Kaohsiung  2018    1100
+             2017     998
+  dtype: int64
+
+ironman[:,2017]
+  Taichung      780
+  Changhua      580
+  Taipei       1350
+  Kaohsiung     998
+  dtype: int64
+
+ironman[ironman > 600]               #遮罩
+ironman[['Changhua','Kaohsiung']]    #fancy索引
+
+MultiIndex和DataFrame之間做轉換
+  unstack(): MultiIndex => DataFrame
+  stack(): DataFrame => MultiIndex
+
+ironman_unstack = ironman.unstack()
+ironman_unstack
+              2017	2018
+  Changhua     580   620
+  Kaohsiung    998  1100
+  Taichung     780   800
+  Taipei      1350  1500
+
+ironman.index.names = ['area','year']
+
+
+
+
 Groupby
 ====================
 fortune = pd.read_csv("./csv/fortune1000.csv",index_col="Rank")

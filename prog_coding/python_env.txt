@@ -7,11 +7,16 @@
 
 
 
+autocmd BufRead *.py map <buffer> <F5> :w<CR>:!/usr/bin/env python % <CR>
+map <F5> :w<cr>:r!python3 %<cr>
+nnoremap <buffer> <F9> :exec '!python3' shellescape(@%, 1)<cr>
+
+
 pipenv = pip + virtualenv + pyenv(pkg_manage)
 ====================
 commands
 ----
-cd /path/to/project env && pipenv --three
+cd /path/to/project env && export PIPENV_VENV_IN_PROJECT=1 && pipenv --three
     # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。參數 --two 可產生 Python 2 虛擬環境
     # 預設後續套件安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/lib/python3.6/site-packages/
     # export WORKON_HOME=~/.venvs，可指定虛擬環境後續套件安裝位置

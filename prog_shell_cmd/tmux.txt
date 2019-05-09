@@ -29,11 +29,35 @@ tmux new-window -t session_name:2 -n 'window_name2' 'ssh w2.example.com'
 tmux select-window -t session_name:1				# 選擇 session_name 編號第 1 號 window
 tmux select-pane -t 1												# 選擇編號第 1 號 panel
 
+conf commands
+  set-option -s       # sever option
+  set-option          # session option
+  set-window-option   # window option
+  set-option -g       # global option
 
 
 
-比照 Screen 及 Vim 快速鍵操作方式
+
+比照 Screen 及 Tmux 快速鍵操作方式
 ====================
+Tmux 原生快速鍵(prefix: Ctrl + b)
+  Panel
+    <prefix-%>      水平切割 panel
+    <prefix-">      垂直切割 panel
+    <prefix-x>      關閉 panel
+    <prefix-方向鍵>  切換 panel
+  Window
+    <prefix-c>      產生新的 window
+    <prefix-&>      關閉目前 window
+    <prefix-p>      切換至前一 window
+    <prefix-n>      切換至後一 window
+    <prefix num>	  切換至指定編號 window
+  Session
+    <prefix>d      離開目前 session
+    <prefix>D      離開指定編號 session
+
+
+
 編輯設定檔： ~/.tmux.conf，加入下列檔案內容
 	/usr/share/doc/tmux/examples/screen-keys.conf
 	/usr/share/doc/tmux/examples/vim-keys.conf
