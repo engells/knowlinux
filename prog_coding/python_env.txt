@@ -99,6 +99,38 @@ pip3 install -r requirements.txt
 
 
 
+pyenv
+====================
+commands
+----------
+pyenv version               # check pyenv version
+pyenv update
+pyenv install --list		# check python version which could be installed
+pyenv install -v x.y.z      # install python with version x.y.z
+                            # need pkgs: make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm
+                            # libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev
+pyenv versions              # check current python version
+pyenv global x.y.z          # switch to python with version x.y.z
+pyenv local x.y.z
+pyenv uninstall x.y.z
+
+
+
+
+install
+----------
+git clone https://github.com/yyuu/pyenv.git /path/to/pyenv
+echo 'export PYENV_ROOT="/path/to/pyenv"' >> ~/.zshrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc or echo 'export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.zshrc ??
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+exec $SHELL or source ~/.zshrc
+----(option)
+git clone https://github.com/pyenv/pyenv-virtualenv.git $.pyenv/plugins/pyenv-virtualenv
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
+
+
+
+
 vimrc
 ====================
 function Py2()
