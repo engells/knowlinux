@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Using to note the knowledge about vim
 # made by: Engells
-# date: May 7, 2019
+# date: May 12, 2019
 # content: Just for memo
 
 
@@ -10,6 +10,27 @@
 autocmd BufRead *.py map <buffer> <F5> :w<CR>:!/usr/bin/env python % <CR>
 map <F5> :w<cr>:r!python3 %<cr>
 nnoremap <buffer> <F9> :exec '!python3' shellescape(@%, 1)<cr>
+
+
+jupyter notebook
+====================
+commands
+----------
+jupyter notebook --ip=0.0.0.0 --port=9487
+
+
+install
+----------
+pipenv install jupyter      # pip3 install jupyterlab
+pipenv install ipykernel    # install python kernel for jupyter
+python3 -m ipykernel install
+----(optional)
+jupyter notebook --generate-config
+jupyter notebook password
+sudo pip3 install --upgrade jupyterthemes
+sudo jt -t oceans16 -tf merriserif -tfs 10 -fs 12 -nf ptsans -nfs 13 -T -N -f roboto
+
+
 
 
 pipenv = pip + virtualenv + pyenv(pkg_manage)
@@ -35,7 +56,7 @@ pipenv run python test.py
 pipenv --venv
     # 檢視虛擬環境資訊 $HOME/.local/share/virtualenvs/xxxx-yyyyyy  
 pipenv install package_name
-    # 安裝套件
+    # 安裝套件 pipenv install package_name==x.x.x
     # 必要時設定語系：export LANG=en_US.UTF-8 && ~/.bashrc or ~/.zshrc
     # 安裝開發過程使用之套件：pipenv install package_name --dev
     # 安裝開發過程使用之套件：pipenv install package_name --dev  --three
@@ -69,10 +90,12 @@ url
 install pip3
 ====================
 sudo apt install python3-pip => /usr/local/lib/python3.6/site-packages
-pip3 install --upgrade pip
+python3 -m pip install --user --upgrade requests
+  # python2: pip install --upgrade pip
 sudo apt remove python3-pip
 
 pip3 install package_name or pip3 install -v package_name==1.2.3
+pip3 install package_name --no-cache-dir
 pip3 uninstall package_name
 pip3 install -U package_name
 pip3 freeze                    # show installed packages name and version
@@ -119,10 +142,13 @@ pyenv uninstall x.y.z
 
 install
 ----------
-git clone https://github.com/yyuu/pyenv.git /path/to/pyenv
+git clone https://github.com/pyenv/pyenv.git /path/to/pyenv
 echo 'export PYENV_ROOT="/path/to/pyenv"' >> ~/.zshrc
 echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc or echo 'export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.zshrc ??
 echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+  # if command -v pyenv 1>/dev/null 2>&1; then
+  #   eval "$(pyenv init -)"
+  # fi
 exec $SHELL or source ~/.zshrc
 ----(option)
 git clone https://github.com/pyenv/pyenv-virtualenv.git $.pyenv/plugins/pyenv-virtualenv

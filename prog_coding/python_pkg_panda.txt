@@ -61,6 +61,10 @@ myframe3['luckynumber'] = luckynumber
 read csv file
 ====================
 df = pd.read_csv('./path/to/csv')
+  # pd.read_table(url/to/file, sep = ":", header = TRUE) sep = '\t'
+  # pd.read_excel(url/to/file)
+  # pd.read_json(url/to/file)
+
 
 df.head(3)
 df.tail()

@@ -48,7 +48,7 @@ YouCompleteMe
 安裝(可運作於 pipenv 虛擬環境)
 ----------
 apt install build-essential cmake python-dev? python3-dev
-git clone https://github.com/Valloric/YouCompleteMe.git  ~/.vim/pack/plugins/start/YouCompleteMe
+git clone https://github.com/Valloric/YouCompleteMe.git  ~/.vim/pack/plugins/start/you_complete_me
   # 可考慮 git clone --recurse-submodules https://github.com/Valloric/YouCompleteMe.git ~/.vim/pack/plugins/start/YouCompleteMe
   # 若出現下載中斷的情形，執行：cd path/to/YouCompleteMe && git submodule update --init --recursive
 cd ~/.vim/pack/plugins/start/YouCompleteMe && git submodule update --init --recursive
@@ -124,7 +124,7 @@ let g:ycm_filetype_blacklist = {
 
 majutsushi/tagbar
 ====================
-git clone https://github.com/majutsushi/tagbar.git ~/.vim/pack/plugins/start/tagbar
+git clone https://github.com/majutsushi/tagbar.git ~/.vim/pack/plugins/start/tag_bar
 
 .vimrc 組態
 ----------
@@ -242,7 +242,7 @@ indentline
 ====================
 安裝
 ----------
-git clone https://github.com/Yggdroot/indentLine.git  ~/.vim/pack/plugins/start/indentLine
+git clone https://github.com/Yggdroot/indentLine.git  ~/.vim/pack/plugins/start/indent_line
 
 
 .vimrc 組態
