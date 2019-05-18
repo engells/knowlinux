@@ -29,3 +29,49 @@ ENV LANG C.UTF-8 LC_ALL=C.UTF-8
 # Initialize workspace
 RUN mkdir /workspace
 WORKDIR /workspace
+
+
+====================
+
+FROM python:3.6.8
+
+ENV PIP_INDEX_URL https://mirrors.aliyun.com/pypi/simple/
+RUN pip3 install pipenv --no-cache-dir
+
+RUN set -ex && mkdir /app
+WORKDIR /app
+
+COPY Pipfile Pipfile
+COPY Pipfile.lock Pipfile.lock
+RUN set -ex && pipenv install --deploy --system
+
+COPY . /app
+EXPOSE 8888
+CMD ["python3", "main.py"]
+
+
+----------
+
+Base Image Dockerfile
+
+FROM python:3.6.8
+
+ENV PIP_INDEX_URL https://mirrors.aliyun.com/pypi/simple/
+RUN pip3 install pipenv --no-cache-dir
+
+RUN set -ex && mkdir /app
+WORKDIR /app
+
+ONBUILD COPY Pipfile Pipfile
+ONBUILD COPY Pipfile.lock Pipfile.lock
+ONBUILD RUN set -ex && pipenv install --deploy --system
+复制代码
+
+----
+
+FROM tomczhen/python-pipenv-base:3.6.8
+
+COPY . /app
+EXPOSE 8888
+CMD ["python3", "main.py"]
+
