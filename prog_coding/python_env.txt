@@ -6,10 +6,20 @@
 # content: Just for memo
 
 
-
 autocmd BufRead *.py map <buffer> <F5> :w<CR>:!/usr/bin/env python % <CR>
 map <F5> :w<cr>:r!python3 %<cr>
 nnoremap <buffer> <F9> :exec '!python3' shellescape(@%, 1)<cr>
+
+
+
+brief set environment
+====================
+install pyenv, with git
+install python x.x.x, with pyenv
+install pipenv, with pip3 provide by pyenv
+install packages, with pipenv
+
+
 
 
 jupyter notebook
@@ -76,6 +86,7 @@ pipenv run python test.py
     # 根據 virtualenv 執行相關 python 指令 （不進入虛擬環境中）
 
 pipenv install package_name
+    # 建立環境 --python=x.x.x
     # 安裝套件 pipenv install package_name>=x.x.x
     # --skip-lock，略過 lock file，後續再執行 pipenv lock 產生 lock file
     # 安裝開發過程使用之套件：pipenv install package_name --dev
@@ -196,6 +207,7 @@ pyenv install --list		# check python version which could be installed
 
 install
 ----------
+apt install sqlite3 libsqlite3-dev libssl-dev libffi-dev
 git clone https://github.com/pyenv/pyenv.git /path/to/pyenv
 echo 'export PYENV_ROOT="/path/to/pyenv"' >> ~/.zshrc
 echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc or echo 'export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.zshrc ??

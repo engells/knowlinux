@@ -38,7 +38,7 @@ ipython          (Python Shell)
 ----------
 python3 python3-dev python3-pip zip unzip p7zip-full git build-essential cmake exuberant-ctags libssl-dev libffi-dev sqlite3
 # exuberant-ctags 可由較新之 universal-ctags 取代，後者由 github 下載後編譯
-# raspberry pi: libatlas-base-dev gfortran libjpeg8-dev zip unzip
+# raspberry pi: libatlas-base-dev gfortran libjpeg8-dev libxml2-dev libxslt1-dev zip unzip
 # libtiff5-dev libjasper-dev libpng12-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev tcl8.6-dev tk8.6-dev ?? <= not install at last
 
 

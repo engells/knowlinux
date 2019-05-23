@@ -7,16 +7,17 @@
 
 tmux 指令
 ====================
-C-a 方向鍵			# 切換 window
-C-a [0...9]		# 切換 window
-C-a K 				# 關閉 window
-C-d 					# 關閉 tmux panel
+bind-key 方向鍵				# 切換 window
+bind-key [0...9]		# 切換 window
+bind-key K					# 關閉 window
+C-d 								# 關閉 tmux panel
+bind-key [					# 翻頁 scroll, PgUP pgDown q
 
 tmux or tmux new -s session_name						# 新增 session
 tmux attach or tmux attach -t session-id		# 連回 session
 tmux rename-session -t 0 session_name				# 將 session 0 命名為 session_name
-tmux detach
-tmux ls
+tmux detach																	# 暫時斷開 session
+tmux ls																			# 列出所有 session
 tmux kill-session -t 0											# 刪除 session
 tmux kill-server														# 刪除 tmux server
 
@@ -29,7 +30,24 @@ tmux new-window -t session_name:2 -n 'window_name2' 'ssh w2.example.com'
 tmux select-window -t session_name:1				# 選擇 session_name 編號第 1 號 window
 tmux select-pane -t 1												# 選擇編號第 1 號 panel
 
+bind-key + ~											# 顯示tmux messages
+bind-key + |											# 垂直分割 window
+bind-key + _											# 水平分割 window
+bind-key + alt + 方向鍵							# 調整pane大小
+bind-key + 方向鍵										# 在pane間切換
+bind-key + { or }									# 調整pane位置
+bind-key + !											# 拆開當前的pane至獨立window
+bind-key + j											# 合併指定的window成為當前window的pane
+bind-key + ?											# 列出所有tmux session內的指令
+bind-key + s											# 選擇tmux session
+bind-key + .											# # 更改window編號
+bind-key + k											# 刪除window
+bind-key + d											# 將tmux session放入背景執行
+bind-key + ?											# 列出所有tmux session內的指令
+
+
 conf commands
+----------
   set-option -s       # sever option
   set-option          # session option
   set-window-option   # window option
@@ -188,7 +206,5 @@ tmux = Terminal Multiplexer = Σ sessions = Σ windows = Σ panes => each pane r
 執行 tmux 指令會建立一個新的 tmux session，終端機畫面底部多了一條狀態列。狀態列是 tmux 很重要的部分。除了顯示當前的視窗（在左邊）它同時也會顯示一些關於系統的資訊像是時間（在右邊）。狀態列還可以依照需求客製，例如：顯示行事曆，電量等等。
 
 設定檔 ~/.tmux.conf，參考設定檔：	/usr/share/doc/tmux/examples/screen-keys.conf，/usr/share/doc/tmux/examples/vim-keys.conf
-
-
 
 
