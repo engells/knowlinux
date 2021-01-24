@@ -12,6 +12,7 @@ sudo netplan try			# 檢查設定檔格式
 sudo netplan apply			# 啟用 netplan 組態
 sudo netplan --debug apply	# 以偵錯模式啟用 netplan 組態
 sudo netplan generate		# 以 /etc/netplan/*.yaml 建置網路組態: /run/NetworkManager/conf.d ?
+nmcli						# command-line tool for controlling NetworkManager
 
 
 

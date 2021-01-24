@@ -1,4 +1,73 @@
-# vim:ts=4
+# vim:ts=2
+# program: knowhow about DOSBox
+# made by: Engells
+# date: Dec 24, 2020
+# content:
+
+
+
+按鍵設定
+==============================
+	Ctrl + F4	切換映像檔
+	Ctrl + F5	抓圖
+	Ctrl + F6	聲音存成 wave 檔，第一次 Ctrl + F6 開始進行錄音，再按一次結束錄音
+	Ctrl + F9	結束DOSBox程式
+	Ctrl + F10	解除滑鼠鎖定
+	Ctrl + F11	減速
+	Ctrl + F12	加速
+	Alt + Enter	全螢幕
+
+
+
+
+指令
+==============================
+rescan
+  # 重新掃描，如果你把某目錄虛擬為 C 槽，又在該目錄下增加或減少了檔案，要用 rescan 命令重新掃描
+
+imgmount
+  # 掛載映像檔，imgmount drive_leyyer "/path/to/file" -t iso|hdd|floppy -fs none|fat -size xxx,xxx,xxx,xxx
+    imgmount d "/path/to/xxx.iso" -t iso => 將 iso 檔掛載為 D 槽
+    imgmount 3 "/path/to/xxx.iso" -t iso => 0-1 代表軟碟，2-n 代表硬碟或光碟
+    imgmount 4 "/path/to/xxx.img -t hdd -fs none -size 512,63,64,1023 => -size sector_size sectors_per_track heads cylinders 
+      100MB image:	512,63,16,203 dd if=/dev/zero of=/path/to/img_file bs=512 count=204624 204624=63*16*203
+      256MB image:	512,63,16,520
+      512MB image:	512,63,32,520
+      520MB image:	512,63,16,1023
+      1GB image:		512,63,64,520
+      2GB image:		512,63,64,1023
+        掛載硬碟映像檔之前，該映像檔宜以 DOS 原版的 sys 指令製成可開機狀態，以 DOS 原版的 format 指令格式化更佳。否則以 linux mkgs.fat 搭配 DOS sys 指令亦可。
+    imgmount e "/path/to/xxx.img -size a,b,c,d -fs none => a=sector size、b=sectors per track、c=heads、d=cylinders
+    imgmount 0 "/path/to/xxx.ima -t floppy -fs none => 掛載映像檔為軟碟
+
+imgmount
+  # 卸載映像檔，imgmount -u d => 卸載 D 槽
+
+mount
+  # 掛載路徑，mount e h:\ -t cdrom => 將 H 槽掛載為光碟機
+
+mixer
+  # 設定音量
+    mixer sb 30:30
+    mixer fm 10:10
+
+boot
+  # 特殊開機設定
+    boot -l c => 從 C 槽開機，一般 C 槽為掛載的鏡像檔(imgmount c "path/to/xxx.img" )
+    boot /path1/to/msdos622.img /path2/to/ss.img => 從鏡像檔開機，A 槽是 msdos622.img 鏡像內容，B 槽是ss.img 鏡像內容
+
+mem 
+  # 查詢記憶體
+
+loadfix -32 xx.exe 
+  # 分配 32K 記憶體給 xx.exe，若不加 -32 參數，預設分配 64K 。此指令可修正部份無法在大量記憶體運作之程式
+
+loadix -f
+  # 釋放 loadfix 分配的記憶體
+
+xms on/off ; ems on/off
+  # 啟用或關閉 XMS、EMS
+
 
 
 
@@ -19,63 +88,6 @@ We can find the file as ~/.dosbox/dosbox-x.xx.conf or ~/dosboxrc
 	fullresolution=1200x900		全螢幕解析度設為 1200x900
 	windowresolution=1200x900	視窗解析度設為 1200x900，輸出裝置(通常是電腦螢幕)支援硬體縮放時有效
 	output=overlay				啟用上述析度設
-
-
-
-
-按鍵設定
-==============================
-	Ctrl + F4	切換映像檔
-	Ctrl + F5	抓圖
-	Ctrl + F6	聲音存成 wave 檔，第一次 Ctrl + F6 開始進行錄音，再按一次結束錄音
-	Ctrl + F9	結束DOSBox程式
-	Ctrl + F10	解除滑鼠鎖定
-	Ctrl + F11	減速
-	Ctrl + F12	加速
-	Alt + Enter	全螢幕
-
-
-指令
-==============================
-掛載映像檔
-	imgmount drive_leyyer "/path/to/file" -t iso|hdd|floppy -fs none|fat -size xxx,xxx,xxx,xxx
-	imgmount d "/path/to/xxx.iso" -t iso => 將 iso 檔掛載為 D 槽
-	imgmount 3 "/path/to/xxx.iso" -t iso => 0-1 代表軟碟，2-n 代表硬碟或光碟
-	imgmount 4 "/path/to/xxx.img -t hdd -fs none -size 512,63,64,1023 => -size sector_size sectors_per_track heads cylinders 
-		100MB image:	512,63,16,203 dd if=/dev/zero of=/path/to/img_file bs=512 count=204624 204624=63*16*203
-		256MB image:	512,63,16,520
-		512MB image:	512,63,32,520
-		520MB image:	512,63,16,1023
-		1GB image:		512,63,64,520
-		2GB image:		512,63,64,1023
-		掛載硬碟映像檔之前，該映像檔宜以 DOS 原版的 sys 指令製成可開機狀態，以 DOS 原版的 format 指令格式化更佳。否則以 linux mkgs.fat 搭配 DOS sys 指令亦可。
-	imgmount e "/path/to/xxx.img -size a,b,c,d -fs none => a=sector size、b=sectors per track、c=heads、d=cylinders
-	imgmount 0 "/path/to/xxx.ima -t floppy -fs none => 掛載映像檔為軟碟
-
-卸載映像檔
-	imgmount -u d => 卸載 D 槽
-
-掛載路徑
-	mount e h:\ -t cdrom => 將 H 槽掛載為光碟機
-
-設定音量
-	mixer sb 30:30
-	mixer fm 10:10
-
-特殊開機設定
-	boot -l c => 從 C 槽開機，一般 C 槽為掛載的鏡像檔(imgmount c "path/to/xxx.img" )
-	boot /path1/to/msdos622.img /path2/to/ss.img => 從鏡像檔開機，A 槽是 msdos622.img 鏡像內容，B 槽是ss.img 鏡像內容
-
-重新掃描，如果你把某目錄虛擬為 C 槽，又在該目錄下增加或減少了檔案，要用 rescan 命令重新掃描
-	rescan
-
-記憶體管理
-	mem => 查詢記憶體
-	loadfix -32 xx.exe => 分配 32K 記憶體給 xx.exe，若不加 -32 參數，預設分配 64K 。此指令可修正部份無法在大量記憶體運作之程式
-	loadix -f => 釋放 loadfix 分配的記憶體
-
-啟用或關閉 XMS、EMS
-	xms on/off ; ems on/off
 
 
 

@@ -6,6 +6,18 @@
 
 
 
+MacVim
+====================
+brew install macvim
+edit ~/.bash_profile or ~/.zshrc
+  alias vi=vim
+  alias vim=mvim
+  alias mvim='/usr/local/bin/mvim -v'
+source ~/.bash_profile
+
+
+
+
 Mac快速鍵
 ====================
 1. 新增一封郵件 (⌘ + Shift + I)

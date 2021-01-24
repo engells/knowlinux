@@ -1,0 +1,1087 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=0.5.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,KVM,OpenStack," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="blueyi's notes" type="application/atom+xml" />
+
+
+
+
+
+
+
+
+
+<meta name="description" content="关于网上关于KVM的简单使用教程有很多，但通常都是通过桌面的方式进行管理和使用，而且大部分教程中都忽略了很多重要的细节，且应用场景都较为简单。本文提供的教程主要用于有多人需要大量的虚拟机使用需求，要能够让大家非常方便地随时创建和删除虚拟机，支持通过SSH进行连接，同时支持通过VNC进行远程虚拟机桌面的连接（安装虚拟机系统时肯定需要，当然服务器带桌面例外）。当然如果使用OpenStack会方便很多，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu Server/Debian下的KVM虚拟机创建及管理详解">
+<meta property="og:url" content="http://notes.maxwi.com/2016/11/29/kvm-create-and-manage/index.html">
+<meta property="og:site_name" content="blueyi's notes">
+<meta property="og:description" content="关于网上关于KVM的简单使用教程有很多，但通常都是通过桌面的方式进行管理和使用，而且大部分教程中都忽略了很多重要的细节，且应用场景都较为简单。本文提供的教程主要用于有多人需要大量的虚拟机使用需求，要能够让大家非常方便地随时创建和删除虚拟机，支持通过SSH进行连接，同时支持通过VNC进行远程虚拟机桌面的连接（安装虚拟机系统时肯定需要，当然服务器带桌面例外）。当然如果使用OpenStack会方便很多，">
+<meta property="og:image" content="http://notes.maxwi.com/bridge.png">
+<meta property="og:image" content="http://notes.maxwi.com/ip-ifconfig.jpg">
+<meta property="og:updated_time" content="2016-12-14T02:56:43.815Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ubuntu Server/Debian下的KVM虚拟机创建及管理详解">
+<meta name="twitter:description" content="关于网上关于KVM的简单使用教程有很多，但通常都是通过桌面的方式进行管理和使用，而且大部分教程中都忽略了很多重要的细节，且应用场景都较为简单。本文提供的教程主要用于有多人需要大量的虚拟机使用需求，要能够让大家非常方便地随时创建和删除虚拟机，支持通过SSH进行连接，同时支持通过VNC进行远程虚拟机桌面的连接（安装虚拟机系统时肯定需要，当然服务器带桌面例外）。当然如果使用OpenStack会方便很多，">
+<meta name="twitter:image" content="http://notes.maxwi.com/bridge.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://notes.maxwi.com/2016/11/29/kvm-create-and-manage/"/>
+
+  <title> Ubuntu Server/Debian下的KVM虚拟机创建及管理详解 | blueyi's notes </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">blueyi's notes</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">Follow Excellence,Success will chase you!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Ubuntu Server/Debian下的KVM虚拟机创建及管理详解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-11-29T19:28:34+08:00" content="2016-11-29">
+              2016-11-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/11/29/kvm-create-and-manage/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/11/29/kvm-create-and-manage/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h2><p>网上关于KVM的简单使用教程有很多，但通常都是通过桌面的方式进行管理和使用，而且大部分教程中都忽略了很多重要的细节，且应用场景都较为简单。本文提供的教程主要用于有多人需要大量的虚拟机使用需求，要能够让大家非常方便地随时创建和删除虚拟机，支持通过SSH进行连接，同时支持通过VNC进行远程虚拟机桌面的连接（安装虚拟机系统时肯定需要，当然服务器带桌面例外）。当然如果使用OpenStack会方便很多，但毕竟Openstack配置非常复杂，其实采用KVM的初衷就是为了将来迁移到Openstack做个过度。<br>    假如你不幸看到本文，觉得本文太长，第一次看的时候可以跳过一些内容，我会在文注明，如果你在实践过程中遇到一些问题，建议你多看几遍，也许会有新的发现。强烈推荐多参考官方man手册，本文使用的测试环境主要是Ubuntu16.04和Debian 8，在Ubuntu14.04上的一些问题都有说明。看完本文后你将收获：</p>
+<pre><code>* 配置KVM虚拟机环境，即可支持通过桌面的方式安装虚拟机，又支持纯命令行
+* 配置非root用户创建KVM虚拟机
+* 配置虚拟机通过桥接连网，并解决很多人没有提到的桥接后导致本地网络异常的问题
+* 远程VNC连接虚拟机并安装系统
+* 虚拟机克隆
+* 虚拟机系统镜像制作及布署
+* 无需进入虚拟机的情况下获取到虚拟通过DHCP获得的IP
+* 虚拟机日常管理命令
+</code></pre><p>本文参考的国内外资料非常多，基本重要的内容都涵盖进来了，所以虽然有点长，但很有意义<br><a id="more"></a></p>
+<h2 id="关于KVM"><a href="#关于KVM" class="headerlink" title="关于KVM"></a>关于KVM</h2><p>KVM全称是基于内核的虚拟机（Kernel-based Virtual Machine），它是Linux的一个内核模块，该内核模块使得Linux变成了一个Hypervisor。KVM 本身不执行任何硬件模拟，需要客户空间程序通过/dev/kvm接口设置一个客户机虚拟服务器的地址空间，向它提供模拟的I/O，并将它的视频显示映射回宿主的显示屏，目前这个客户空间程序是QEMU，从QEMU的角度看，QEMU使用了KVM模块的虚拟化功能，来为自己的虚拟机提供硬件虚拟化加速。所以后面讲到的虚拟机的创建和管理过程其实就是qemu与kvm的配合调用过程，而libvirt又是一个C语言实现的虚拟机管理工具集，即由它提供的API来实现对qemu和kvm的这些管理过程，所以下面会大量涉及到libvirt提供的工具。由于KVM要求CPU支持，比如英特尔的VT或ADM-V，有些主板会在主板中默认禁用CPU的虚拟化支持，所以最好先进入BIOS中确认自己的CPU虚拟化功能处于开启状态。</p>
+<h2 id="验证主机是否支持硬件虚拟化"><a href="#验证主机是否支持硬件虚拟化" class="headerlink" title="验证主机是否支持硬件虚拟化"></a>验证主机是否支持硬件虚拟化</h2><h3 id="方法1：通过命令验证"><a href="#方法1：通过命令验证" class="headerlink" title="方法1：通过命令验证"></a>方法1：通过命令验证</h3><p>首先运行如下命令：<br><code>egrep -c ‘(svm|vmx)’ /proc/cpuinfo</code><br>该命令会统计cpuinfo文件中svm和vmx出现的次数。其中svm是ADM的ADM-V虚拟化技术标识，全称secure virtual machine，vmx是Intel的硬件虚拟化技术VT-x，标识是vmx，全称为virtual machine extension。如果返回的是数字0，则表示你的机器不支持KVM或者bios中没有开启硬件虚拟化。</p>
+<h3 id="方法2：通过软件验证"><a href="#方法2：通过软件验证" class="headerlink" title="方法2：通过软件验证"></a>方法2：通过软件验证</h3><p>安装cpu-checker之后通过运行kvm-ok来验证：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install cpu-checker</div><div class="line">kvm-ok</div><div class="line">INFO: /dev/kvm exists</div><div class="line">KVM acceleration can be used</div></pre></td></tr></table></figure></p>
+<p>默认情况下，下面运行的命令后面的输出都会直接在命令后面贴出，不带$符的地方表示命令输出结果，#后面接注释。<br>出现上述提示表示机器也支持kvm虚拟化，如果你的提示如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">INFO: Your CPU does not support KVM extensions</div><div class="line">INFO: For more detailed results, you should run this as root</div><div class="line">HINT:   sudo /usr/sbin/kvm-ok</div></pre></td></tr></table></figure></p>
+<p>不好意思，表示你的机器不支持KVM，可以进入bios之后查看是不是CPU虚拟化功能没有开启。</p>
+<h2 id="安装KVM相关依赖"><a href="#安装KVM相关依赖" class="headerlink" title="安装KVM相关依赖"></a>安装KVM相关依赖</h2><p>为了便于管理和使用KVM虚拟机，需要安装如下软件，后面需要用到的其他软件会再提示单独安装：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install kvm qemu-kvm libvirt-bin virtinst bridge-utils</div></pre></td></tr></table></figure></p>
+<p>它们的作用分别为：</p>
+<ul>
+<li>kvm: KVM的内核，通常linux系统自带</li>
+<li>qemu-kvm: KVM的设备模拟器，实际上kvm只是负责加速，qemu才是虚拟机管理器</li>
+<li>libvirt-bin: libvirt库，虚拟机命令行管理工具，包含很多实用工具，如后面需要大量使用的virsh。（安装之后会生成一个名为virbr0的网桥）</li>
+<li>virtinst: 虚拟机创建（virt-install）和克隆工具（vrit-clone）等</li>
+<li>birdge-utils: 用于桥接网卡的工具，如命令brctl）<br>如果有图形化桌面，推荐安装virt-manager，这个工具可以非常方便地图形化管理虚拟机，就像常见的virtualbox/vmware界面那样，可以通过点点鼠标来完成虚拟机的管理。</li>
+</ul>
+<p>KVM管理工具的一些注解及一些实用工具</p>
+<ul>
+<li>libvirt：操作和管理KVM虚机的虚拟化API，使用C语言编写，可以由Python,Ruby, Perl, PHP, Java等语言调用。可以操作包括KVM，vmware，XEN，Hyper-v, LXC，virtualbox等 Hypervisor。</li>
+<li>virsh：基于libvirt的命令行工具，后面需要大量使用</li>
+<li>virt-v2v：虚机格式迁移工具，该工具与virt-sysprep都包含在包libguestfs-tools中，后面布署中会用到</li>
+<li>virt-install：创建KVM虚机的命令行工具</li>
+<li>virt-viewer：连接到虚拟机屏幕的工具，需要主机有桌面环境，该工具需要单独安装sudo apt-get install virt-viewer</li>
+<li>virt-clone：虚机克隆工具</li>
+<li>virt-top：类似于linux系统下的top命令，可以显示所有虚拟机CPU、内存等使用情况，该工具需要单独安装sudo apt-get install virt-top</li>
+</ul>
+<h2 id="设置网络"><a href="#设置网络" class="headerlink" title="设置网络"></a>设置网络</h2><p>这里是最容易卡住人的地方，特别是桥接网络设置，如果你没有让虚拟机通过网卡DHCP分配独立IP以及从其他机器访问虚拟机的需求，可以直接使用NAT方式上网，暂时跳过桥接方式，有需要时再来看。<br>让虚拟上网的方式主要有两种，默认情况下使用NAT方式，即虚拟机利用主机的ip进行上网，对外网来说主机和虚拟机只显示一个ip；另一种方式是Bridge方式，即将虚拟机桥接到host机器的网卡上，guest（虚拟机）和host（实机）机器都通过bridge上网，对外显示不同的ip，相当于虚拟机网络和主机网络是平等的，都由路由器来分配（如果是通过dhcp动态由路由分配ip的话），当然也可以手动配置静态路由。下面分别讲解配置步骤</p>
+<h3 id="NAT网络"><a href="#NAT网络" class="headerlink" title="NAT网络"></a>NAT网络</h3><p>想快事体验虚拟机安装之后的样子，可以先跳过网络设置<br>NAT即Network Address Translation，网络地址转换，其实就是将IP数据报头中的IP地址转换为另一个IP地址的过程，主要用于实现私有网络访问公共网络的功能，我们这里也只是利用NAT来实现虚拟机共享主机的网络。<br>KVM虚拟机环境安装之后会有个默认的网络设备称为’default’，该网络实际上桥接在虚拟网卡virbr0上，这个虚拟网卡是在安装libvirt-bin时自动创建的，该虚拟网卡通过NAT方式管理连接，可通过如下命令查看：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ sudo virsh net-list --all</div><div class="line"> Name                 State      Autostart     Persistent</div><div class="line">----------------------------------------------------------</div><div class="line"> default              active     yes           yes</div></pre></td></tr></table></figure></p>
+<p>可以看到我们有一个default网络<br>假如不小心通过brctl（用于管理桥接网络的工具）删除了default网络，可以通过重新加载预置的XML文件来恢复：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ sudo virsh net-define /usr/share/libvirt/networks/default.xml  #重新定义网络</div><div class="line">Network default defined from /usr/share/libvirt/networks/default.xml</div><div class="line">$ sudo virsh net-autostart default  #设置default开机自动启动</div><div class="line">Network default marked as autostarted</div><div class="line">$ sudo virsh net-start default  #启动网络default</div><div class="line">Network default started</div></pre></td></tr></table></figure></p>
+<p>查看default网络信息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ sudo virsh net-info default</div><div class="line">Name:           default</div><div class="line">UUID:           1d8b5c10-54ed-4408-85b0-e6c3c722320b</div><div class="line">Active:         yes</div><div class="line">Persistent:     yes</div><div class="line">Autostart:      yes</div><div class="line">Bridge:         virbr0</div></pre></td></tr></table></figure></p>
+<p>从输出中可以看到它桥接自网卡virbr0。</p>
+<p>查看virbr0的信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ brctl show virbr0</div><div class="line">bridge name     bridge id               STP enabled     interfaces</div><div class="line">virbr0          8000.5254006842c2       yes             virbr0-nic</div></pre></td></tr></table></figure></p>
+<p>通过brctl可以查看所有桥接网卡信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ sudo brctl show</div><div class="line">bridge name     bridge id               STP enabled     interfaces</div><div class="line">br0             8000.4ccc6a695b5e       no              eno1</div><div class="line">                                                        vnet0</div><div class="line">virbr0          8000.5254006842c2       yes             virbr0-nic</div></pre></td></tr></table></figure></p>
+<p>你电脑没有做过桥接的话可能没有br0和vnet0，可能你会发现，为什么有时候我没用sudo，有时候用了，其他brctl命令几乎都不需要sudo权限。</p>
+<p>可以将default网络参数dump到XML文件中，意义就是可以用该文件为虚拟机创建网络设备，比如上面的virsh net-define命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo virsh net-dumpxml default &gt; default.xml</div></pre></td></tr></table></figure></p>
+<p>default.xml文件内容形如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">network</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>default<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">uuid</span>&gt;</span>1d8b5c10-54ed-4408-85b0-e6c3c722320b<span class="tag">&lt;/<span class="name">uuid</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">forward</span> <span class="attr">mode</span>=<span class="string">'nat'</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">nat</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">port</span> <span class="attr">start</span>=<span class="string">'1024'</span> <span class="attr">end</span>=<span class="string">'65535'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">nat</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">forward</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">bridge</span> <span class="attr">name</span>=<span class="string">'virbr0'</span> <span class="attr">stp</span>=<span class="string">'on'</span> <span class="attr">delay</span>=<span class="string">'0'</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">mac</span> <span class="attr">address</span>=<span class="string">'52:54:00:68:42:c2'</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">ip</span> <span class="attr">address</span>=<span class="string">'192.168.122.1'</span> <span class="attr">netmask</span>=<span class="string">'255.255.255.0'</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">dhcp</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">range</span> <span class="attr">start</span>=<span class="string">'192.168.122.2'</span> <span class="attr">end</span>=<span class="string">'192.168.122.254'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">dhcp</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">ip</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">network</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>从图中可以看到default网络设置为虚拟机分配IP的范围是192.168.122.2 ~ 254以及端口范围<br>NAT模式下虚拟主机可以连外网，但外界无法访问该虚拟主机，其实如果你使用NAT方式上网，可以直接不用做任何设置就可以让虚拟机上网。这些命令是为了后面设置桥接网格时有个基础，如果遇到问题也好知道从哪里下手查找问题。</p>
+<h3 id="Bridge网络"><a href="#Bridge网络" class="headerlink" title="Bridge网络"></a>Bridge网络</h3><p>Bridge方式即虚拟网桥的网络连接方式，通过这种方式可以让客户机和子网里的其他机器互相通信。虚拟机可以成为网络中具有独立IP的主机，相当于一台与物理机处于同等网络环境中主机。桥接网络（也称物理设备共享），原理就是创建一个桥接接口br0，在物理网卡和虚拟网络接口之间传递数据，此时实际上是将物理网卡置为混杂格式，以便让网卡可以侦听多个IP，虚拟机网卡桥接在物理网卡上获得独立IP。<br>大致如下图：<br><img src="bridge.png" alt="bridge"><br>配置过程如下：</p>
+<p>1.首先备份网络配置，以便出错时恢复：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo cp /etc/network/interfaces /etc/network/interfaces.bakup</div></pre></td></tr></table></figure></p>
+<p>2.编辑网络配置，将eth0映射到br0，这里假设你电脑的物理网卡名称为eth0，注意不要随意修改网卡名称，如果你的网卡配置文件中auto后面的那个就是你的网卡名，只需要将下面的eth0换成你自己的网卡名就可以了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo vi /etc/network/interfaces</div></pre></td></tr></table></figure></p>
+<p>假如原有的网卡是eth0，且通过dhcp自动获取ip（即电脑连接路由器自动上网），注释或删除掉其他所有eth0相关的设置，其他内容不变，在文件最后添加如下内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">auto br0</div><div class="line">iface br0 inet dhcp        </div><div class="line">bridge_ports eth0        </div><div class="line">bridge_stp off        </div><div class="line">bridge_fd 0        </div><div class="line">bridge_maxwait 0</div></pre></td></tr></table></figure></p>
+<p>如果原有eth0是手动配置的静态ip，则修改配置类似如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">auto br0</div><div class="line">iface br0 inet static        </div><div class="line">address 10.18.44.26        </div><div class="line">netmask 255.255.255.192        </div><div class="line">gateway 10.18.44.1        </div><div class="line">dns-nameservers 10.0.80.11 10.0.80.12        </div><div class="line">bridge_ports eth0        </div><div class="line">bridge_stp off</div><div class="line">bridge_fd 0</div><div class="line">bridge_maxwait 0</div></pre></td></tr></table></figure></p>
+<p>ip信息换成你自己的IP信息就可以了，关于注释中的那2句，从国外网站看到的，由于我是DHCP，不清楚是否有用，没有测试。<br>发现上面的内容中其实就是添加了四句内容，其中bridge_ports很明显后面跟的是你的物理网卡，也就是要桥接的网卡，如果你有多个网卡想要桥接，可以以豆号分隔多个网卡名。<br>关于上面其他三个选项的解释，怕解释不清楚，直接放上原话，忘了在哪看到的，可能是SOF：</p>
+<ul>
+<li>bridge_stp off is a setting for spanning tree. If you have a possibility for network looks, you may want to turn this on.</li>
+<li>bridge_fd 0 turns off all forwarding delay.  If you do not know what this is, you probably do not need it.</li>
+<li>bridge_maxwait 0 is how long the system will wait for the Ethernet ports to come up. Zero is no wait.<br>更多关于桥接的这些配置内容，可以自己man bridge，里面有各个参数的详细说明。<br>重启网络：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo systemctl restart networking</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>如果是ubuntu14.04及之前系统，或者debian中不是以systemd管理，则使用命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo /etc/init.d/networking restart</div></pre></td></tr></table></figure></p>
+<p>如果网络重启失败，查看是不是配置文件有问题<br>如果确定配置文件没有问题，可以尝试使用ifconfig命令重启网卡试试<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ sudo ifconfig eth0 down </div><div class="line">$ sudo ifconfig eth0 up</div></pre></td></tr></table></figure></p>
+<p>如果该命令也失败，或不能运行，就直接重启系统试试</p>
+<p>现在通过brctl命令查看网络桥接情况，里面会多一个br0：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ sudo brctl show</div><div class="line">bridge name     bridge id               STP enabled     interfaces</div><div class="line">br0             8000.4ccc6a695b5e       no              eno1</div><div class="line">                                                        vnet0</div><div class="line">virbr0          8000.5254006842c2       yes             virbr0-nic</div></pre></td></tr></table></figure></p>
+<p>关键在下面<br>通过ifconfig命令查看网络情况：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ifconfig</div></pre></td></tr></table></figure></p>
+<p>输出信息太多，我就不贴出了，关键查看br0是否有ip地址，且ip为你之前物理网卡的ip，而且这个时候你的物理网卡应该没有ip了，主机通过br0上网。<br>如果你运行ifconfig提示查无些命令，安装net-tools就可以了，或者使用ip命令，新系统中一般变成了ip命令。<br>插播一张不错的图：<br><img src="ip-ifconfig.jpg" alt=""></p>
+<p>通过ip命令查看网络情况：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ sudo ip a show #查看网络</div><div class="line">$ sudo ip r #查看路由信息</div></pre></td></tr></table></figure></p>
+<p>测试主机是否可以正常上网：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ping -c 4 baidu.com  #ping外网试试</div></pre></td></tr></table></figure></p>
+<p><strong>ifconfig查看如果br0中有ip，而eth0中没有ip，并且电脑能ping能外网，则表示设置成功。如果出现了eth0中依然有ip的情况，可以尝试重启电脑试。如果依然主机不能上网，或者说物理网卡上通过ifconfig还有ip，就将上面代码中的bridge_stp off改成on再重启电脑试试，如果依然有问题，就注释掉试试，同样每次修改完网卡信息之后都需要重启网络服务，如果网络服务重启有问题，重启电脑是最简单的解决方法。</strong><br>桥接网络这里我遇到很多问题，各种偶然问题，如果你也遇到了，可以尝试认真查看以下内容：</p>
+<ul>
+<li>man手册: man bridge-utils-interfaces</li>
+<li>debian官方的Bridging Network Connections: <a href="https://wiki.debian.org/BridgeNetworkConnections" target="_blank" rel="external">https://wiki.debian.org/BridgeNetworkConnections</a></li>
+<li>ubuntu官方的Bridging Ethernet Connections (as of Ubuntu 16.04): <a href="https://help.ubuntu.com/community/NetworkConnectionBridge" target="_blank" rel="external">https://help.ubuntu.com/community/NetworkConnectionBridge</a></li>
+<li>KVM官方的Networking: <a href="https://help.ubuntu.com/community/KVM/Networking" target="_blank" rel="external">https://help.ubuntu.com/community/KVM/Networking</a></li>
+</ul>
+<p>我尝试3台电脑，现在都是按上面的配置来的，可能重启网卡后依然有问题，但直接重启电脑就都可以了。网上有教程说如果是桌面系统的话需要停止网络管理服务，我这里在桌面版系统上测试过，可以不用管系统的网络管理服务。如果你那里有问题，可以查看这里停止网络管理服务试试：<br><a href="http://xmodulo.com/disable-network-manager-linux.html" target="_blank" rel="external">http://xmodulo.com/disable-network-manager-linux.html</a></p>
+<p>以后的所有虚拟机网络里面都设置为桥接模式，并使用br0就可以了，所有虚拟机都会通过路由器的DHCP获得一个独立的ip<br><strong>其他相关内容</strong><br>安装完bridge-utils之后，直接修改网络配置文件interfaces文件就可以了，不需要像有些教程中说还要手动通过brctl创建br0，然后再修改，那样反而会导致各种奇葩问题。<br>如果你真得通过brctl进行了一些br0的增删操作，可以自行man一下手册，删掉br0，然后修改好网络配置文件后直接重启电脑，然后查看br0的状态，如果删除时出现问题，提示无法删除，需要停止网络服务或者直接通过ifconfig停掉网络设备试试。</p>
+<h2 id="创建虚拟机"><a href="#创建虚拟机" class="headerlink" title="创建虚拟机"></a>创建虚拟机</h2><p>可以有多种方式创建虚拟机，下面分别讲解<br>为了使非root用户也能够直接通过virsh命令管理虚拟机，需要将普通用户加入用户组kvm和libvirt。命令如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ sudo adduser &lt;youruser&gt; kvm</div><div class="line">$ sudo adduser &lt;youruser&gt; libvirtd</div></pre></td></tr></table></figure></p>
+<p>重新装入更新后的群组成员信息，如下所示。看到要求输入密码的提示后，输入你的登录密码。或者重启生效<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ exec su -l $USER</div></pre></td></tr></table></figure></p>
+<p>使用非root用户应该已经可以查看所有虚拟主机列表了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$ virsh list --all</div><div class="line">Id    Name                           State</div><div class="line">----------------------------------------------------</div><div class="line"> 2     wyl-node2                      running</div><div class="line"> -     csh-node1                      shut off</div><div class="line"> -     csh-node2                      shut off</div><div class="line"> -     csh-node3                      shut off</div><div class="line"> -     ubuntuServer-4g-original       shut off</div><div class="line"> -     ubuntuServer1604-original      shut off</div><div class="line"> -     wyl-node1                      shut off</div></pre></td></tr></table></figure></p>
+<p>libvirt默认将qemu:///session给非root用户，所以也可以使用下面的方式查看虚拟机列表，就是增加了一个–connect qemu:///system参数<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh --connect qemu:///system list --all</div></pre></td></tr></table></figure></p>
+<p>可以通过修改变量LIBVIRT_DEFAULT_URI来修改这个默认设置，查看：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ echo $LIBVIRT_DEFAULT_URI</div></pre></td></tr></table></figure></p>
+<h3 id="使用virsh-install创建虚拟机"><a href="#使用virsh-install创建虚拟机" class="headerlink" title="使用virsh-install创建虚拟机"></a>使用virsh-install创建虚拟机</h3><p>这也是本文讨论的KVM创建的主要方式<br>下面是一些libvrit管理的虚拟机默认的位置：</p>
+<ul>
+<li>libvirt默认文件夹（几乎所有KVM相关的管理和配置文件都在该文件夹）: /var/lib/libvirt/</li>
+<li>默认用户安装系统的ISO镜像文件夹，该文件夹可以手动指定: /var/lib/libvirt/boot/</li>
+<li>虚拟机的默认磁盘所在的文件夹，该文件夹可以手动指定: /var/lib/libvirt/images/</li>
+<li>Libvirt存放LVM/LXC/qemu的配置文件夹: /etc/libvirt/<br>为了确认KVM模块已经加载，可以运行以下命令加载：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ sudo modprobe kvm</div><div class="line">$ sudo modprobe kvm-amd # for AMD CPUs</div><div class="line">$ sudo modprobe kvm-intel # for Intel CPUs</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>类似地如果需要使用虚拟网卡tun设备，则进行tun设置加载命令为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo modprobe tun</div></pre></td></tr></table></figure></p>
+<p>下面使用virt-install命令创建虚拟机，虚拟机信息为：系统是Centos7，1GB RAM， 1 CPU core，20GB硬盘，磁盘格式设置为raw，使用默认的NAT方式连接网络：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ virt-install \</div><div class="line">--virt-type=kvm \</div><div class="line">--name=Centos7 \</div><div class="line">--ram=1024 \</div><div class="line">--vcpus=1 \</div><div class="line">--os-variant=rhel7 \</div><div class="line">--hvm \</div><div class="line">--cdrom=/home/vhost/CentOS-7-x86_64-Minimal-1511.iso \</div><div class="line">--network network=default,model=virtio \</div><div class="line">--graphics vnc,listen=0.0.0.0 \</div><div class="line">--disk path=/home/vhost/centos7.img,size=20,bus=virtio,format=raw</div></pre></td></tr></table></figure></p>
+<p>下面是各参数的意义：</p>
+<ul>
+<li>–virt-type=kvm: 使用KVM作为虚拟机监视器</li>
+<li>–name=Centos7: 虚拟机实例的名字，每个虚拟机的名字都不能一样，不能有空格</li>
+<li>–ram=1024: 指定虚拟机内存大小，单位是Mb</li>
+<li>–vcpus=1: 为虚拟机指定分配的虚拟CPU核数</li>
+<li>–os-variant=rhel7: 指定虚拟机系统所属系列以优化虚拟机参数，可以通过命令<code>osinfo-query os</code> 来显示所有支持的系统列表，osinfo-query在包libosinfo-bin中 <code>sudo apt-get install libosinfo-bin</code></li>
+<li>–hvm: 启用全虚拟化，KVM虚拟机支持全虚拟化，属于优化性参数</li>
+<li>–cdrom=/home/vhost/CentOS-7-x86_64-Minimal-1511.iso: 指定作为虚拟机光驱内容的设备或文件，可以是主机的CDROM或者iso文件。</li>
+<li>–network network=default,model=virtio: 将虚拟机连接到主机网络，此处连接到一个名为defalut的虚拟网络（即让虚拟机使用NAT模式上网），网卡模式设置为virtio。如果使用桥接模式，则只需要改参数为–network=bridge=br0,model=virtio即可。</li>
+<li>–graphics vnc: 设置虚拟机的console并将其输出到VNC，这样就可以通过VNC来连接虚拟机了。同时可以指定vnc的端口和监听范围以及密码: –vncport=5910 –vnclisten=0.0.0.0。默认情况下端口为从5900开始的第一个空闲端口，监听范围为本机127.0.0.1，修改为0.0.0.0以使外网主机可以连接。后面会讲对于只支持SSH协议的情况下，如何通过SSH隧道连接，所以是否设置为0.0.0.0没有影响，但能设置为0.0.0.0的话，还是设置为0.0.0.0，毕竟直接通过VNC连接更加方便。这些参数也可以在/etc/libvirt/qemu.conf中修改，以使其对所有虚拟机生效，VNC默认连接没有密码。VNC可以理解为linux下的远程桌面</li>
+<li>–disk path=/home/vhost/centos7.img,size=20,bus=virtio,format=raw:  指定虚拟机所使用的存储路径，大小为20G，disk bus类型为virtio，磁盘格式为raw，如果不指定fortmat，则默认格式即为raw。</li>
+</ul>
+<p>网络和磁盘建议都设置为virtio，virtio即启动优化的虚拟机专用IO驱动，性能更好。<br>磁盘格式使用qcow2更好，因为qcow2格式即QEMU支持的QEMU Copy On Write磁盘格式，是优化后的磁盘格式，支持快照，并且是使用多少占用多少空间。例如你分配了20G大小，如果是raw格式，则立即占用20G，而qcow2则是从很小开始，用多少，占用多少。之前有些人说qcow2性能不如raw，这两种格式可以使用qemu-img进行转换，qemu-img在包qemu-utils中。</p>
+<p>等待命令执行完成之后，虚拟机就会直接运行，可以通过以下方式查看：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh list</div></pre></td></tr></table></figure></p>
+<p>或者：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh --connect qemu:///system list</div></pre></td></tr></table></figure></p>
+<p>后面默认都是使用virsh不带–connect的方式管理虚拟机，因为前面已经添加过用户组了，所以不用多输入那些参数。<br>此时可以通过VNC连接到该虚拟机来进行系统安装了，可以直接跳到后面的VNC连接处查看方法。假如你的系统带有桌面，并且安装了virt-viewer，系统应该会自动启动并显示虚拟机系统安装界面。如果没有可以手动通过vrit-manager来进行查看，或者手动在命令行中输入<code>virt-viewer &lt;host-name&gt;</code>打开虚拟机界面，进行系统安装。</p>
+<p>以配置ubuntu 16.04系统再举一例，内存2G，CPU为2核，只是网络改为bridge方式，磁盘格式改为qcow2，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">virt-install \</div><div class="line">--virt-type=kvm \</div><div class="line">--name=ubuntuServer1604-2g-original \</div><div class="line">--ram=2048 \</div><div class="line">--vcpus=2 \</div><div class="line">--os-variant=ubuntu16.04 \</div><div class="line">--hvm \</div><div class="line">--cdrom=/home/vhost/iso/ubuntuServer1604.iso \</div><div class="line">--network=bridge=br0,model=virtio \</div><div class="line">--graphics vnc,listen=0.0.0.0 \</div><div class="line">--disk path=/home/vhost/image/ubuntuServer1604-2g-original.qcow2,size=20,bus=virtio,format=qcow2</div></pre></td></tr></table></figure></p>
+<p>如果你按照上面的方式遇到错误提示：ERROR  Format cannot be specified for unmanaged storage.是因为你指向的磁盘文件所有硬盘分区没有指定为libvirt的存储池，将你想要存放的虚拟机路径所在目录加入pool管理即可，默认情况下/var/lib/libvirt/images是在pool中的。<br>假如我现在想将我的虚拟机磁盘文件放在/home/blueyi/vhost/image目录下，那么我需要首先定义一个pool：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh pool-define-as --name vhost-image --type dir --target /home/blueyi/vhost/image</div><div class="line">Pool vhost-image marked as autostarted</div></pre></td></tr></table></figure></p>
+<p>上面的命令表示定义一个名为vhost-image的pool，指定目录/home/blueyi/vhost/image</p>
+<p>然后启动这个pool就可以使用它了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh pool-start vhost-image</div><div class="line">Pool vhost-image started</div></pre></td></tr></table></figure></p>
+<p>现在再执行virt-install就不会再报那个Format cannot be specified for unmanaged storage的错误了，其实还一种方法就是直接不使用后面那个format参数，这样会自动创建一个raw格式的文件作为虚拟机硬盘文件。</p>
+<p>添加开机后自动启动这个pool：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh pool-autostart vhost-image</div><div class="line">Pool vhost-image marked as autostarted</div></pre></td></tr></table></figure></p>
+<p>查看机器中的所有pool列表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ virsh pool-list --all</div><div class="line"> Name                 State      Autostart </div><div class="line">-------------------------------------------</div><div class="line"> default              active     yes       </div><div class="line"> vhost-image          inactive   no</div></pre></td></tr></table></figure></p>
+<p>查看某一个pool的信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$ virsh pool-info vhost-image</div><div class="line">Name:           vhost-image</div><div class="line">UUID:           ce7b6f65-889e-456d-b70b-46422247099e</div><div class="line">State:          running</div><div class="line">Persistent:     yes</div><div class="line">Autostart:      no</div><div class="line">Capacity:       49.54 GiB</div><div class="line">Allocation:     29.68 GiB</div><div class="line">Available:      19.86 GiB</div></pre></td></tr></table></figure></p>
+<p>查看某一个pool的配置详情：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">$ virsh pool-dumpxml vhost-image</div><div class="line"><span class="tag">&lt;<span class="name">pool</span> <span class="attr">type</span>=<span class="string">'dir'</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>vhost-image<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">uuid</span>&gt;</span>ce7b6f65-889e-456d-b70b-46422247099e<span class="tag">&lt;/<span class="name">uuid</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">capacity</span> <span class="attr">unit</span>=<span class="string">'bytes'</span>&gt;</span>53189636096<span class="tag">&lt;/<span class="name">capacity</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">allocation</span> <span class="attr">unit</span>=<span class="string">'bytes'</span>&gt;</span>31866744832<span class="tag">&lt;/<span class="name">allocation</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">available</span> <span class="attr">unit</span>=<span class="string">'bytes'</span>&gt;</span>21322891264<span class="tag">&lt;/<span class="name">available</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">source</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">source</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">target</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">path</span>&gt;</span>/home/blueyi/vhost/image<span class="tag">&lt;/<span class="name">path</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">permissions</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">mode</span>&gt;</span>0711<span class="tag">&lt;/<span class="name">mode</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">owner</span>&gt;</span>-1<span class="tag">&lt;/<span class="name">owner</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">group</span>&gt;</span>-1<span class="tag">&lt;/<span class="name">group</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">permissions</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">pool</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>当然也可以将pool的xml文件导出，然后通过xml文件定义或启动一个pool<br>更多详情可以通过man virt-install查看pool相关内容。</p>
+<p>ubuntu14.10系统下的virt-install命令在安装时有时候指定的磁盘文件会出现错误ERROR    cannot stat file ‘/home/youruser/vhost/image/win7.qcow2’: No such file or directory<br>没有发现什么原因，感觉有几率性的会出现，如果出现了这样的情况，那就手动使用qemu-create创建，然后在path那里指定路径，注意使用已经磁盘文件时不要指定size选项，size选项表示让virt-install自动创建指定大小的磁盘文件。感觉ubuntu16.04下的libvirt更稳定</p>
+<h3 id="通过XML文件创建虚拟机"><a href="#通过XML文件创建虚拟机" class="headerlink" title="通过XML文件创建虚拟机"></a>通过XML文件创建虚拟机</h3><p>这个方法与virt-install的方式其实是一样的，只是这个是通过配置文件来创建<br>当需要将已有的虚拟机信息转储为xml文件时，可以使用以下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh dumpxml centos7 &gt; centos7.xml</div></pre></td></tr></table></figure></p>
+<p>当需要从一个xml文件创建虚拟机时，可以使用命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh create centos7.xml</div></pre></td></tr></table></figure></p>
+<p>但首先必须先创建所需要使用的磁盘文件，磁盘创建使用qemu-img命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-img create -f qcow2 /home/vhost/image/centos7.qcow2 10G</div></pre></td></tr></table></figure></p>
+<p>上面的命令在文件夹下/home/vhost/image/下创建一个名为centos7.qcow2的硬盘文件，格式为qcow2，大小为10G。这里的格式并不是指虚拟机系统中的硬盘格式，虚拟机系统中的硬盘格式可以根据需要进行格式化即可。这里的格式是指虚拟机管理系统组织磁盘文件的格式。</p>
+<p>其实xml文件中指定了通过上面virt-install创建虚拟机的参数，当然如果你已经有了一个磁盘文件需要启动，即可以通过qemu-system来启动，也可以通过创建一个这样的xml文件来启动。例如当你需要迁移虚拟机的时候就可以先导出其配置文件为xml，然后将配置文件和磁盘文件一起都迁移之后通过virsh create定义并启动虚拟机，只需要修改里面的磁盘路径即可。<br>内容通常如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">domain</span> <span class="attr">type</span>=<span class="string">'kvm'</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>centos7<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">uuid</span>&gt;</span>be785b58-b734-11e6-b934-bfcf72a9abbf<span class="tag">&lt;/<span class="name">uuid</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">memory</span> <span class="attr">unit</span>=<span class="string">'KiB'</span>&gt;</span>2097152<span class="tag">&lt;/<span class="name">memory</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">currentMemory</span> <span class="attr">unit</span>=<span class="string">'KiB'</span>&gt;</span>2097152<span class="tag">&lt;/<span class="name">currentMemory</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">vcpu</span> <span class="attr">placement</span>=<span class="string">'static'</span>&gt;</span>2<span class="tag">&lt;/<span class="name">vcpu</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">os</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">type</span> <span class="attr">arch</span>=<span class="string">'x86_64'</span> <span class="attr">mechine</span>=<span class="string">'rhel7'</span>&gt;</span>hvm<span class="tag">&lt;/<span class="name">type</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">boot</span> <span class="attr">dev</span>=<span class="string">'cdrom'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">os</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">features</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">acpi</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;/<span class="name">features</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">clock</span> <span class="attr">offset</span>=<span class="string">'utc'</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">on_poweroff</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_poweroff</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">on_reboot</span>&gt;</span>restart<span class="tag">&lt;/<span class="name">on_reboot</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">on_crash</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_crash</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">devices</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">emulator</span>&gt;</span>/usr/bin/kvm<span class="tag">&lt;/<span class="name">emulator</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">"file"</span> <span class="attr">device</span>=<span class="string">"disk"</span>&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">"qemu"</span> <span class="attr">type</span>=<span class="string">"qcow2"</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">"/home/blueyi/vhost/image/centos7.qcow2"</span>/&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">"vda"</span> <span class="attr">bus</span>=<span class="string">"virtio"</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">"pci"</span> <span class="attr">domain</span>=<span class="string">"0x0000"</span> <span class="attr">bus</span>=<span class="string">"0x00"</span> <span class="attr">slot</span>=<span class="string">"0x04"</span> <span class="attr">function</span>=<span class="string">"0x0"</span>/&gt;</span> </div><div class="line">        <span class="tag">&lt;/<span class="name">disk</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">"file"</span> <span class="attr">device</span>=<span class="string">"cdrom"</span>&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">"qemu"</span> <span class="attr">type</span>=<span class="string">"raw"</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">"/home/blueyi/vhost/iso/CentOS-7-x86_64-Minimal-1511.iso"</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">"hdc"</span> <span class="attr">bus</span>=<span class="string">"ide"</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">readonly</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">"drive"</span> <span class="attr">controller</span>=<span class="string">"0"</span> <span class="attr">bus</span>=<span class="string">"1"</span> <span class="attr">target</span>=<span class="string">"0"</span> <span class="attr">unit</span>=<span class="string">"0"</span>/&gt;</span> </div><div class="line">        <span class="tag">&lt;/<span class="name">disk</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">controller</span> <span class="attr">type</span>=<span class="string">"ide"</span> <span class="attr">index</span>=<span class="string">"0"</span>&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">"pci"</span> <span class="attr">domain</span>=<span class="string">"0x0000"</span> <span class="attr">bus</span>=<span class="string">"0x00"</span> <span class="attr">slot</span>=<span class="string">"0x01"</span> <span class="attr">function</span>=<span class="string">"0x1"</span>/&gt;</span> </div><div class="line">        <span class="tag">&lt;/<span class="name">controller</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'bridge'</span>&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">mac</span> <span class="attr">address</span>=<span class="string">'52:54:aa:fa:f0:5a'</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">source</span> <span class="attr">bridge</span>=<span class="string">'br0'</span>/&gt;</span> </div><div class="line">            <span class="tag">&lt;<span class="name">model</span> <span class="attr">type</span>=<span class="string">'virtio'</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">interface</span>&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'mouse'</span> <span class="attr">bus</span>=<span class="string">'ps2'</span>/&gt;</span> </div><div class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'keyboard'</span> <span class="attr">bus</span>=<span class="string">'ps2'</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">graphics</span> <span class="attr">type</span>=<span class="string">'vnc'</span> <span class="attr">port</span>=<span class="string">'-1'</span> <span class="attr">autoport</span>=<span class="string">"yes"</span> <span class="attr">listen</span>=<span class="string">'0.0.0.0'</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;/<span class="name">devices</span>&gt;</span> </div><div class="line"><span class="tag">&lt;/<span class="name">domain</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>上面的xml文件内容指定创建的虚拟机为centos 7系统，2G内存，磁盘是通过qemu-img提前创建好的，所以这里不需要指定其大小。网络连接是通过网桥br0进行连接，vnc监听所有连接，以便可以通过外网直接使用VNC连接，假如你的VNC只能监听127.0.0.1，那么可以通过建立SSH隧道的方式进行VNC的远程连接。为了远程可以直接连接VNC，建议直接监听0.0.0.0，这样就可以在远程直接通过你的主机IP号后跟端口号的方式进行VNC连接了。当然通过SSH隧道连接更安全，毕竟SSH是加密协议</p>
+<p>每一台虚拟机应该指定一个唯一的uuid，可以通过命令行工具uuid来生成一个随机的uuid，如果系统中没有uuid工具，可以通过命令安装：<code>sudo apt-get install uuid</code>，然后输入uuid就会生成一个随机的uuid号。<br>利用这种方式创建的虚拟机在运行之后默认启动项是cdrom，即你指定的系统映像，所以在安装完之后需要通过编辑掉配置文件中的boot选项中的启动方式为hd，否则启动系统后还是会从cdrom启动。这个时候系统刚安装好应该没有acpi服务，也就无法通过virsh shutdown关闭系统，可能通过<code>virsh destroy centos7</code>来强制关闭并undefine系统。然后编辑掉配置文件中的启动选项之后再次通过<code>virsh create centos7.xml</code>创建并启动系统即可。<br>如果想第一时间体验系统安装过程，可以直接跳过下面的xml内容解析，进入VNC连接系统步骤，当然如果你的宿主主机有桌面系统，可以直接使用virt-manager进行安装系统。</p>
+<p><em>插一句，如果你的centos虚拟安装完成之后无法连网，查看是不是网卡没有设置为开机自动启动。我测试中发现centos7安装完系统之后网卡并不会开机自动启动。可以通过编辑cd /etc/sysconfig/network-scripts/ifcfg-eth0来将最后的ONBOOT修改为YES，将其设置为开机自动启动，然后重启系统，这里假设你的网卡名为eth0，可以通过ip a show命令来查看。或者手动启动网络服务service network restart</em><br>下面是xml文件的解析：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">domain</span> <span class="attr">type</span>=<span class="string">'kvm'</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>centos7<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">  #由字母和数字组成，不能包含空格 </div><div class="line">  <span class="tag">&lt;<span class="name">uuid</span>&gt;</span>b9dcdd92-9b9b-14d6-3938-1982a9746a12<span class="tag">&lt;/<span class="name">uuid</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">memory</span> <span class="attr">unit</span>=<span class="string">'KiB'</span>&gt;</span>2097152<span class="tag">&lt;/<span class="name">memory</span>&gt;</span></div><div class="line">　#由字母和数字组成，不能包含空格，表示在不reboot guest的情况下，guest可以使用的最大内存</div><div class="line">  <span class="tag">&lt;<span class="name">currentMemory</span> <span class="attr">unit</span>=<span class="string">'KiB'</span>&gt;</span>2097152<span class="tag">&lt;/<span class="name">currentMemory</span>&gt;</span></div><div class="line">  #guest启动时内存，可以通过virsh setmem来调整，但不能大于最大可用内存</div><div class="line">  <span class="tag">&lt;<span class="name">vcpu</span> <span class="attr">placement</span>=<span class="string">'static'</span>&gt;</span>1<span class="tag">&lt;/<span class="name">vcpu</span>&gt;</span> </div><div class="line">  #分配的虚拟CPU个数</div><div class="line">  <span class="tag">&lt;<span class="name">os</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">type</span> <span class="attr">arch</span>=<span class="string">'x86_64'</span> <span class="attr">machine</span>=<span class="string">'rhel7'</span>&gt;</span>hvm<span class="tag">&lt;/<span class="name">type</span>&gt;</span></div><div class="line">    #type 表示全虚拟化还是半虚拟化，hvm表示全虚拟化 ，arch表示架构，machine指系统类型</div><div class="line">    <span class="tag">&lt;<span class="name">boot</span> <span class="attr">dev</span>=<span class="string">'hd'</span>/&gt;</span></div><div class="line">　　#boot 怎么启动的，如"fd"表示从文件启动, "hd"从硬盘启动, "cdrom"从光驱启动 和 "network"从网络启动 </div><div class="line">    #可以重复多行，指定不同的值，作为一个启动设备列表。第一次需要安装系统，应该使用cdrom</div><div class="line">  <span class="tag">&lt;/<span class="name">os</span>&gt;</span></div><div class="line">  #处理器特性 </div><div class="line">  <span class="tag">&lt;<span class="name">features</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">acpi</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">apic</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">pae</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">features</span>&gt;</span>　</div><div class="line">  #时钟，localtime表示使用本地时间</div><div class="line">  <span class="tag">&lt;<span class="name">clock</span> <span class="attr">offset</span>=<span class="string">'localtime'</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">timer</span> <span class="attr">name</span>=<span class="string">'pit'</span> <span class="attr">tickpolicy</span>=<span class="string">'delay'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">timer</span> <span class="attr">name</span>=<span class="string">'rtc'</span> <span class="attr">tickpolicy</span>=<span class="string">'catchup'</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">clock</span>&gt;</span></div><div class="line">  #定义了kvm环境中的power off, reboot或crash时的默认动作分别是什么</div><div class="line">  <span class="tag">&lt;<span class="name">on_poweroff</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_poweroff</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">on_reboot</span>&gt;</span>restart<span class="tag">&lt;/<span class="name">on_reboot</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">on_crash</span>&gt;</span>restart<span class="tag">&lt;/<span class="name">on_crash</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">devices</span>&gt;</span></div><div class="line">#Guest需要的设备</div><div class="line">   <span class="tag">&lt;<span class="name">emulator</span>&gt;</span>/usr/bin/kvm-spice<span class="tag">&lt;/<span class="name">emulator</span>&gt;</span></div><div class="line">   #kvm的路径，debian系的系统下通常是<span class="tag">&lt;<span class="name">emulator</span>&gt;</span>/usr/bin/kvm<span class="tag">&lt;/<span class="name">emulator</span>&gt;</span></div><div class="line">   #其实ubuntu系统下这个kvm-spice是链接到kvm的</div><div class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'disk'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">'qemu'</span> <span class="attr">type</span>=<span class="string">'qcow2'</span>/&gt;</span></div><div class="line">      #目的镜像路径 在这个例子中，在guest中显示为IDE设备。 该文件使用qemu-img命令创建，通常kvm image默认目录为/var/lib/libvirt/images/</div><div class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/vhost/image/centos7.qcow2'</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">seclabel</span> <span class="attr">model</span>=<span class="string">'selinux'</span> <span class="attr">relabel</span>=<span class="string">'no'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;/<span class="name">source</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'hda'</span> <span class="attr">bus</span>=<span class="string">'ide'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'ide0-0-0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'drive'</span> <span class="attr">controller</span>=<span class="string">'0'</span> <span class="attr">bus</span>=<span class="string">'0'</span> <span class="attr">target</span>=<span class="string">'0'</span> <span class="attr">unit</span>=<span class="string">'0'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></div><div class="line">    #可以定义多个硬盘，默认情况下硬盘和网卡都采用默认配置，即网卡工作在模拟的rtl8139网卡下，速度为100M全双工，硬盘是ide模式。而采用</div><div class="line">    #virtio驱动后网卡工作在1000M模式下，硬盘工作在SCSI模式下。上面我们使用的命令创建的方式都采用的是virtio模式</div><div class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'disk'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">'qemu'</span> <span class="attr">type</span>=<span class="string">'raw'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/vhost/image/data.img'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'vda'</span> <span class="attr">bus</span>=<span class="string">'virtio'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'cdrom'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">'qemu'</span> <span class="attr">type</span>=<span class="string">'raw'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/template_make/CentOS7.iso'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'hdc'</span> <span class="attr">bus</span>=<span class="string">'ide'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">readonly</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'ide0-1-0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'drive'</span> <span class="attr">controller</span>=<span class="string">'0'</span> <span class="attr">bus</span>=<span class="string">'1'</span> <span class="attr">target</span>=<span class="string">'0'</span> <span class="attr">unit</span>=<span class="string">'0'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">controller</span> <span class="attr">type</span>=<span class="string">'usb'</span> <span class="attr">index</span>=<span class="string">'0'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'usb0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x01'</span> <span class="attr">function</span>=<span class="string">'0x2'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">controller</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">controller</span> <span class="attr">type</span>=<span class="string">'ide'</span> <span class="attr">index</span>=<span class="string">'0'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'ide0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x01'</span> <span class="attr">function</span>=<span class="string">'0x1'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">controller</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'bridge'</span>&gt;</span></div><div class="line">    #虚拟机网络连接方式，使用网桥是注意要保证每个mac地址唯一，如果省略mac则会随机生成。</div><div class="line">    #target中为指定的网桥tun设备，名称通常为vnetx（x为0，1，2...）</div><div class="line">      <span class="tag">&lt;<span class="name">mac</span> <span class="attr">address</span>=<span class="string">'52:54:00:78:f9:5a'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">bridge</span>=<span class="string">'br0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'vnet0'</span>/&gt;</span></div><div class="line">      ## 使用virtio： 采用普通的驱动，即硬盘和网卡都采用默认配置情况下，硬盘是 ide 模式， 而网卡工作在 模拟的rtl 8139 网卡下，速度为100M 全双工。 采用 virtio 驱动后，网卡工作在 1000M 的模式下，硬盘工作是SCSI模式下</div><div class="line">      <span class="tag">&lt;<span class="name">model</span> <span class="attr">type</span>=<span class="string">'virtio'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'net0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x03'</span> <span class="attr">function</span>=<span class="string">'0x0'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">interface</span>&gt;</span></div><div class="line">    # 如果使用默认的NAT模式，则如下：</div><div class="line">    <span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'network'</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">source</span> <span class="attr">network</span>=<span class="string">'default'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">mac</span> <span class="attr">address</span>=<span class="string">"3B:6E:01:69:3A:11"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">interface</span>&gt;</span></div><div class="line">    #NAT模式下默认分配192.168.122.x/24的地址，也可以手动指定。网关为192.168.122.1</div><div class="line">    #输入设备</div><div class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'mouse'</span> <span class="attr">bus</span>=<span class="string">'ps2'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'tablet'</span> <span class="attr">bus</span>=<span class="string">'usb'</span>/&gt;</span></div><div class="line">    #下面定义与guset交互的图形设备，下面这里使用vnc协议，listen为所有地址，port为-1时表示自动分配端口号</div><div class="line">    #vnc方式登录，端口号自动分配 可以通过virsh vncdisplay <span class="tag">&lt;<span class="name">KVM</span> <span class="attr">Guest</span> <span class="attr">Name</span>&gt;</span>来查询</div><div class="line">    <span class="tag">&lt;<span class="name">graphics</span> <span class="attr">type</span>=<span class="string">'vnc'</span> <span class="attr">port</span>=<span class="string">'-1'</span> <span class="attr">autoport</span>=<span class="string">'yes'</span> <span class="attr">listen</span>=<span class="string">'0.0.0.0'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">listen</span> <span class="attr">type</span>=<span class="string">'address'</span> <span class="attr">address</span>=<span class="string">'0.0.0.0'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">graphics</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">video</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">model</span> <span class="attr">type</span>=<span class="string">'cirrus'</span> <span class="attr">vram</span>=<span class="string">'9216'</span> <span class="attr">heads</span>=<span class="string">'1'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'video0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x02'</span> <span class="attr">function</span>=<span class="string">'0x0'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">video</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">memballoon</span> <span class="attr">model</span>=<span class="string">'virtio'</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">alias</span> <span class="attr">name</span>=<span class="string">'balloon0'</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x04'</span> <span class="attr">function</span>=<span class="string">'0x0'</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">memballoon</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">devices</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">seclabel</span> <span class="attr">type</span>=<span class="string">'dynamic'</span> <span class="attr">model</span>=<span class="string">'selinux'</span> <span class="attr">relabel</span>=<span class="string">'yes'</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">label</span>&gt;</span>unconfined_u:system_r:svirt_t:s0:c362,c396<span class="tag">&lt;/<span class="name">label</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">imagelabel</span>&gt;</span>unconfined_u:object_r:svirt_image_t:s0:c362,c396<span class="tag">&lt;/<span class="name">imagelabel</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">seclabel</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">domain</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<h3 id="通过virt-manager创建虚拟机"><a href="#通过virt-manager创建虚拟机" class="headerlink" title="通过virt-manager创建虚拟机"></a>通过virt-manager创建虚拟机</h3><p>这个只能用于已经有了桌面系统的情况下，，运行virt-manager即可，这种方式的虚拟机的创建过程与virtualbox类似，点点鼠标，按提示操作即可。</p>
+<h3 id="使用qemu-img和qemu-kvm命令行方式安装"><a href="#使用qemu-img和qemu-kvm命令行方式安装" class="headerlink" title="使用qemu-img和qemu-kvm命令行方式安装"></a>使用qemu-img和qemu-kvm命令行方式安装</h3><p>这种方式创建的虚拟机好像性能有点差，可能还会有一些其他问题，没有深度测试，非redhat系统不推荐使用该方式。<br>（1）创建一个空的qcow2格式的镜像文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-img create -f qcow2 centos7.qcow2 10G</div></pre></td></tr></table></figure></p>
+<p>（2）启动一个虚机，将系统安装盘挂到 cdrom，安装操作系统，分1G内存，当然如果需要x86系统，则替换下面的命令为qemu-system-i386<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-system-x86_64 -hda centos7.qcow2 -m 1024 -boot d -cdrom /home/vhost/centos7.iso</div></pre></td></tr></table></figure></p>
+<p>所以如果你的磁盘文件中已经有了系统，可以使用该命令直接启动系统</p>
+<p>（3）现在你就拥有了一个带操作系统的镜像文件。你可以以它为模板创建新的镜像文件。使用模板的好处是，它会被设置为只读所以可以免于破坏。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-img create -b centos7.qcow2 -f qcow2 centos7-clone.qcow2</div></pre></td></tr></table></figure></p>
+<p>其实就是从上面已经安装好的磁盘文件中复制为一块新的磁盘文件，这样原有的磁盘中系统就不会被破坏了，后面会讲如何使用封装好的系统进行克隆、布署</p>
+<p>（4）你可以在新的镜像文件上启动虚机了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-kvm -hda centos7.qcow2 -m 1024</div></pre></td></tr></table></figure></p>
+<p>还是推荐使用第一或第二种方式创建虚拟机，并且virsh管理虚拟机非常方便，后面通过一系列脚本来实现自动化的根据已经封装好的镜像创建和布署虚拟机。</p>
+<h2 id="VNC连接虚拟机"><a href="#VNC连接虚拟机" class="headerlink" title="VNC连接虚拟机"></a>VNC连接虚拟机</h2><p>当使用命令模式创建完虚拟机之后需要使用VNC来连接虚拟机才能进行系统安装等配置，比如安装SSH服务等，运行以下命令查看vnc信息，下面分配介绍两种方式通过VNC连接：</p>
+<h3 id="直接通过VNC-viewer连接"><a href="#直接通过VNC-viewer连接" class="headerlink" title="直接通过VNC viewer连接"></a>直接通过VNC viewer连接</h3><p>如果要使用VNC直接进行连接，需要在刚才创建虚拟机时指定VNC监听为0.0.0.0，即监听所有连接。否则请直接看下面的使用SSH隧道连接的方式。</p>
+<h4 id="查看VNC端口号"><a href="#查看VNC端口号" class="headerlink" title="查看VNC端口号"></a>查看VNC端口号</h4><p>首先查看VNC监听的端口号，只有虚拟机运行期间才会有针对虚拟机的VNC监听端口：<br><strong>通过将虚拟运行期间的配置文件dumpxml出来后，使用grep输出的方式查看：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh dumpxml centos7 | grep vnc</div><div class="line">&lt;graphics type=&apos;vnc&apos; port=&apos;5901&apos; autoport=&apos;yes&apos; listen=&apos;127.0.0.1&apos;&gt;</div></pre></td></tr></table></figure></p>
+<p>输出中会包含有vnc所监听的端口号，通常是5901，我这里就是5901，从这里可以看出我这里监听ip是本地。</p>
+<p><strong>通过virsh命令查看：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh vncdisplay centos7</div></pre></td></tr></table></figure></p>
+<p>如果显示结果为127.0.0.1:1，则表示端口为5901，因为vnc端口默认是从5900开始分</p>
+<p><strong>通过查看系统网络监听的方式查看：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ netstat -nap | grep qemu</div></pre></td></tr></table></figure></p>
+<p>如果grep qemu没有，试试grep kvm，或者直接grep 590，因为默认VNC从5900开始监听。这种方式最不直观，当有多台虚拟机是，无法区分哪一台的端口号是多少。</p>
+<h4 id="通过VNC-viewer连接"><a href="#通过VNC-viewer连接" class="headerlink" title="通过VNC viewer连接"></a>通过VNC viewer连接</h4><p>如果宿主主机有桌面环境并且你的虚拟机在配置时VNC监听ip设置为本地，此时可以直接在宿主机（即你安装KVM的主机）通过VNC客户端连接，在VNC客户端中输入127.0.0.1:5901即可，这里假设虚拟机是通过5901端口连接，这种情况要求你安装KVM的环境必须要有桌面环境，其实有了桌面环境就不需要这样了，直接通过virt-manager就可以直接管理了。VNC客户端可以通过VNC官方下载安装，或者直接使用系统中的<code>vncviewer 127.0.0.1:5901</code>连接，vncviewer在包gvncviewer中。</p>
+<p>如果配置虚拟机时的VNC监听IP设置为0.0.0.0，那么就可以通过外部网络（指可以通过你宿主主机IP访问宿主主机的网络，通常是同一路由器下的子网）使用宿主主机的IP与虚拟机被监听的VNC端口进行连接。<br>也可以通过修改/etc/libvirt/qemu.conf中的vnc_listen=”0.0.0.0”来使其监听所有IP，否则只监听本地端口，也就只能从服务器本地登录指定虚拟机。同样里面可以修改vnc_password，当然也可以在安装时指定这些参数，或者在相应的xml配置文件中修改。默认情况下/etc/libvirt/qemu.conf中的配置是注释掉的，一旦将其注释取消，则会覆盖通过虚拟机进行的设置。</p>
+<p>如果是Windows系统则直接从REALVNC官方网站 <a href="https://www.realvnc.com/download/viewer/下载VNC" target="_blank" rel="external">https://www.realvnc.com/download/viewer/下载VNC</a> viewer安装，然后打开VNC viewer输入&lt;宿主主机ip&gt;:<vnc port="">进行连接即可。<br>如果连接时闪退，可以尝试将VNC的File-&gt;Preference-&gt;Expert-&gt;ColorLevel中的Value值修改为full，保存后再次连接虚拟机即可</vnc></p>
+<h3 id="使用SSH隧道通过VNC连接"><a href="#使用SSH隧道通过VNC连接" class="headerlink" title="使用SSH隧道通过VNC连接"></a>使用SSH隧道通过VNC连接</h3><p>下面说说对于没有桌面环境的服务器系统且无法使用VNC或者考虑到安全连接的情况下，如何通过SSH隧道的方式加密连接，来让VNC走SSH隧道进行远程连接安装系统（因为有了系统后就可以安装SSH服务了嘛）。因为 VNC支持通过ssh协议建立连接。首先确定你的服务器可以正常通过SSH进行连接访问，然后在需要连接KVM的电脑上使用ssh建立隧道。假如你的宿主主机连SSH连接都不可用，肯定不可能的了。<br><strong>Linux系统建立SSH隧道并连接</strong><br>如果你是linux系统，非常方便，直接使用以下命令建立隧道即可：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ssh foobar@192.168.1.102 -L 5901:127.0.0.1:5900</div></pre></td></tr></table></figure></p>
+<p>这里ssh foobar@192.168.1.102，表示建立ssh连接到KVM虚拟机192.168.1.102，-L表示启动端口转发， 5901:127.0.0.1:5900 表示建立隧道转发本地127.0.0.1的5901端口的访问到远程的5900端口，这里假设你需要访问的KVM虚拟机的VNC监听端口是5900.<br>运行这条命令之前还要确保你本地的5901端口在闲置，可能通过：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo netstat -nap | grep 5901</div></pre></td></tr></table></figure></p>
+<p>来查看，如果返回结果为空，则表示5901端口没有被占用，然后通过localhost:5901/127.0.0.1:5901来使用VNC客户端连接你的KVM虚拟主机进行系统安装。哪台电脑需要连接那个KVM虚拟机，就在哪台电脑上建立SSH隧道即可。</p>
+<p><strong>Windows系统建立SSH隧道并通过VNC连接</strong><br>如果你需要连接KVM虚拟机的电脑是windows，则可以通过putty建立tunnel，然后打开VNC客户端连接，putty如何建立SSH隧道：<br>打开putty，Host name中输入服务器IP，端口默认22。点开左侧的SSH选项，点击Tunnels，source port中输入你想使用的本地端口，Destination中输入你需要建立隧道的本地IP和远程虚拟机的VNC监听端口，点击Add后，Open即可，此时需要输入服务器用户和密码（dutoeserver）。这样就建立好了SSH隧道。如果有多台虚拟机，则通过add一次可以添加多个监听隧道。如我有虚拟机3台，分别端口为5901、5902、5903，则我可以Source port中填写5901，然后Destination中填写127.0.0.1:5901，点击Add，其他两个端口类似添加。最后点击Open即可。<br>通过putty建立好SSH隧道之后不要关闭putty窗口，然后再打开VNC<br>viewer，输入127.0.0.1:5901即可连接5901对应的虚拟机，可以根据不同的VNC端口同时连接多个虚拟机。</p>
+<p>有些windows下的ssh软件支持像linux那样直接通过一行命令创建SSH隧道，例如mobaXterm</p>
+<h2 id="KVM虚拟机常用管理命令"><a href="#KVM虚拟机常用管理命令" class="headerlink" title="KVM虚拟机常用管理命令"></a>KVM虚拟机常用管理命令</h2><p>KVM虚拟机默认配置文件位置: /etc/libvirt/qemu/，该目录下存放了所有创建过的虚拟机配置文件。</p>
+<p>查看virt-install所有支持的OS参数列表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ osinfo-query os</div></pre></td></tr></table></figure></p>
+<p>查看正在运行的虚拟主机列表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh list</div></pre></td></tr></table></figure></p>
+<p>查看所有虚拟机列表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh list --all</div></pre></td></tr></table></figure></p>
+<p>查看虚拟机信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh dominfo centos7</div></pre></td></tr></table></figure></p>
+<p>启动虚拟主机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh start centos7</div></pre></td></tr></table></figure></p>
+<p>关闭一个名为centos7的虚拟机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh shutdown centos7</div></pre></td></tr></table></figure></p>
+<p>由于virsh实际上不能对虚拟机进行关机，只有虚拟机配置了acpid服务之后才能通过virsh进行关机，配置命令为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ sudo chkconfig acpid on</div><div class="line">$ sudo service acpid restart</div></pre></td></tr></table></figure></p>
+<p>注意这是指在虚拟机中配置该服务</p>
+<p>暂停/挂起虚拟主机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh suspend centos7</div></pre></td></tr></table></figure></p>
+<p>恢复暂停状态的虚拟机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$virsh resume centos7</div></pre></td></tr></table></figure></p>
+<p>软重启（安全重启，相当于在虚拟机内部点击重启选项）虚拟机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh reboot centos7</div></pre></td></tr></table></figure></p>
+<p>硬重启虚拟机（不安全，有可能数据丢失，相当于强制按主机上的重启按钮）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh reset centos7</div></pre></td></tr></table></figure></p>
+<p>设置虚拟机随着宿主主机开机自动启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh autostart centos7</div></pre></td></tr></table></figure></p>
+<p>开机自动启动的虚拟机配置文件会自动在目录/etc/libvirt/qemu/autostart/目录下生成。<br>用开机自动启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh autostart --disable centos7</div></pre></td></tr></table></figure></p>
+<p>移除虚拟机定义，即从虚拟机列表中移除虚拟机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh undefine centos7</div></pre></td></tr></table></figure></p>
+<p>该命令只是删除/etc/libvirt/qemu/目录下名为centos7.xml的配置文件，并不会删除虚拟机磁盘文件</p>
+<p>通过虚拟机配置文件重新定义虚拟机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh define centos7.xml</div></pre></td></tr></table></figure></p>
+<p>强制关闭虚拟机电源：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh destroy centos7</div></pre></td></tr></table></figure></p>
+<p>编辑虚拟机配置文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh edit centos7</div></pre></td></tr></table></figure></p>
+<p>该命令会调用本地编辑器编辑虚拟机配置文件，虽然也可以手动使用vim去编辑/etc/libvirt/qemu/centos7.xml下的虚拟机配置文件，但不建议，最好还是通过virsh edit调用编辑器来编辑虚拟机配置文件</p>
+<p>查看virsh的所有命令或指定的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh --help</div></pre></td></tr></table></figure></p>
+<p>可以配合grep来查看某个选项相关的所有相关指令，例如我想查看跟开机有关的所有相关指令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh --help | grep start</div></pre></td></tr></table></figure></p>
+<p>如果想看到详情，最好还是看man手册：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">man virsh</div></pre></td></tr></table></figure></p>
+<p>查看当前主机上hypervisor的连接路径：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh uri</div></pre></td></tr></table></figure></p>
+<p>创建虚拟机硬盘（格式为qcow2，该格式创建后不会立即占用10G空间，而是在使用中动态增长；也可以是raw格式，会立即分配空间。大小为10G）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-img create -f qcow2 test.qcow2 10G</div></pre></td></tr></table></figure></p>
+<p>查看磁盘信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ qemu-img info test.img</div></pre></td></tr></table></figure></p>
+<p>qcow2格式文件的快照管理命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">创建快照：qemu-img snapshot -c &lt;标签&gt; test.qcow2</div><div class="line">恢复快照：qemu-img snapshot -a &lt;标签&gt; test.qcow2</div><div class="line">删除快照：qemu-img snapshot -d &lt;标签&gt; test.qcow2</div></pre></td></tr></table></figure></p>
+<p>进入virsh管理程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh</div></pre></td></tr></table></figure></p>
+<p>出现virsh提示符后，你就可以使用任何virsh命令了。</p>
+<p>上面的命令对应的非root管理用户命令，即没有将当前用户组加入到管理组，且没有root权限的用户，可以通过加入–connect qemu:///system的方式实现虚拟机的管理，如创建和移除虚拟机的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh --connect qemu:///system create centos7.xml</div><div class="line">$ virsh --connect qemu:///system destroy centos7.xml</div></pre></td></tr></table></figure></p>
+<p>感觉还是设置好用户组之后直接使用virsh管理KVM虚拟机更加方便</p>
+<h2 id="KVM虚拟机克隆"><a href="#KVM虚拟机克隆" class="headerlink" title="KVM虚拟机克隆"></a>KVM虚拟机克隆</h2><p>即可以使用virt-clone命令来进行虚拟机的克隆，也可以通过手动拷贝磁盘文件及原虚拟机的配置文件来完成克隆，注意如果使用拷贝的方式需要手动修改克隆后的虚拟机的host名称、mac信息以及配置文件中的uuid和名称，否则会冲突，当然克隆生成的虚拟机中的hostname也是一样的，同样建议修改国，但virt-clone会自动随机生成uuid、mac等信息。<br>通过virt-clone命令克隆命令如下，克隆虚拟机时需要确保被克隆的虚拟机处于关闭或者挂起状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">virt-clone --original=vm-to-clone \</div><div class="line">               --name=cloned-vm \</div><div class="line">               --file=/home/vm/cloned-vm.img</div></pre></td></tr></table></figure>
+<ul>
+<li>–original后面需要是被克隆的虚拟机名，–name后面是你克隆后的虚拟机名，–file后面是克隆虚拟机的磁盘映像需要存放的位置，可以使用-o,-n,-f来简写，当原虚拟机有多个硬盘文件时，后面需要跟多个–file。注意virt-clone无法指定静态网络参数</li>
+<li>virt-clone还可以指定uuid，mac等信息，省略的信息表示由virt自动生成。</li>
+<li><p>virt-clone后面也可以只接–original参数，然后再接个–auto-clone参数，就是由virt-clone自动进行克隆：<br>自动克隆之后的输出如下：</p>
+<pre><code>Original name        : MyVM
+Generated clone name : MyVM-clone
+
+Original disk path   : /home/user/foobar.img
+Generated disk path  : /home/user/foobar-clone.img
+</code></pre></li>
+</ul>
+<p>也可以通过man virt-clone查看更详细的参数，</p>
+<p>如果需要手动克隆，其实就是复制一份导出的原虚拟机配置文件到xml，将修改其中需要修改的内容，然后复制一份原虚拟机的磁盘映像文件，并在xml文件中修改相应文件，再使用virsh define定义新虚拟机的配置文件即可。<br>其实vrit-clone的克隆也就是复制一份原虚拟机的磁盘及配置文件,然后会在克隆时修改配置文件中的mac地址,其他原虚拟机中的所有内容都不会变化,因为virt-clone并不会修改虚拟机内容.如果想创建一个不包含个人信息及网络配置的虚拟机镜像,则需要使用virt-sysprep进行虚拟机部署镜像制作.</p>
+<h2 id="KVM虚拟机布署"><a href="#KVM虚拟机布署" class="headerlink" title="KVM虚拟机布署"></a>KVM虚拟机布署</h2><p>虚拟机布署主要3步：创建虚拟机并安装系统和所需要的配置、清除虚拟机中的一些个人信息和不需要的缓存信息、克隆虚拟机。<br>vrit-sysprep可用于清除虚拟机磁盘镜像中的一些不需要的内容，并且可以修改虚拟机磁盘文件中的一些信息，所以可用于封闭虚拟机。<br>virt-sysprep包含在包libguestfs-tools,可以通过以下命令安装<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install libguestfs-tools</div></pre></td></tr></table></figure></p>
+<p>virt-sysprep可以重置虚拟机,包括清除SSH key,清除网络信息及MAC地址,清除用户账户.virt-sysprep还可以定制化虚拟机，包含SSH key，用户，logo等．<br>可以通过<code>virt-sysprep --list-operations</code>来查看virt-sysprep在封装时会清除掉哪些信息，列表中带有*的表示默认会被清除掉的信息，如下：</p>
+<ul>
+<li>abrt-data * Remove the crash data generated by ABRT</li>
+<li>bash-history * Remove the bash history in the guest</li>
+<li>blkid-tab * Remove blkid tab in the guest</li>
+<li>ca-certificates   Remove CA certificates in the guest</li>
+<li>crash-data * Remove the crash data generated by kexec-tools</li>
+<li>cron-spool * Remove user at-jobs and cron-jobs</li>
+<li>customize * Customize the guest</li>
+<li>dhcp-client-state * Remove DHCP client leases</li>
+<li>dhcp-server-state * Remove DHCP server leases</li>
+<li>dovecot-data * Remove Dovecot (mail server) data</li>
+<li>firewall-rules   Remove the firewall rules</li>
+<li>flag-reconfiguration   Flag the system for reconfiguration</li>
+<li>fs-uuids   Change filesystem UUIDs</li>
+<li>kerberos-data   Remove Kerberos data in the guest</li>
+<li>logfiles * Remove many log files from the guest</li>
+<li>lvm-uuids * Change LVM2 PV and VG UUIDs</li>
+<li>machine-id * Remove the local machine ID</li>
+<li>mail-spool * Remove email from the local mail spool directory</li>
+<li>net-hostname * Remove HOSTNAME in network interface configuration</li>
+<li>net-hwaddr * Remove HWADDR (hard-coded MAC address) configuration</li>
+<li>pacct-log * Remove the process accounting log files</li>
+<li>package-manager-cache * Remove package manager cache</li>
+<li>pam-data * Remove the PAM data in the guest</li>
+<li>puppet-data-log * Remove the data and log files of puppet</li>
+<li>rh-subscription-manager * Remove the RH subscription manager files</li>
+<li>rhn-systemid * Remove the RHN system ID</li>
+<li>rpm-db * Remove host-specific RPM database files</li>
+<li>samba-db-log * Remove the database and log files of Samba</li>
+<li>script * Run arbitrary scripts against the guest</li>
+<li>smolt-uuid * Remove the Smolt hardware UUID</li>
+<li>ssh-hostkeys * Remove the SSH host keys in the guest</li>
+<li>ssh-userdir * Remove “.ssh” directories in the guest</li>
+<li>sssd-db-log * Remove the database and log files of sssd</li>
+<li>tmp-files * Remove temporary files</li>
+<li>udev-persistent-net * Remove udev persistent net rules</li>
+<li>user-account   Remove the user accounts in the guest</li>
+<li>utmp * Remove the utmp file</li>
+<li>yum-uuid * Remove the yum UUID</li>
+</ul>
+<p>Ubuntu 14.04系统下的该工具支持的清除列表要少一些，并且不支持下面要用到的–operations选项。</p>
+<p>可以通过参数–enable/–operations选项后面跟逗号分隔的列表来指定你需要清除的选项．<br>通常我们只需要使用<code>virt-sysprep -d &lt;vm-host-name&gt;</code></p>
+<p><vm-host-name>是你virsh管理的虚拟机的名字，也可以是你虚拟机的uuid，如果你是直接针对磁盘文件，则使用-a参数后面跟上一个或多个硬盘文件即可．<br>官方建议该工具的使用不要通过root用户进行，如果你在使用时出现的问题，可以尝试使用root权限运行试试．<br>我常用的命令为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">virt-sysprep -d ubuntuServer-original   #先清除私有化的配置</div><div class="line">virt-clone --original=ubuntuServer-original \  #克隆</div><div class="line">               --name=myubuntu-1 \</div><div class="line">               --file=/home/vm/myubuntu-1.qcow2</div><div class="line">sudo virt-sysprep -d test --hostname mytest --operations defaults,-ssh-hostkeys  #布署</div><div class="line">virsh start myubuntu-1  #启动</div></pre></td></tr></table></figure></vm-host-name></p>
+<p>更详细的信息可以参见官方文档<a href="http://libguestfs.org/virt-sysprep.1.html#" target="_blank" rel="external">http://libguestfs.org/virt-sysprep.1.html#</a></p>
+<h2 id="批量KVM虚拟机管理脚本"><a href="#批量KVM虚拟机管理脚本" class="headerlink" title="批量KVM虚拟机管理脚本"></a>批量KVM虚拟机管理脚本</h2><p>下面是为了方便日常多用户使用和管理写的python脚本函数（python只是草草地看了语法，水平有限，忘谅解），可以自由组合各函数功能成为单独的命令，也可以到github去查看：<a href="https://github.com/blueyi/kvmManage" target="_blank" rel="external">https://github.com/blueyi/kvmManage</a><br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"><span class="comment"># vim:fenc=utf-8</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># Copyright © 2016 blueyi &lt;blueyi@blueyi-ubuntu&gt;</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># Distributed under terms of the MIT license.</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> subprocess</div><div class="line"><span class="keyword">import</span> sys</div><div class="line"><span class="keyword">import</span> time</div><div class="line"></div><div class="line"><span class="string">"""</span></div><div class="line">Some function and const value</div><div class="line">"""</div><div class="line"></div><div class="line">image_path = <span class="string">'/home/blueyi/vhost/image/'</span></div><div class="line">iso_path = <span class="string">'/home/blueyi/vhost/iso/'</span></div><div class="line">template_kvm = <span class="string">'ubuntu1604'</span></div><div class="line">sub_ip = <span class="string">'192.168.2.0'</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># print some important string</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">welcome_print</span><span class="params">(msg)</span>:</span></div><div class="line">    print(<span class="string">'*'</span> * <span class="number">70</span>)</div><div class="line">    print(<span class="string">'   &lt;&lt;&lt; '</span> + msg + <span class="string">' &gt;&gt;&gt;'</span>)</div><div class="line">    print(<span class="string">'*'</span> * <span class="number">70</span>)</div><div class="line"></div><div class="line"><span class="comment"># run an shell command in subprocess</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">run_cmd_reout</span><span class="params">(tcall_cmd, goOnRun = False, isOutPut = True, jumpErr = False, isReturnCode = False)</span>:</span></div><div class="line">    p = subprocess.Popen(tcall_cmd, shell=<span class="keyword">True</span>, stdout=subprocess.PIPE, executable=<span class="string">'/bin/bash'</span>)</div><div class="line">    toutput = p.communicate()[<span class="number">0</span>]</div><div class="line">    <span class="keyword">if</span> p.returncode != <span class="number">0</span> <span class="keyword">and</span> <span class="keyword">not</span> jumpErr:</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + tcall_cmd + <span class="string">' &gt;&gt;&gt; run failed!'</span>)</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> goOnRun :</div><div class="line">            sys.exit(<span class="number">1</span>)</div><div class="line">    <span class="keyword">if</span> isOutPut :</div><div class="line">        print(toutput)</div><div class="line">    <span class="keyword">if</span> isReturnCode :</div><div class="line">        <span class="keyword">return</span> p.returncode</div><div class="line">    <span class="keyword">else</span> :</div><div class="line">        <span class="keyword">return</span> toutput</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># Is specified KVM exist</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">isVMExist</span><span class="params">(host_name)</span> :</span></div><div class="line">    is_exist_cmd = <span class="string">'virsh domstate '</span> + host_name</div><div class="line">    <span class="keyword">return</span> (run_cmd_reout(is_exist_cmd, goOnRun=<span class="keyword">True</span>, isOutPut=<span class="keyword">False</span>, jumpErr=<span class="keyword">True</span>, isReturnCode=<span class="keyword">True</span>) == <span class="number">0</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># Is specified KVM running</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">isVMRunning</span><span class="params">(host_name)</span> :</span></div><div class="line">    is_run_cmd = <span class="string">'virsh domstate '</span> + host_name</div><div class="line">    <span class="keyword">return</span> isVMExist(host_name) <span class="keyword">and</span> (run_cmd_reout(is_run_cmd, goOnRun=<span class="keyword">True</span>, isOutPut=<span class="keyword">False</span>, jumpErr=<span class="keyword">True</span>).strip() == <span class="string">'running'</span>)</div><div class="line"></div><div class="line"><span class="comment"># list all kvm exist</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">listAllKVM</span><span class="params">()</span> :</span></div><div class="line">    print(<span class="string">'All virtual machine list in the following'</span>)</div><div class="line">    run_cmd_reout(<span class="string">'virsh list --all'</span>)</div><div class="line"></div><div class="line"><span class="comment"># Get VNC port</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getVNCPort</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMRunning(host_name) :</div><div class="line">        <span class="keyword">return</span> host_name + <span class="string">' Not Running!'</span></div><div class="line">    vnc_display_cmd = <span class="string">'virsh vncdisplay '</span> + host_name</div><div class="line">    vnc_reout = run_cmd_reout(vnc_display_cmd, goOnRun=<span class="keyword">True</span>, isOutPut=<span class="keyword">False</span>, jumpErr=<span class="keyword">True</span>)</div><div class="line">    vnc_port = <span class="number">5900</span> + int(vnc_reout[(vnc_reout.find(<span class="string">':'</span>) + <span class="number">1</span>) : ])</div><div class="line">    <span class="keyword">return</span> str(vnc_port)</div><div class="line"></div><div class="line"><span class="comment"># Get MAC address</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getMAC</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMExist(host_name) :</div><div class="line">        <span class="keyword">return</span> host_name + <span class="string">' Not Exist!'</span></div><div class="line">    get_mac_cmd = <span class="string">"virsh dumpxml "</span> + host_name + <span class="string">" | grep 'mac address' | cut -c 21-37"</span></div><div class="line">    <span class="keyword">return</span> run_cmd_reout(get_mac_cmd, goOnRun=<span class="keyword">True</span>, isOutPut=<span class="keyword">False</span>).strip()</div><div class="line"></div><div class="line"><span class="comment"># Get ip address</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getIP</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMRunning(host_name) :</div><div class="line">        <span class="keyword">return</span> host_name + <span class="string">' Not Running!'</span></div><div class="line">    host_mac = getMAC(host_name)</div><div class="line"></div><div class="line">    arp_ip = <span class="string">''</span></div><div class="line">    start_time = int(time.time())</div><div class="line">    <span class="comment"># wait for kvm start finish</span></div><div class="line">    <span class="keyword">while</span> (arp_ip == <span class="string">''</span> <span class="keyword">and</span> int(time.time()) - start_time &lt; <span class="number">20</span>):</div><div class="line">        nmap_cmd = <span class="string">'nmap -sP --host-timeout 15s '</span> + sub_ip + <span class="string">'/24'</span></div><div class="line">        run_cmd_reout(nmap_cmd, goOnRun=<span class="keyword">True</span>, isOutPut=<span class="keyword">False</span>)</div><div class="line">        arp_ip_cmd = <span class="string">"arp -an | grep '"</span>  + host_mac + <span class="string">"'"</span></div><div class="line">        arp_ip = run_cmd_reout(arp_ip_cmd, goOnRun=<span class="keyword">True</span>, isOutPut=<span class="keyword">False</span>, jumpErr=<span class="keyword">True</span>)</div><div class="line">    <span class="keyword">if</span> len(arp_ip) == <span class="number">0</span> :</div><div class="line">        <span class="keyword">return</span> <span class="string">'Get '</span> + host_name + <span class="string">' ip address failed! MAC:'</span> + host_mac</div><div class="line">    <span class="keyword">else</span> :</div><div class="line">        <span class="keyword">return</span> arp_ip[arp_ip.find(<span class="string">'('</span>) + <span class="number">1</span> : arp_ip.find(<span class="string">')'</span>)]</div><div class="line"></div><div class="line"><span class="comment"># get specified KVM info, mac, ip and vnc port</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getVMInfo</span><span class="params">(host_name)</span> :</span> </div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMExist(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' Not Exist! &gt;&gt;&gt;'</span>)</div><div class="line">        <span class="keyword">return</span></div><div class="line">    print(<span class="string">'------'</span> + host_name + <span class="string">' infomation------'</span>)</div><div class="line">    host_info_cmd = <span class="string">'virsh dominfo '</span> + host_name</div><div class="line">    run_cmd_reout(host_info_cmd)</div><div class="line">    print(<span class="string">'MAC address: '</span> + getMAC(host_name))</div><div class="line">    welcome_print(host_name + <span class="string">' IP: '</span> + getIP(host_name) + <span class="string">', VNC port: '</span> + getVNCPort(host_name) +  <span class="string">' enjoy it!'</span>)</div><div class="line"></div><div class="line"><span class="comment"># Start kvm</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">startVM</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMExist(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' Not Exist! &gt;&gt;&gt;'</span>)</div><div class="line">        listAllKVM()</div><div class="line">        <span class="keyword">return</span></div><div class="line">    <span class="keyword">if</span> isVMRunning(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' has Running! &gt;&gt;&gt;'</span>)</div><div class="line">        listAllKVM()</div><div class="line">        <span class="keyword">return</span></div><div class="line">    start_cmd = <span class="string">'virsh start '</span> + host_name</div><div class="line">    run_cmd_reout(start_cmd)</div><div class="line">    getVMInfo(host_name)</div><div class="line"></div><div class="line"><span class="comment"># Shutdown kvm</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">shutdownVM</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMExist(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' Not Exist! &gt;&gt;&gt;'</span>)</div><div class="line">        listAllKVM()</div><div class="line">        <span class="keyword">return</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMRunning(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' Not Running! &gt;&gt;&gt;'</span>)</div><div class="line">        listAllKVM()</div><div class="line">        <span class="keyword">return</span></div><div class="line">    shutdown_cmd = <span class="string">'virsh shutdown '</span> + host_name</div><div class="line">    run_cmd_reout(shutdown_cmd)</div><div class="line"></div><div class="line"><span class="comment"># Set specified KVM to autostart when boot</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">autostartVM</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMExist(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' Not Exist! &gt;&gt;&gt;'</span>)</div><div class="line">        listAllKVM()</div><div class="line">        <span class="keyword">return</span></div><div class="line">    autostart_cmd = <span class="string">'virsh autostart '</span> + host_name</div><div class="line">    run_cmd_reout(autostart_cmd)</div><div class="line">    <span class="comment"># list all kvm exist status</span></div><div class="line">    print(<span class="string">'Autostart virtual machine list in the following'</span>)</div><div class="line">    run_cmd_reout(<span class="string">'virsh list --autostart --all'</span>)</div><div class="line"></div><div class="line"><span class="comment"># disable autostart kvm</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">disableAutostartVM</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> isVMExist(host_name) :</div><div class="line">        print(<span class="string">'&lt;&lt;&lt; '</span> + host_name + <span class="string">' Not Exist! &gt;&gt;&gt;'</span>)</div><div class="line">        listAllKVM()</div><div class="line">        <span class="keyword">return</span></div><div class="line">    autostart_cmd = <span class="string">'virsh autostart --disable '</span> + host_name</div><div class="line">    run_cmd_reout(autostart_cmd)</div><div class="line">    <span class="comment"># list all kvm exist status</span></div><div class="line">    print(<span class="string">'Autostart virtual machine list in the following'</span>)</div><div class="line">    run_cmd_reout(<span class="string">'virsh list --autostart --all'</span>)</div><div class="line"></div><div class="line"><span class="comment"># Clone kvm from template</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">cloneVM</span><span class="params">(host_name, template)</span> :</span></div><div class="line">    <span class="keyword">if</span> isVMRunning(template) :</div><div class="line">        print(template + <span class="string">' must to be shutdown to be clone!'</span>)</div><div class="line">        <span class="keyword">return</span></div><div class="line">    clone_cmd = <span class="string">'virt-clone --force --original='</span> + template + <span class="string">' --name='</span> + host_name + <span class="string">' --file='</span> + image_path + host_name + <span class="string">'.qcow2'</span></div><div class="line">    run_cmd_reout(clone_cmd)</div><div class="line"></div><div class="line"><span class="comment"># Sysprep kvm</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">sysprepVM</span><span class="params">(new_host_name, old_host_name, miniClear = False)</span> :</span></div><div class="line">    <span class="keyword">if</span> isVMRunning(old_host_name) :</div><div class="line">        print(old_host_name + <span class="string">' must to be shutdown to be clone!'</span>)</div><div class="line">        <span class="keyword">return</span></div><div class="line">    sysprep_cmd = <span class="string">''</span></div><div class="line">    <span class="keyword">if</span> miniClear :</div><div class="line">        sysprep_cmd = <span class="string">'sudo virt-sysprep -d '</span> + old_host_name + <span class="string">' --hostname '</span> + new_host_name + <span class="string">' --operations customize,dhcp-client-state,dhcp-server-state,machine-id,net-hostname,net-hwaddr'</span></div><div class="line">    <span class="keyword">else</span> :</div><div class="line">        sysprep_cmd = <span class="string">'sudo virt-sysprep -d '</span> + old_host_name + <span class="string">' --hostname '</span> + new_host_name + <span class="string">' --operations defaults,-ssh-hostkeys'</span></div><div class="line">    run_cmd_reout(sysprep_cmd)</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># Remove specified vm define</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">undefineVM</span><span class="params">(host_name)</span> :</span></div><div class="line">    <span class="keyword">if</span> isVMRunning(host_name) :</div><div class="line">        shutdownVM(host_name)</div><div class="line">    undefine_cmd = <span class="string">'virsh undefine '</span> + host_name</div><div class="line">    run_cmd_reout(undefine_cmd)</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># Delete specified vm from disk</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">deleteVM</span><span class="params">(host_name)</span> :</span></div><div class="line">    undefineVM(host_name)</div><div class="line">    delete_cmd = <span class="string">'sudo rm -rf '</span> + image_path + host_name + <span class="string">'.qcow2'</span></div><div class="line">    run_cmd_reout(delete_cmd)</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># Originally create kvm from iso image</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">createVM</span><span class="params">(host_name, ram = <span class="number">1024</span>, vcpu = <span class="number">1</span>, disk = <span class="number">10</span>, os_type = <span class="string">'ubuntu16.04'</span>, iso = <span class="string">'UbuntuServer16.04.iso'</span>)</span> :</span></div><div class="line">    <span class="keyword">if</span> isVMExist(host_name) :</div><div class="line">        print(host_name + <span class="string">' has exist!'</span>)</div><div class="line">        <span class="keyword">return</span></div><div class="line">    create_cmd = <span class="string">'virt-install \</span></div><div class="line">            --virt-type=kvm \</div><div class="line">            --name=' + host_name + <span class="string">' \</span></div><div class="line">            --ram=' + str(ram) + <span class="string">' \</span></div><div class="line">            --vcpus=' + str(vcpu) + <span class="string">' \</span></div><div class="line">            --os-variant=' + os_type + <span class="string">' \</span></div><div class="line">            --hvm \</div><div class="line">            --cdrom=' + iso_path + iso + <span class="string">' \</span></div><div class="line">            --network=bridge=br0,model=virtio \</div><div class="line">            --graphics vnc,listen=0.0.0.0 \</div><div class="line">            --disk path=' + image_path + host_name + <span class="string">'.qcow2,size='</span> + str(disk) + <span class="string">',bus=virtio,format=raw'</span></div><div class="line">    run_cmd_reout(create_cmd)</div></pre></td></tr></table></figure></p>
+<h2 id="其他遇到的问题"><a href="#其他遇到的问题" class="headerlink" title="其他遇到的问题"></a>其他遇到的问题</h2><p><strong>如何获取通过桥接的DHCP为KVM自动分配的IP</strong><br>创建完虚拟机之后，启动虚拟机，然后通过nmap进行同一子网下的ping扫描，nmap需要手动安装，此时会建立arp缓存，然后通过<code>arp -an</code>查看缓存中的ip与mac的对应关系获得KVM虚拟机IP即可。虚拟机的MAC地址可以通过virsh dumpxml中获得。</p>
+<p>通过虚拟机配置文件获得虚拟机的MAC地址：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh dumpxml vm-name|grep &apos;mac address&apos;| cut -c 21-37`</div></pre></td></tr></table></figure></p>
+<p>安装nmap：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install nmap</div></pre></td></tr></table></figure></p>
+<p>使用nmap扫描同一子网下的所有ip：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ nmap -sP 192.168.1.0/24</div></pre></td></tr></table></figure></p>
+<p>通过查询arp缓存，找到MAC地址对应的虚拟机IP：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ arp -an | grep hostmac</div></pre></td></tr></table></figure></p>
+<p>上面的脚本中都详细的代码实现</p>
+<p><strong>可能引起本机git无法正常使用的问题</strong><br>桥接网卡后发现git无法使用，错误提示类似这样：nutls_handshake() failed GIT repository，重新编译一下git就可以了，参见这里：<a href="http://devopscube.com/gnutls-handshake-failed-aws-codecommit/" target="_blank" rel="external">http://devopscube.com/gnutls-handshake-failed-aws-codecommit/</a></p>
+<p><strong>如何为KVM虚拟机增加网卡</strong><br>使用virsh attach-interface命令可以为虚拟机testbr动态永久增加一个virtio驱动的bridge网卡：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh attach-interface testbr --type bridge --source br0 --model virtio --persistent</div></pre></td></tr></table></figure></p>
+<p>如果不加最后一下参加–persistent，就只在当前虚拟机状态下生效，重启后会消失</p>
+<p>通过以下命令查看虚拟机所具有的网卡及相应的mac：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh domiflist testbr</div></pre></td></tr></table></figure></p>
+<p>增加网卡后在虚拟机里通过以下命令查看所有网络设备：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ifconfig -a</div></pre></td></tr></table></figure></p>
+<p>输出中会多出一个网络设备就是你刚刚新增加的，默认情况下它并没有启动<br>可以通过修改<code>/etc/network/interfaces</code>，在其中照着原有的网卡追加新网卡的信息后重启网络设备即可<br>例如我增加的新网卡名称为ens7，我的网络配置文件修改如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"># This file describes the network interfaces available on your system</div><div class="line"># and how to activate them. For more information, see interfaces(5).</div><div class="line"></div><div class="line">source /etc/network/interfaces.d/*</div><div class="line"></div><div class="line"># The loopback network interface</div><div class="line">auto lo</div><div class="line">iface lo inet loopback</div><div class="line"></div><div class="line"># The primary network interface</div><div class="line">auto ens3</div><div class="line">iface ens3 inet dhcp</div><div class="line"></div><div class="line"># The primary network interface</div><div class="line">auto ens7</div><div class="line">iface ens7 inet dhcp</div></pre></td></tr></table></figure></p>
+<p>然后重启网络服务：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo systemctl restart networking.service</div></pre></td></tr></table></figure></p>
+<p>再来查看已经启用的网络设备会发现多了一块网卡，并且有了IP：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ifconfig</div></pre></td></tr></table></figure></p>
+<p>以下命令永久删除一个指定mac地址的网卡：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ virsh detach-interface testbr --type bridge --mac 52:54:00:74:39:e4 --persistent</div></pre></td></tr></table></figure></p>
+<p>同样–persistent具有控制是否永久生效的效果</p>
+<p><strong>如何为KVM虚拟机增加一块硬盘</strong><br>查看当前KVM虚拟机所有的磁盘信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ virsh domblklist testbr --details</div><div class="line">Type       Device     Target     Source</div><div class="line">------------------------------------------------</div><div class="line">file       disk       vda        /home/blueyi/vhost/image/testbr.qcow2</div><div class="line">file       disk       vdb        /mnt/data/addDisk/testbr-1.qcow2</div><div class="line">file       cdrom      hda        -</div></pre></td></tr></table></figure></p>
+<p>查看某一块磁盘的大小等信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ qemu-img info /mnt/data/addDisk/testbr-1.qcow2</div><div class="line">image: /mnt/data/addDisk/testbr-1.qcow2</div><div class="line">file format: qcow2</div><div class="line">virtual size: 10G (10737418240 bytes)</div><div class="line">disk size: 196K</div><div class="line">cluster_size: 65536</div><div class="line">Format specific information:</div><div class="line">    compat: 1.1</div><div class="line">    lazy refcounts: false</div><div class="line">    refcount bits: 16</div><div class="line">    corrupt: false</div></pre></td></tr></table></figure></p>
+<p>创建一块新的磁盘10G大小，格式为qcow2，后面将其增加给某个虚拟机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ qemu-img create -f qcow2 testbr-1.qcow2 10G</div><div class="line">Formatting &apos;testbr-1.qcow2&apos;, fmt=qcow2 size=10737418240 encryption=off cluster_size=65536 lazy_refcounts=off refcount_bits=16</div></pre></td></tr></table></figure></p>
+<p>将刚刚创建的磁盘追加给虚拟机testbr，在虚拟机中其设备名称为vdb：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh attach-disk testbr --source /mnt/data/addDisk/testbr-1.qcow2 --target vdb --subdriver qcow2 --targetbus virtio --persistent</div><div class="line">Disk attached successfully</div></pre></td></tr></table></figure></p>
+<p>移除虚拟机上的某个磁盘：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ virsh detach-disk testbr vdb --persistent</div><div class="line">Disk detached successfully</div></pre></td></tr></table></figure></p>
+<p>剩下的就是进虚拟机里面进行格式化挂载了</p>
+<p><strong>为虚拟机最小化安装桌面</strong><br>安装ubuntu自带的unity桌面：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install --no-install-recommends ubuntu-desktop</div></pre></td></tr></table></figure></p>
+<p>如果需要使用ubuntu桌面版中带的那个terminal和system-monitor，安装如下2个包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get intall gnome-terminal gnome-system-monitor</div></pre></td></tr></table></figure></p>
+<p>如果需要安装轻量级的xfce桌面：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo apt-get install --no-install-recommends xfce4</div></pre></td></tr></table></figure></p>
+<p>然后同理安装所需要的其他桌面组件，只不过是以xfce4开头的</p>
+<p>gnome系桌面的命令行注销：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ gnome-session-quit --no-prompt</div></pre></td></tr></table></figure></p>
+<p>xfce4系注销命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ xfce4-session-quit -l</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag">#Linux</a>
+          
+            <a href="/tags/KVM/" rel="tag">#KVM</a>
+          
+            <a href="/tags/OpenStack/" rel="tag">#OpenStack</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/03/java-study-notes-oop/" rel="next" title="Java学习笔记之面向对象">
+                <i class="fa fa-chevron-left"></i> Java学习笔记之面向对象
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/06/opencv-study-notes/" rel="prev" title="OpenCV学习小记">
+                OpenCV学习小记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="blueyi" />
+          <p class="site-author-name" itemprop="name">blueyi</p>
+          <p class="site-description motion-element" itemprop="description">心怀善意，虛怀若谷！</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/blueyi" target="_blank" title="Github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  Github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#关于"><span class="nav-number">1.</span> <span class="nav-text">关于</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于KVM"><span class="nav-number">2.</span> <span class="nav-text">关于KVM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#验证主机是否支持硬件虚拟化"><span class="nav-number">3.</span> <span class="nav-text">验证主机是否支持硬件虚拟化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方法1：通过命令验证"><span class="nav-number">3.1.</span> <span class="nav-text">方法1：通过命令验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法2：通过软件验证"><span class="nav-number">3.2.</span> <span class="nav-text">方法2：通过软件验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装KVM相关依赖"><span class="nav-number">4.</span> <span class="nav-text">安装KVM相关依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置网络"><span class="nav-number">5.</span> <span class="nav-text">设置网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NAT网络"><span class="nav-number">5.1.</span> <span class="nav-text">NAT网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Bridge网络"><span class="nav-number">5.2.</span> <span class="nav-text">Bridge网络</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建虚拟机"><span class="nav-number">6.</span> <span class="nav-text">创建虚拟机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用virsh-install创建虚拟机"><span class="nav-number">6.1.</span> <span class="nav-text">使用virsh-install创建虚拟机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过XML文件创建虚拟机"><span class="nav-number">6.2.</span> <span class="nav-text">通过XML文件创建虚拟机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过virt-manager创建虚拟机"><span class="nav-number">6.3.</span> <span class="nav-text">通过virt-manager创建虚拟机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用qemu-img和qemu-kvm命令行方式安装"><span class="nav-number">6.4.</span> <span class="nav-text">使用qemu-img和qemu-kvm命令行方式安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VNC连接虚拟机"><span class="nav-number">7.</span> <span class="nav-text">VNC连接虚拟机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#直接通过VNC-viewer连接"><span class="nav-number">7.1.</span> <span class="nav-text">直接通过VNC viewer连接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看VNC端口号"><span class="nav-number">7.1.1.</span> <span class="nav-text">查看VNC端口号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#通过VNC-viewer连接"><span class="nav-number">7.1.2.</span> <span class="nav-text">通过VNC viewer连接</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用SSH隧道通过VNC连接"><span class="nav-number">7.2.</span> <span class="nav-text">使用SSH隧道通过VNC连接</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KVM虚拟机常用管理命令"><span class="nav-number">8.</span> <span class="nav-text">KVM虚拟机常用管理命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KVM虚拟机克隆"><span class="nav-number">9.</span> <span class="nav-text">KVM虚拟机克隆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KVM虚拟机布署"><span class="nav-number">10.</span> <span class="nav-text">KVM虚拟机布署</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#批量KVM虚拟机管理脚本"><span class="nav-number">11.</span> <span class="nav-text">批量KVM虚拟机管理脚本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他遇到的问题"><span class="nav-number">12.</span> <span class="nav-text">其他遇到的问题</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">blueyi</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=0.5.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=0.5.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=0.5.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=0.5.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=0.5.1"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'blueyi';
+      var disqus_identifier = '2016/11/29/kvm-create-and-manage/';
+      var disqus_title = "Ubuntu Server/Debian下的KVM虚拟机创建及管理详解";
+      var disqus_url = 'http://notes.maxwi.com/2016/11/29/kvm-create-and-manage/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

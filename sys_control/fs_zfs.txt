@@ -1,14 +1,14 @@
 # vim:ts=2
 # program: knowhow about ZFS
 # made by: Engells
-# date: Apr 7, 2019
+# date: Dec 3, 2020
 # content: 
 
 
 
 常用指令
 ====================
-zpool import pool_name
+zpool import -d /dev/disk/by-id pool_name
 zpool export pool_name
 zpool scrub pool_name
 zpool status pool_name
@@ -19,13 +19,13 @@ zfs umount pool_name/dataset_name
 
 
 
-安裝 Ubuntu 18.04 至 XFS
+安裝 Ubuntu 18.04 至 ZFS
 ====================
-1. 分割硬碟，產生分割區：ESP(200M, ef00)、BIOS(2M, ef02)、ZFS(bf00)、EXT4(10~20G,8300)
-2. 以隨身碟等開機，安裝 Ubuntu 18.04 至 EXT4 分割區，並安裝 zfsutils-linux、zfs-initramfs zfs-dkms 套件
+1. 分割硬碟，產生分割區：ESP(200M, ef00)、BIOS(2M, ef02)、ZFS(bf00)、EXT4(10~20G, 8300)
+2. 以隨身碟等開機，安裝 Ubuntu 18.04 至 EXT4 分割區，並安裝 zfsutils-linux、zfs-initramfs、zfs-dkms(?) 套件
 3. 以硬碟 EXT4 開機，在保留予 ZFS 之分割區建立 pool，並建立 dataset，例如 rpool/os/u1804，注意相關屬性設定，
    如 rpool/os 設為不能掛載，rpool/os/u1804 設為非自動掛載等
-4. 以隨身碟等開機，安裝 zfsutils-linux，將 EXT4 分區所有資料複製至 rpool/os/u1804 之 dataset
+4. 以隨身碟等開機，安裝 zfsutils-linux，將 EXT4 分區所有資料複製至 rpool/os/u1804 之 dataset，可用指令 rsync -aXv
 5. 以硬碟 EXT4 開機，chroot 至 rpool/os/u1804，重新安裝並更新 grub，注意 /boot/efi、proc、sys、dev 等目錄必須先綁定至 rpool/os/u1804
    安裝 64 位元 grub:
 			apt purge grub-pc

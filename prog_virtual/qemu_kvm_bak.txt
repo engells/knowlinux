@@ -1,0 +1,252 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about KVM
+# made by: Engells
+# date: Mar 28, 2019
+# content: Just for memo
+
+
+
+
+指令示例：
+====================
+在虛擬機安裝作業系統
+  kvm -enable-kvm -bios /usr/share/ovmf/OVMF.fd -hda vdisk.img -cdrom /path/to/boot-media.iso -smp 2 -boot d -m 2048 -usb -usbdevice tablet
+   -enable-kvm: 啟用 kvm 功能
+   -hda: 指向要安裝映像檔或硬碟代號（如: /dev/sda），不要指向分割區（如: /dev/sda8）
+   -bios: 指定 bios 檔案，本例 OVMF.fd 為 UEFI，virtsh 使用 /usr/share/OVMF/OVMF_CODE.fd 檔案作為 UEFI
+   -cdrom: 掛載光碟印象檔
+   -smp: CPU 核心數
+   -boot: 選擇開機方法，d 是指光碟開機
+   -m: 記憶體大小，單位 MB
+   -usb -usbdevice tablet 讓虛擬機器的滑鼠游標與本機游標同步，若以文字介面進行安裝可免用這項設定
+
+由硬碟分割啟動虛擬機
+  kvm -monitor stdio -m 1024 -vga -kernel vmlinuz -initrd initrd.img -append 'root=/dev/sda' /dev/sdz99
+
+由一整顆硬碟或隨身碟啟動虛擬機
+  kvm -monitor stdio -m 1024 -vga std /dev/sdz
+
+由 LVM 的 volume 啟動虛擬機
+  kvm -monitor stdio -m 1024 -vga /dev/mapper/abc-xyz
+
+由光碟映像檔啟動虛擬機
+  kvm -monitor stdio -m 1024 -vga iso_name.iso
+
+由硬碟映像檔般開機：
+  kvm vdisk.img -smp 2 -m 512
+
+引導 Ports：
+  kvm vdisk.img -smp 2 -m 512 -redir tcp:實體機器的port::虛擬機器的port
+   ex：kvm vdisk.img -smp 2 -m 512 -redir tcp:3389::3389
+
+掛載 USB 裝置：
+  -usbdevice 'devicename'
+   ex：-usbdevice disk:/dev/sdb
+   devicename：
+    mouse
+    tablet
+    disk:[format=format]:file
+    host:bus.addr
+    host:vendor_id:product_id
+    ...更詳細資訊請 man kvm
+
+    PS.可以用 lsusb 看裝置在哪
+    PS.掛載時可能會碰到權限問題，可以用sudo或是修改該裝置的權限chmod a+wr
+
+載入虛擬模組
+  sudo modprobe kvm_intel
+
+url:
+  玩具烏托邦： http://newtoypia.blogspot.tw/2015/03/kvm-boot-partition.html
+  StarNight's Blog： http://blog.xuite.net/zack_pan/blog/40655693-Kernel-based+Virtual+Machine+(KVM)
+
+
+
+
+產生虛擬機硬碟
+====================
+
+產生硬碟映像檔
+----------
+kvm-img create -f qcow2 x.img 4G
+kvm-img convert -O qcow2 x.img y.img
+kvm-img info x.img
+dd if=/dev/zero of=~/virtual/vd01.raw bs=64k count=4800
+
+
+fdisk disk image file
+----------
+modprobe nbd max_part=8
+modinfo nbd
+kvm-nbd --connect=/dev/nbd0 /path/to/xxxx.qcwo
+    # 替代指令：kvm-nbd -c /dev/nbd0 /path/to/xxxx.qcwo
+gparted /dev/nbd0
+kvm-nbd --disconnect /dev/nbd0
+rmmod nbd
+
+mount virtual disk, should have nbd module active, and note that only partitions could be mounted
+----------
+mkdir /path/to/folder
+mount /dev/nbd0p1 /path/to/folder
+    # 替代指令：mount -t exfat -o rw /dev/nbd0p1 /path/to/folder，-t vfat | exfat | ntfs | ext4 ...
+umount /path/to/folder
+
+
+
+
+RedHat Physical-to-Virtual（P2V)
+====================
+virt-p2v
+  1.製作 virt-p2v 的可開機隨身碟
+  2.找一台機器作為 p2v 的中轉機器(此轉換機器啟動 virt-p2v-server服務)，轉化物理機傳輸過來的資料
+  3.以隨身碟開機 p2v 的機器(要轉虛擬化的物理機)，通過網路將物理機的資料傳送給第二步的 virt-p2v-server 服務
+  4.virt-p2v-server 服務接收到資料，轉換為相應的虛擬機器檔
+
+url:
+  http://fanli7.net/a/bianchengyuyan/PHP/20130907/420675.html
+  https://read01.com/zh-tw/8kjaMG.html
+  http://guwenwu285.iteye.com/blog/1633748
+  http://blog.csdn.net/tantexian/article/category/2833561
+
+
+
+
+利用 KVM 虛擬技術將 Linux 安裝於實體硬碟
+====================
+備份 MBR (非必要)
+  sudo dd if=/dev/sda of=sda.mbr bs=446 count=1
+
+以 KVM 載入 Linux 安裝光碟, 開始進行安裝作業
+  sudo kvm -hda /dev/sda -cdrom /path/to/iso_file -smp 2 -m 2048 -usb -usbdevice tablet -boot d
+
+安裝後, 在 GRUB 2 選單增添或修改選項
+  vi /etc/grub.d/40_custom
+    menuentry 'Ubuntu (sda8)' {
+      set root='(hd0,8)'
+      chainloader +1
+    }
+  grub2-mkconfig -o /boot/grub2/grub.cfg
+
+把 Bootloader 另外寫入磁碟分割區 (first sector of boot partition)
+  grub2-install --force /dev/sda7
+    目的: 若 MBR 的 Bootloader 毀損或改寫，仍可用其他 Linux 系統的 GRUB 以 chainloader +1 方式啟動本分割區的 Linux 系統
+
+若安裝時不小心把 Bootloader 寫入 MBR, 想改回原設定
+  方式一：寫回備份內容
+    dd if=sda.mbr of=/dev/sda
+  方式二：以目前設定重新寫入 MBR
+    grub2-install /dev/sda
+
+參考網址
+  http://jamyy.us.to/blog/2013/01/4431.html
+
+
+
+
+與 Virtual Box 相容性問題
+====================
+KVM 可在 Virtual Box 載入系統核心時執行，但 Virtual Box 不可在 KVM 載入核心時執行。因此較佳的方式是同一時間只執行其中之一。
+
+執行 KVM 時，先停止 Virtual Box，再啟動 KVM
+----------
+sudo service vboxdrv stop
+lsmod | grep vbox
+sudo service kvm start ← 需先確定沒有執行 VirtualBox 
+
+
+執行 Virtual Box 時，先停止 KVM，再啟動 Virtual Box
+----------
+sudo service kvm stop
+lsmod | grep kvm → 確定已經移除 kvm 模組
+sudo service vboxdrv start
+
+
+開機時不載入 kvm 模組
+----------
+編輯 /etc/init/kvm.conf
+  #start on runlevel [2345]
+
+
+相關指令
+----------
+modprobe -clfr module_name
+  -c：列出目前系統所有的模組
+  -l：列出 /lib/modules/$(uname -r)/kernel 目錄下所有的模組
+  -f：強制載入模組
+  -r：移除模組
+
+
+
+
+Howto Install QEMU With Accelerator
+  由於缺乏對 KQEMU 和 QVM86 的支援，KVM 搭配 QEMU 已成為基於 Linux 的硬體輔助虛擬化解決方案。
+====================
+下載 QEMU 及加速模組(KQEMU,QEMU Accelerator Module)
+
+安裝 QEMU Binary distribution
+--------------------
+cd /
+sudo tar zxvf /tmp/qemu-0.8.2-i386.tar.gz
+sudo apt-get build-dep qemu (optional)
+sudo apt-get install gcc-3.4 checkinstall (optional)
+cd /tmp
+tar zxvf qemu-0.8.2.tar.gz
+cd qemu-0.8.2
+./configure --cc=gcc-3.4
+make
+sudo checkinstall (如果是 AMD64 平台，請用 sudo checkinstall -A amd64)
+
+
+安裝 QEMU 加速模組，,QEMU 从0.11版本已经不再支持 KQEMU
+--------------------
+sudo apt-get install linux-headers-`uname -r` build-essential
+cd /tmp
+tar zxvf kqemu-1.3.0pre9.tar.gz
+cd kqemu-1.3.0pre9
+./configure && make && sudo make install
+
+
+掛載 KQEMU 模組
+--------------------
+sudo modprobe kqemu
+sudo cp /etc/rc.local /etc/rc.local.backup
+sudo gedit /etc/rc.local
+	# Config RTC timer
+	echo 1024 > /proc/sys/dev/rtc/max-user-freq
+
+	# Create the kqemu device. No special priviledge is needed to use kqemu.
+	device="/dev/kqemu"
+	rm -f $device
+	mknod $device c 250 0
+	chmod 666 $device
+	modprobe kqemu
+
+
+使用 QEMU
+--------------------
+qemu-img create [-f format] filename size
+	# 支援的檔案格式有 raw、qcow、cow、vmdk、cloop。如果不指定，則預設為 raw
+
+qemu-img create w32.img 4GB
+	# 建立 4GB，raw 格式，名為 w32.img 的映像檔。
+
+qemu-img create -f qcow u606.img 8GB
+	# 建立 8GB，qcow 格式，名為 u606.img 的映像檔。
+
+qemu [options] [disk_image]
+	-hda/-hdb file	使用 'file' 作為 IDE 硬碟 0/1 的映像檔。
+	-hdc/-hdd file	使用 'file' 作為 IDE 硬碟 2/3 的映像檔。
+	-cdrom file	使用 'file' 作為 IDE CD-ROM 映像檔(不可以跟 -hdc 參數同時使用)。
+	-cdrom /dev/hdX	使用實體光碟機作為IDE CD-ROM，X為實際上光碟機從系統取得的代號（a,b,c or d）
+	-boot [a|c|d]	從'軟碟'(a)，'硬碟'(c)或'光碟'(d)開機。
+	-m memorysize	設定虛擬機器使用多少記憶體(預設為 128MB)。
+	-soundhw c1,...	開啟音效支援，使用 -soundhw ? 列出可用的音效卡，若要開啟全部，請使用 -soundhw all。
+	-kernel-kqemu	開啟 KQEMU 完全加速模式，預設則為 User Mode。
+			(AMD64 用戶如果是自行編譯 QEMU，必須使用 qemu-system-x86_64 才能帶此參數)
+
+URL
+--------------------
+http://wiki.ubuntu-tw.org/index.php?title=Howto_Install_QEMU_With_Accelerator
+
+

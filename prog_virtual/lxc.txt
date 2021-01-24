@@ -1,7 +1,7 @@
 # vim:ts=2
 # program: Using to note the knowledge about lxc
 # made by: Engells
-# date: Mar 31, 2019
+# date: Dec 2, 2020
 # content: Just for memo
 
 
@@ -142,6 +142,8 @@ Host /etc/default/lxc or /etc/default/lxc-net
 	LXC_DHCP_MAX="253"
 	----------
 	sudo systemctl restart lxc-net
+
+  sed -i "/USE_LXC_BRIDGE/s/true/false/g" /etc/default/lxc-net    # disable auto-start lxcbr0
 
 
 Host file: /var/lib/lxc/name_of_machine/config or ~/.local/share/lxc/name_of_machine/config

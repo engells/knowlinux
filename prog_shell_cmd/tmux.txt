@@ -30,20 +30,20 @@ tmux new-window -t session_name:2 -n 'window_name2' 'ssh w2.example.com'
 tmux select-window -t session_name:1				# 選擇 session_name 編號第 1 號 window
 tmux select-pane -t 1												# 選擇編號第 1 號 panel
 
-bind-key + ~											# 顯示tmux messages
+bind-key + ~											# 顯示 tmux messages
 bind-key + |											# 垂直分割 window
 bind-key + _											# 水平分割 window
-bind-key + alt + 方向鍵							# 調整pane大小
-bind-key + 方向鍵										# 在pane間切換
-bind-key + { or }									# 調整pane位置
-bind-key + !											# 拆開當前的pane至獨立window
-bind-key + j											# 合併指定的window成為當前window的pane
-bind-key + ?											# 列出所有tmux session內的指令
-bind-key + s											# 選擇tmux session
-bind-key + .											# # 更改window編號
-bind-key + k											# 刪除window
-bind-key + d											# 將tmux session放入背景執行
-bind-key + ?											# 列出所有tmux session內的指令
+bind-key + alt + 方向鍵							# 調整 pane大小
+bind-key + 方向鍵										# 在 pane 間切換
+bind-key + { or }									# 調整 pane位置
+bind-key + !											# 拆開當前的 pane 至獨立window
+bind-key + j											# 合併指定的 window 成為當前 window 的 pane
+bind-key + ?											# 列出所有 tmux session 內的指令
+bind-key + s											# 選擇 tmux session
+bind-key + .											# 更改 window 編號
+bind-key + k											# 刪除 window
+bind-key + d											# 將 tmux session 放入背景執行
+bind-key + ?											# 列出所有 tmux session 內的指令
 
 
 conf commands

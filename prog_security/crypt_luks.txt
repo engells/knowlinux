@@ -9,7 +9,8 @@
 相關指令
 ==============================
 cryptsetup luksFormat /dev/sd[x][y]
-cryptsetup --verbose --verify-passphrase -c aes-cbc-plain luksFormat /dev/sd[x][y]
+cryptsetup --type=luks1 --verbose --verify-passphrase -c aes-cbc-plain luksFormat /dev/sd[x][y]
+    # 選項 --type=luks1，以 luks1 方式加密
 	# 將 /dev/sd[x][y] 裝置予以加密，出现要输入 yes 的地方要大寫输入
 	# 過程中會要求輸入加密之密碼
 
