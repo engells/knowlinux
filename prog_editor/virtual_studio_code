@@ -1,0 +1,32 @@
+#!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vs code
+# made by: Engells
+# date: Jan 28, 2021
+# content: Just for memo
+
+
+
+Install vscode on ubuntu 18 and 
+====================
+Install via Repository
+----------------
+sudo apt update
+sudo apt install software-properties-common apt-transport-https wget
+wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+sudo apt update
+sudo apt install code
+
+
+Install via DEB Package
+----------------
+https://code.visualstudio.com/download
+
+
+Install via Snap
+----------------
+sudo apt install snapd
+sudo snap install vscode --classic
+
+
