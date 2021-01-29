@@ -1,8 +1,8 @@
 #!/bin/bash
 # vim:ts=4
-# program: Using to note the knowledge about vim
+# program: Using to note the knowledge about Python
 # made by: Engells
-# date: May 12, 2019
+# date: Jan 28, 2021
 # content: Just for memo
 
 
@@ -14,220 +14,21 @@ nnoremap <buffer> <F9> :exec '!python3' shellescape(@%, 1)<cr>
 
 brief set environment
 ====================
-install pyenv, with git
-install python x.x.x, with pyenv
-install pipenv, with pip3 provide by pyenv
-install packages, with pipenv
-
-
-
-
-jupyter notebook
-====================
-commands
+pyenv + pipenv
 ----------
-jupyter notebook
-  # --ip=xxx.xxx.xxx.xxx; ip=0.0.0.0; ip='*'
-  # --port=8890
-  # --no-browser
-  # --allow-root
-  # pipenv run jupyter notebook --ip=172.25.3.12 --port=8890 --no-browser --allow-root 1>/dev/null 2>&1 &
-jupyter --path
+  install pyenv, with git
+  install python x.x.x, with pyenv
+  install pipenv, with pip3 provide by pyenv
+  install packages, with pipenv
 
-
-install
+pyenv + poetry
 ----------
-pipenv install jupyter      # pip3 install jupyterlab, re-install packages if out-time error happened
-pipenv install ipykernel    # install python kernel for jupyter
-python3 -m ipykernel install --user --name xxxx
-pipenv run python3 -m ipykernel install --user --name mygreatenv --display-name "My Great Env"
-jupyter kernelspec list
-jupyter kernelspec remove <kernel_name>
-
-set password
-  jupyter notebook --generate-config
-    # create a config file in  ~/.jupyter/jupyter_notebook_config.py
-    # run commands in python shell
-    #   from notebook.auth import passwd
-    #   passwd()
-    # add password on config file: c.NotebookApp.password = u'sha1:xxxx....'
-  jupyter notebook password
-
-set ssl
-  openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /path/to/mykey.key -out /path/to/mycert.pem
-  jupyter notebook --certfile=mycert.pem --keyfile mykey.key or edit config file
-    # c.NotebookApp.ip = 'xxx.xxx.xxx.xxx'
-    # c.NotebookApp.open_browser = False
-    # c.NotebookApp.port = 8890
-    # c.NotebookApp.certfile = u'/absolute/path/to/mycert.pem'
-    # c.NotebookApp.keyfile = u'/absolute/path/to/mykey.key'
-    # c.NotebookApp.password = u'sha1:...<your hashed password here>'
-    # c.NotebookApp.notebook_dir = ''
- 
-set theme
-  pip3 install --upgrade jupyterthemes
-  jt -l   # show themes available
-  jt -t theme_name   # change to new theme
-  jt -r   # return to default theme
-  jt -t oceans16 -tf merriserif -tfs 10 -fs 12 -nf ptsans -nfs 13 -T -N -f roboto
 
 
-
-
-pipenv = pip + virtualenv + pyenv(pkg_manage)
-====================
-commands
+pyenv + pip + virtualenv
 ----------
-pipenv shell
-    # 進入虛擬環境中，類似於 source venv/bin/activate
-exit
-    # 退出虛擬環境，相當於 deactive
-pipenv run python test.py
-    # 根據 virtualenv 執行相關 python 指令 （不進入虛擬環境中）
-
-pipenv install package_name
-    # 建立環境 --python=x.x.x
-    # 安裝套件 pipenv install package_name>=x.x.x
-    # --skip-lock，略過 lock file，後續再執行 pipenv lock 產生 lock file
-    # 安裝開發過程使用之套件：pipenv install package_name --dev
-    # 安裝開發過程使用之套件：pipenv install package_name --dev  --three
-    # 必要時設定語系：export LANG=en_US.UTF-8 && ~/.bashrc or ~/.zshrc
-pipenv uninstall package_name
-    # 移除套件
-pipenv update package_name
-    # 更新指定套件
-pipenv update --outdated
-    # 更新有新版更新的套件
-pipenv update
-    # 更新所有的套件
-
-cd /path/to/project env && export PIPENV_VENV_IN_PROJECT=1 && pipenv --three
-    # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。參數 --two 可產生 Python 2 虛擬環境
-    # 預設後續套件安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/lib/python3.6/site-packages/
-    # export WORKON_HOME=~/.venvs，可指定虛擬環境後續套件安裝位置
-    # export PIPENV_VENV_IN_PROJECT=1，在目前目錄下建立 .venv 目錄以代替 $HOME/.local/share/virtualenvs/xxxx-yyyyyy/
-    # 自行建立 .venv 目錄，執行 pipenv run 或 pipenv shell pipenv，會有 PIPENV_VENV_IN_PROJECT=1 相同效果
-    # PIPENV_CACHE_DIR=/path/to/cache， 預設為 $HOME/.cache
-    # --deploy 佈署環境使用
-    # --system 使用系統的環境
-pipenv rm
-    # 刪除虛擬環境
-
-pipenv --venv
-    # 檢視虛擬環境資訊 $HOME/.local/share/virtualenvs/xxxx-yyyyyy  
-
-pipenv check
-    # 根據 PEP 508 執行套件安全性檢查
-pipenv graph
-    # 印出套件的相依圖
-pipenv lock --requirements > requirements.txt
-    # 產生 requirements.txt 給特定平台如：AWS Elastic Beanstalk
 
 
-install
-----------
-pip3 install --user pipenv or pip3 install pipenv
-edit $HOME/.bashrc, 將 $HOME/.local/bin 加入 $PATH
-----(macOS)
-sudo mkdir /usr/local/Frameworks
-sudo chown $(whoami):admin /usr/local/Frameworks
-brew install pipenv
-sudo pipenv install --deploy --system
-
-
-url
-----------
-  https://github.com/pypa/pipenv
-  https://docs.pipenv.org/
-  https://docs.pipenv.org/en/latest/
-  https://www.jianshu.com/p/8c6ae288ba48 <= advanced guideline
-
-
-
-
-install pip3
-====================
-python3 -m pip install --user --upgrade package_name
-
-pip3 install package_name or pip3 install -v package_name==1.2.3
-pip3 install package_name --no-cache-dir
-pip3 install -U package_name
-pip3 uninstall package_name
-pip3 freeze                    # show installed packages name and version
-pip3 list
-pip3 show --files package_name 
-
-python3 -m site
-python3 -m site -help          # find config which define USER_SITE and USER_BASE
-python3 -m site --user-base	   # $HOME/.local
-python3 -m site --user-site    # $HOME/.local/lib/python3.6/site-packages
-python3 -m site
-    sys.path = [
-        '$HOME/',
-        '/usr/lib/python36.zip',
-        '/usr/lib/python3.6',
-        '/usr/lib/python3.6/lib-dynload',
-        '/usr/local/lib/python3.6/dist-packages',
-        '/usr/lib/python3/dist-packages',
-    ]
-
-pip3 freeze > requirements.txt
-pip3 install -r requirements.txt
-
-
-install
-----------
-sudo apt install python3-pip
-  # /usr/local/lib/python3.6/site-packages
-pip3 install --upgrade pip
-  # upgrade pip3 itself
-sudo apt remove python3-pip
-
-
-
-
-pyenv
-====================
-commands
-----------
-pyenv local x.y.z           # switch to python with version x.y.z in current folder
-pvenv local --unset
-pyenv global x.y.z          # switch to python with version x.y.z in whole system
-pvenv global --unset
-
-pyenv versions              # list all python versions available to pyenv
-pyenv version               # show the current python version
-
-pyenv install -v x.y.z      # install python with version x.y.z
-                            # need pkgs: make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm
-                            # libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev
-pyenv uninstall x.y.z
-pyenv install --list		# check python version which could be installed
-
-
-install
-----------
-apt install sqlite3 libsqlite3-dev libssl-dev libffi-dev
-git clone https://github.com/pyenv/pyenv.git /path/to/pyenv
-echo 'export PYENV_ROOT="/path/to/pyenv"' >> ~/.zshrc
-echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc or echo 'export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.zshrc ??
-echo 'eval "$(pyenv init -)"' >> ~/.zshrc
-  # if command -v pyenv 1>/dev/null 2>&1; then
-  #   eval "$(pyenv init -)"
-  # fi
-#echo 'export PIPENV_VENV_IN_PROJECT=1' >> ~/.zshrc
-exec $SHELL or source ~/.zshrc
-----(option)
-git clone https://github.com/pyenv/pyenv-virtualenv.git $.pyenv/plugins/pyenv-virtualenv
-echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
-----(macOS)
-edit .zshrc
-  export LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/sqlite/lib"
-  export CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/sqlite/include"
-  export PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig /usr/local/opt/sqlite/lib/pkgconfig"
-  export PYTHON_CONFIGURE_OPTS="--enable-framework"
-  export PIPENV_VENV_IN_PROJECT=1
-brew install pyenv
 
 
 
@@ -341,5 +142,80 @@ Anaconda
 Miniconda
 
 Berryconda
+
+
+
+jupyter notebook
+====================
+指令
+----------   
+jupyter notebook
+  # --ip=xxx.xxx.xxx.xxx; ip=0.0.0.0; ip='*'
+  # --port=8890
+  # --no-browser
+  # --allow-root
+  # pipenv run jupyter notebook --ip=172.25.3.12 --port=8890 --no-browser --allow-root 1>/dev/null 2>&1 &
+jupyter --path
+
+
+安裝
+----------   
+pipenv install jupyter      # pip3 install jupyterlab, re-install packages if out-time error happened
+pipenv install ipykernel    # install python kernel for jupyter
+python3 -m ipykernel install --user --name xxxx
+pipenv run python3 -m ipykernel install --user --name mygreatenv --display-name "My Great Env"
+jupyter kernelspec list
+jupyter kernelspec remove <kernel_name>
+
+set password
+  jupyter notebook --generate-config
+    # create a config file in  ~/.jupyter/jupyter_notebook_config.py
+    # run commands in python shell
+    #   from notebook.auth import passwd
+    #   passwd()
+    # add password on config file: c.NotebookApp.password = u'sha1:xxxx....'
+  jupyter notebook password
+
+set ssl
+  openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /path/to/mykey.key -out /path/to/mycert.pem
+  jupyter notebook --certfile=mycert.pem --keyfile mykey.key or edit config file
+    # c.NotebookApp.ip = 'xxx.xxx.xxx.xxx'
+    # c.NotebookApp.open_browser = False
+    # c.NotebookApp.port = 8890
+    # c.NotebookApp.certfile = u'/absolute/path/to/mycert.pem'
+    # c.NotebookApp.keyfile = u'/absolute/path/to/mykey.key'
+    # c.NotebookApp.password = u'sha1:...<your hashed password here>'
+    # c.NotebookApp.notebook_dir = ''
+ 
+set theme
+  pip3 install --upgrade jupyterthemes
+  jt -l   # show themes available
+  jt -t theme_name   # change to new theme
+  jt -r   # return to default theme
+  jt -t oceans16 -tf merriserif -tfs 10 -fs 12 -nf ptsans -nfs 13 -T -N -f roboto
+
+
+
+
+撥開 Python, pip, site-packages 的藍色蜘蛛網
+====================
+site-packages 是資料夾，每個 python 版本都有各自的 site-packages。每個 user 可以有自己的 site-packages ，在 home 目錄下的某個地方，如 $HOME/.local/lib/python。ipython 等 tool 裝了之後也有自己的 site-packages
+
+pip 是個 python script，也是個 python package。用 python 的 -m 參數跑 pip，會用 shell 所執行 python 版本的 sys.path 裡的 pip package。如果 python 指令的版本是 2.6，那就是跑 2.6 裡的 pip package。
+
+pip install 會有預設安裝的 dir，也會因為各種參數去改變，像是：--target, --user, --prefix, --root 等等。指令 pip --version (或是pip -V)會顯示目前這個 pip 是跑哪一個 site-packages 下的 pip package ，這個路徑就是 install 時會放的 dir。比較間接的方法，先用 pip list 列出所有已經安裝的 pkg，然後用 pip show package_name 就會寫 Location 在哪
+
+
+參考資料
+----------   
+https://medium.com/@will.wang/%E6%92%A5%E9%96%8B-python-pip-site-packages-%E7%9A%84%E8%97%8D%E8%89%B2%E8%9C%98%E8%9B%9B%E7%B6%B2-90e398bb3785
+
+
+
+
+在 Windows 底下最適當安裝 Python 環境的方法
+====================
+URL: https://ithelp.ithome.com.tw/articles/10210071?sc=rss.qu
+
 
 

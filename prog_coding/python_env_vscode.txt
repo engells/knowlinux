@@ -1,0 +1,97 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about Visual Studio Code
+# made by: Engells
+# date: Jan 29, 2021
+# content: Just for memo
+
+
+
+vscode 配置 virtualenv
+====================
+edit settings.json
+    File > Preferences > Settings 或 Ctrl + Shift + p，輸入 Settings
+
+選擇 Preferences: Open Settings (JSON)
+    在 settings.json 尾端新增一行，加入虛擬路徑：
+    "python.venvPath": "/home/xxxx/.virtualenvs"
+    # 視窗系統 "python.venvPath": "C:\\Users\\seaweedman\\.virtualenvs"
+
+重啟 vscode
+    再次進入，打開項目 python 文件，左下角狀態欄會顯示 python 版本，點擊彈出列表，出現虛擬環境可以選擇，切換到虛擬環境，左下角的狀態欄也會隨之變更
+
+
+URL
+----------
+https://segmentfault.com/a/1190000017558652
+
+
+
+
+vscode 配置 virtualenv
+====================
+edit settings.json
+    File > Preferences > Settings
+      {
+      	  // 这个是代理，不要可以直接删掉
+          "http.proxy": "http://proxy-cn.toshiba.co.jp:8080/",
+          "git.ignoreLegacyWarning": true,
+          "terminal.integrated.rendererType": "dom",
+          "window.zoomLevel": 1,
+          // 这里是让 vscode 自动获取到系统內 virtualenv 的虚拟环境
+          "python.venvPath": "/home/xxxx/virtualenvFolder",
+          "python.venvFolders": [
+              "envs",
+              ".pyenv",
+              ".direnv",
+              ".env",
+          ],
+          "editor.fontSize": 20,
+          "explorer.confirmDelete": false,
+          "editor.fontWeight": "700",
+          "debug.console.fontFamily": "Fira Code",
+          "debug.console.fontSize": 19,
+          "files.autoSave": "afterDelay",
+          "markdown.preview.fontSize": 17,
+          "terminal.integrated.lineHeight": 0,
+          "terminal.integrated.fontSize": 13,
+          "terminal.integrated.fontWeight": "800",
+          // 以下会根据你选的虚拟环境的不同而变化，python解释器的位置
+          "python.pythonPath": "/home/xxxx/virtualenvFolder/py3-face-flask/bin/python",
+          "editor.fontLigatures": null,
+          // vscode字体类型
+          "editor.fontFamily": "Hack, 'Courier New', monospace"
+      
+      }
+
+
+URL
+----------
+https://blog.csdn.net/weixin_43270713/article/details/105768708
+
+
+
+
+Install vscode on ubuntu 18 and 20
+====================
+Install via Repository
+----------
+sudo apt update
+sudo apt install software-properties-common apt-transport-https wget
+wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+sudo apt update
+sudo apt install code
+
+
+Install via DEB Package
+----------
+https://code.visualstudio.com/download
+
+
+Install via Snap
+----------
+sudo apt install snapd
+sudo snap install vscode --classic
+
+
