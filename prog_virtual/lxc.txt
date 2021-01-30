@@ -1,7 +1,7 @@
 # vim:ts=2
 # program: Using to note the knowledge about lxc
 # made by: Engells
-# date: Dec 2, 2020
+# date: Jan 29, 2021
 # content: Just for memo
 
 
@@ -99,15 +99,16 @@ touch /path/to/name_of_machine/fstab
 
 X in container
 ====================
-Method 1:
+Method 1:(works)
 ----------
 apt install openssh-server
-	touch /path/to/home/..Xauthority
+	touch /path/to/home/.Xauthority
 	add "X11UseLocalhost no" to /etc/ssh/sshd_config
 ssh -v -X ubuntu@10.0.3.101
 	# run this command in host
 	# or ssh -v -X -C -o CompressionLevel=9 user_name@remote_computer_ip
-/usr/bin/firefox 								# need packages: xauth dbus dbus-x11 libcanberra-gtk-module libcanberra-gtk3-module
+/usr/bin/firefox
+	# need packages: xauth dbus dbus-x11 libcanberra-gtk-module libcanberra-gtk3-module
 
 
 Method 2:

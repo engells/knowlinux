@@ -3,7 +3,7 @@
 # program: Using to note the knowledge about vim
 # made by: Engells
 # date: Aug 29, 2017
-# content: 內容並未最佳化，單純作為書摘使用
+# content: Just for memo
 
 
 

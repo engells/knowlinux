@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Using to note the knowledge about PipEnv
 # made by: Engells
-# date: Jan 29, 2021
+# date: Jan 30, 2021
 # content: Just for memo
 
 
@@ -24,7 +24,8 @@ pipenv --venv
     # 檢視虛擬環境資訊，應在專案目錄中執行，$HOME/.local/share/virtualenvs/xxxx-yyyyyy  
 
 cd /path/to/virtual && pipenv shell
-    # 進入虛擬環境中，類似於 source venv/bin/activate
+    # 進入虛擬環境中，類似於 virtualenv 之 source venv/bin/activate
+    # 若未建置虛擬環境，則新建一個虛擬環境。
 exit
     # 退出虛擬環境，相當於 deactive
 pipenv run python test.py
