@@ -11,6 +11,9 @@
 ====================
 python3 -m pip install --user --upgrade package_name
     # 用 shell 所執行 python 版本的 sys.path 裡的 pip 安裝 package
+    # -m 參數意指 run library module which in site-packages as a script
+    # --user 參數意指將套件安裝至 $HOME，否則預設安裝至系統目錄如： /usr/local/lib/python[x].[y]，如此會需要管理者權限
+    # --upgrade 參數意指套件若已安裝，則升級至新版
 python3 -m pip install --upgrade pip
     # 更新 pip 到最新版本
 
@@ -22,11 +25,11 @@ pip3 install -r requirements.txt
     # 安裝 requirements.txt 內的清單套件
 pip3 install package_name --no-cache-dir
     # 安裝套件
-pip3 install -U package_name
-    # 更新套件
+pip3 install -U package_name *|* pip3 install --upgrade package_name *|* python3 -m pip install --upgrade package_name
+    # 更新套件，參數 -U 為參數 --upgrade 簡寫
 pip3 uninstall package_name
     # 移除安裝過的套件
-pip search package_name
+pip3 search package_name
     # 搜尋套件所衍伸出來套件清單
 
 pip3 freeze
@@ -37,25 +40,24 @@ pip3 list
 pip3 show --files package_name
     # 查看套件詳細資料
 
-python3 -m site
-    # 執行 /usr/lib/python3.6/site.py
 python3 -m site -help
     # find config which define USER_SITE and USER_BASE
 python3 -m site --user-base
-    # $HOME/.local
+    # 顯示參數 USER_BASE 所定義位置，通常為 $HOME/.local。預設之 BASE 為 /usr/local/
 python3 -m site --user-site
-    # $HOME/.local/lib/python3.6/site-packages
+    # 顯示參數 USER_SITE 所定義位置，$HOME/.local/lib/python[x].[y]/site-packages。預設之 BASE 為 /usr/local/lib/python[x].[y]/site-packages/
 python3 -m site
+    # 執行 /usr/lib/python3.6/site.py，結果如下
     sys.path = [
-        '$HOME/',
-        '/usr/lib/python36.zip',
+        '/home/proj/crawl',
+        '/home/proj/crawl/.venv/lib/python36.zip', 
+        '/home/proj/crawl/.venv/lib/python3.6',
+        '/home/proj/crawl/.venv/lib/python3.6/lib-dynload',
         '/usr/lib/python3.6',
-        '/usr/lib/python3.6/lib-dynload',
-        '/usr/local/lib/python3.6/dist-packages',
-        '/usr/lib/python3/dist-packages',
+        '/home/proj/crawl/.venv/lib/python3.6/site-packages',
     ]
-python -m pip --version
-    # 查看 pip 目前版本
+python3 -m pip --version or pip3 --version or pip3 -V
+    # 查看目前 pip 版本，注意 python3 -m pip 與 pip3 兩個指令等效，部份人士推薦前者
 
 
 

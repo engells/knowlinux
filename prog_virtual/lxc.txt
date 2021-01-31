@@ -1,3 +1,4 @@
+#!/bin/bash
 # vim:ts=2
 # program: Using to note the knowledge about lxc
 # made by: Engells
@@ -71,7 +72,7 @@ Physiacal hard disk partition
 
 Containers share folders
 ====================
-method 1 (work)
+method 1 (works)
 ----------
 create folder /path/to/share in host
 chmod 7777 /path/to/share in host

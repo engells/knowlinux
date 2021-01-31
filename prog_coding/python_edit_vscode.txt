@@ -7,6 +7,31 @@
 
 
 
+常用指令
+====================
+code
+    # lunch virtual studio code program
+code file_name
+    # open a file
+code /path/to/folder/
+    # open a Folder, run:
+
+code -v
+    # print version:
+
+code --list-extensions
+    # list the installed extensions
+code --install-extension extension-id
+    # installs or updates the extension
+code --uninstall-extension extension-id
+    # uninstalls an extension
+
+code -h
+    # for command line help
+
+
+
+
 vscode 配置 pipenv
 ====================
 edit settings.json
@@ -102,6 +127,8 @@ wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add
 sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
 sudo apt update
 sudo apt install code
+sudo apt install libx11-xcb1 libxcb-dri3-0
+    # 不確定套件：libasound2 libice6 libsm6 libxaw7 libxft2 libxmu6 libxpm4 libxt6 x11-apps xbitmaps
 
 
 Install via DEB Package

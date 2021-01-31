@@ -1,6 +1,6 @@
 #!/bin/bash
 # vim:ts=4
-# program: Using to memo knowhow about pythonh
+# program: Using to memo knowhow about python
 # made by: Engells
 # date: May 12, 2019
 # content: Just for memo
@@ -80,10 +80,10 @@ sudo python3 setup.py install                    (安裝)
 
 
 
-
 tutorial
 ====================
 pydoc3 -p 9999        # open a local help center
+
 
 
 
@@ -123,4 +123,5 @@ os.pathexists             判斷文件或目錄是否存在
 os.pathgetsize   取得文件大小
 os.pathabspath   獲得檔案的絕對路徑
 os.walk          取得目錄下所有檔案和目錄
+
 

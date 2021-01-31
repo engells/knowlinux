@@ -10,18 +10,14 @@
 指令
 ====================   
 cd /path/to/project env && export PIPENV_VENV_IN_PROJECT=1 && pipenv --three
-    # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。參數 --two 可產生 Python 2 虛擬環境
-    # 預設後續套件安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/lib/python3.6/site-packages/
-    # export WORKON_HOME=~/.venvs，可指定虛擬環境後續套件安裝位置
-    # export PIPENV_VENV_IN_PROJECT=1，在目前目錄下建立 .venv 目錄以代替 $HOME/.local/share/virtualenvs/xxxx-yyyyyy/
-    # 自行建立 .venv 目錄，執行 pipenv run 或 pipenv shell pipenv，會有 PIPENV_VENV_IN_PROJECT=1 相同效果
-    # PIPENV_CACHE_DIR=/path/to/cache， 預設為 $HOME/.cache
+    # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。
+    # --two 參數 可產生 Python 2 虛擬環境
     # --deploy 佈署環境使用
     # --system 使用系統的環境
-pipenv rm
+pipenv --rm
     # 刪除虛擬環境
 pipenv --venv
-    # 檢視虛擬環境資訊，應在專案目錄中執行，$HOME/.local/share/virtualenvs/xxxx-yyyyyy  
+    # 檢視虛擬環境資訊，應在專案目錄中執行，預設為 $HOME/.local/share/virtualenvs/xxxx-yyyyyy  
 
 cd /path/to/virtual && pipenv shell
     # 進入虛擬環境中，類似於 virtualenv 之 source venv/bin/activate
@@ -72,24 +68,62 @@ pipenv install --dev
 
 
 
+
+產生虛擬 python 環境
+====================
+Method 1 (default)
+---------------
+1. 建立專案目錄，並設置參數 PIPENV_VENV_IN_PROJECT 或 WORKON_HOME
+2. 執行指令： pipenv --three | --python 3.6 | --two
+
+
+Method 2
+---------------
+1. 建立專案目錄，並設置參數 PIPENV_VENV_IN_PROJECT 或 WORKON_HOME
+2. 未事先建好虛擬 python 環境時，執行指令：pipenv shell
+
+
+Method 3 (?)
+---------------
+1. 建立專案目錄，並設置參數 PIPENV_VENV_IN_PROJECT 或 WORKON_HOME
+2. 未事先建好虛擬 python 環境時，執行指令：pipenv install，注意不指定套件名稱
+
+
+
+
 環境組態
 ====================
-site-packages： /path/to/project/.venv/lib/python[x].[y]/site-packages
-binary： /path/to/project/.venv/bin
+pipenv 所產生虛擬 python 環境組態
+    預設後續套件安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/lib/python[x].[y]/site-packages/
+    指定後續套件安裝位置: /path/to/project/.venv/lib/python[x].[y]/site-packages，指定方式：
+        # export WORKON_HOME=~/.venvs，可指定虛擬環境後續套件安裝位置
+        # export PIPENV_VENV_IN_PROJECT=1，在目前目錄下建立 .venv 目錄以代替 $HOME/.local/share/virtualenvs/xxxx-yyyyyy/
+        # 自行建立 .venv 目錄，執行 pipenv run 或 pipenv shell pipenv，會有 PIPENV_VENV_IN_PROJECT=1 相同效果
+
+    預設執行檔安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/bin
+    預設執行檔安裝位置: /path/to/project/.venv/bin，指定方式與後續套件作法一樣
+
+    預設快取位置: $HOME/.cache
+    指定快取位置: /path/to/.cache
+        # export PIPENV_CACHE_DIR=/path/to/.cache
+
+
+實踐運作中，採執行 pipenv shell 進入虛擬 python 環境後，再執行 pipenv install package_name 安裝套件，確保套件安裝在虛擬 python 環境。然而，pipenv 原為 python 套件管理工具，並未限制只能安裝套件至虛擬 python 環境。需仔細區分兩者之區別。
+
 
 
 
 運作方式
 ====================
-Pipenv 自動把專案對映到指定的虛擬環境。虛擬環境採用專案目錄名稱加上專案目錄完整路徑的 hash 值做名稱。
-如果變更了專案的路徑會破壞了此預設對映，而無法找到原來的虛擬環境。若想避免往後路徑變更的問題，可在.bashrc加上 export PIPENV_VENV_IN_PROJECT=1，讓虛擬環境建立在專案目錄中。
+pipenv 自動把專案對映到指定的虛擬 python 環境。虛擬 python 環境採用專案目錄名稱加上專案目錄完整路徑的 hash 值做名稱。如果變更了專案的路徑會破壞了此預設對映，而無法找到原來的虛擬環境。若想避免往後路徑變更的問題，可在.bashrc加上 export PIPENV_VENV_IN_PROJECT=1，讓虛擬 python 環境建立在專案目錄中。
+
 
 
 
 安裝
 ====================   
 pip3 install --user pipenv or pip3 install pipenv
-    # --user，在用戶環境安裝 pipenv
+    # --user，在 $HOME 安裝 pipenv
     # edit $HOME/.bashrc, 將 $HOME/.local/bin 加入 $PATH
     # optional，edit $HOME/.bashrc, 加入 $(pipenv --completion)， 啟用 Shell Completion
     # optional，edit $HOME/.bashrc, 加入 export PIPENV_VENV_IN_PROJECT=1，設置虛擬環境位置為 ./.venv
@@ -99,6 +133,7 @@ sudo mkdir /usr/local/Frameworks
 sudo chown $(whoami):admin /usr/local/Frameworks
 brew install pipenv
 sudo pipenv install --deploy --system
+
 
 
 

@@ -2,9 +2,8 @@
 # vim:ts=4
 # program:Using to note the knowledge about SSH
 # made by: Engells
-# date: Sep 28, 2017
+# date: Jan 30, 2021
 # content: 內容並未最佳化，單純作為書摘使用
-
 
 
 
@@ -16,8 +15,7 @@ ssh -v -X user_name@remote_computer_ip nautilus --new-window
 
 設定 remote_computer
     編輯 /etc/ssh/sshd_config 加一句 X11UseLocalhost no，再重新啟動服務： systemctl restart sshd
-		# ForwardX11 yes、ForwardX11Trusted yes
-		# 不確定參數： AllowTcpForwarding yes、X11Forwarding yes、AllowAgentForwarding yes、X11DisplayOffset 10
+		# 不確定參數：ForwardX11 yes、ForwardX11Trusted yes、AllowTcpForwarding yes、X11Forwarding yes、AllowAgentForwarding yes、X11DisplayOffset 10
     編輯 root 的 .bashrc 裡面設定 export XAUTHORITY=/home/user_name/.Xauthority
 
 
@@ -56,6 +54,7 @@ SSH 安全性設定
 5. 只開啟 Protocol 2 版本
    /etc/ssh/sshd_config => Protocol 2
 6. 使用金鑰登入
+   可搭配 /etc/ssh/sshd_config => PasswordAuthentication no，此設定為 optional
 
 
 

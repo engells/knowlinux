@@ -7,7 +7,6 @@
 
 
 
-
 vim as ide of python
 ====================
 改安裝 vim-nox
