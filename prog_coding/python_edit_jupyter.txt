@@ -122,14 +122,18 @@ Jupyter Notebook 包含了兩個組成： Web Application 和 Notebook Documents
     網頁應用程序 (Web Application)：Web-based 的互動創作及應用工具，包括可以計算、數學、文檔創作及豐富的多媒體輸出。
     筆記本文件檔 (Notebook Documents)：顯示在 Web Application 當中的內容，包括計算的輸入/輸出、文件說明/解釋、數學運算及運算式、圖片及所有豐富多媒體內容。
 
-
-nbviewer
----------------
 nbviewer 是 （Jupyter）Notebook Viewer 的縮寫，用於渲染 .ipynb 文件，並支持 HTML 和 PDF 輸出。
 
+jupyterhub 類似於 git 和 GitHub，或者 docker 與 Docker Hub，jupyterhub 提供 jupyter 文檔托管服務，相對於 GitHub 的 jupyter 支持，jupyterhub 提供更多的交互支持。
 
-jupyterhub
----------------
-類似於 git 和 GitHub，或者 docker 與 Docker Hub，jupyterhub 提供 jupyter 文檔托管服務，相對於 GitHub 的 jupyter 支持，jupyterhub 提供更多的交互支持。
+
+
+
+參考資料
+====================
+https://medium.com/ai-for-k12/jupyter-notebook-%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%B4%B9-%E5%AE%89%E8%A3%9D%E5%8F%8A%E4%BD%BF%E7%94%A8%E8%AA%AA%E6%98%8E-846b5432f044
+
+
+
 
 

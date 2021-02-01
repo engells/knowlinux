@@ -51,6 +51,7 @@ Environment variables 較常用的：$PYENV_VERSION、$PYENV_ROOT
 
 
 
+
 安裝
 ==================== 
 apt install sqlite3 libsqlite3-dev libssl-dev libffi-dev
@@ -72,7 +73,6 @@ edit .zshrc
   export PYTHON_CONFIGURE_OPTS="--enable-framework"
   export PIPENV_VENV_IN_PROJECT=1
 brew install pyenv
-
 
 
 參考資料

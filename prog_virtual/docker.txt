@@ -1,3 +1,4 @@
+##/bin/bash
 # vim:ts=2
 # program: Using to memo common commands
 # made by: Engells
@@ -36,7 +37,7 @@ Container 指令
 ====================
 查詢 container
 	docker ps 或 docker ps -a
-	docker inspect -f "{{ .State.Pid }}" [container id]
+	docker inspect -f "{{ .State.Pid }}" container_id
 
 產生並啟動 container
 	docker run -it ubuntu:16.04 /bin/bash
@@ -59,6 +60,9 @@ Container 指令
 	docker run -d --name dbshare -v /host/folder:/container/folder image_ref
 	docker run -d --name db01 --volumes-from dbshare image_ref
 	docker run -d --name db02 --volumes-from db01 image_ref
+
+  docker run --privileged image_name
+    --privileged：以 privileged 模式產生 container
 
 啟動已存在之 container
 	docker start
@@ -120,22 +124,36 @@ Image 指令
 
 Network bridge
 ====================
-docker network create -d bridge bridge-network
-	# -d => --driver
+建立橋接網絡(bridge)
+  docker network create -d bridge bridge_name
+	  # -d => --driver
+
+編輯預設橋接器組態
+  edit /etc/default/docker
+	  DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4 --bip=192.168.20.0/24 -b=br20"
+	  --dns：指 docker0 所提供 DNS 位址
+	  --bip：設定的網段
+	  -b：指定橋接網路介面
 
 
-network config
-----------
-edit /etc/default/docker
-	DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4 --bip=192.168.20.0/24 -b=br20"
-	--dns：指 docker0 所提供 DNS 位址
-	--bip：設定的網段
-	-b：指定橋接網路介面
-systemctl stop docker
-ifconfig docker0 down
-ifdown docker0
-brctl delbr docker0
-systemctl restart docker
+使用自設橋接器
+---------------
+停止 docker 服務，並刪除 docker 預設的橋接器
+  service docker stop or systemctl stop docker
+  ip link set dev bridge0 down or ifconfig bridge0 down && ifdown bridge0
+  brctl delbr bridge0
+
+建立一個橋接器 dockbr0
+  brctl addbr dockbr0
+  ip addr add 192.168.5.1/24 dev dockbr0
+  ip link set dev dockbr0 up
+
+檢視確認橋接器建立並啟動
+  ip addr show dockbr0
+
+設定 Docker 服務， 預設橋接到建立的橋接器上。
+  echo 'DOCKER_OPTS="-b=dockbr0"' >> /etc/default/docker
+  service docker start or systemctl restart docker
 
 
 
@@ -143,9 +161,11 @@ systemctl restart docker
 Unpriviledge mode
 ====================
 usermod -aG docker user_name
-	# useradd -m -s /bin/bash user_name
-	# passwd user_name
-logout and login
+	#  相關指令：useradd -m -s /bin/bash new_user_name && passwd new_user_name
+logout and login 或執行指令： newgrp docker 轉換為 docker 群組身份
+
+check whether you are running a container in privileged mode, use the command:
+  docker inspect --format='{{.HostConfig.Privileged}}' container_id
 
 
 
@@ -181,6 +201,16 @@ Centos
 ----------
 yum install -y docker  
 systemctl start docker  
+
+
+Proxmox VE 下的 LXC Ubuntu container 安裝及設定 docker-ce
+----------
+apt install gnupg2 curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(cat /etc/os-release | grep UBUNTU_CODENAME | cut -d '=' -f 2) stable"
+apt update && apt install docker-ce
+
+資料來源： https://www.pigo.idv.tw/archives/3322
 
 
 

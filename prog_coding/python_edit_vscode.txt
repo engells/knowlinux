@@ -37,7 +37,7 @@ vscode 配置 pipenv
 edit settings.json
     File > Preferences > Settings 或 Ctrl + Shift + p，輸入 Settings
 
-選擇 Preferences: Open Settings (JSON)
+選擇【Preferences: Open Settings (JSON)】
     在 settings.json 尾端新增一行，加入虛擬路徑，如果存在多個虛擬環境，用逗號分隔：
     "python.venvPath": "/path/to/virtual,/home/xxxx/.virtualenvs"
     # 視窗系統 "python.venvPath": "C:\\Users\\user_name\\.virtualenvs"
@@ -45,10 +45,14 @@ edit settings.json
 重啟 vscode
     再次進入，打開項目 python 文件，左下角狀態欄會顯示 python 版本，點擊彈出列表，出現虛擬環境可以選擇，切換到虛擬環境，左下角的狀態欄也會隨之變更
 
+實際操作後之 settings.json
+    "python.venvPath": "/path/to/project/.venv/",
+    "python.defaultInterpreterPath": "/path/to/project/.venv/bin/python3",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
 
-URL
-----------
-https://segmentfault.com/a/1190000017558652
+
+參考資料：https://segmentfault.com/a/1190000017558652
 
 
 
@@ -90,9 +94,7 @@ edit settings.json
       }
 
 
-URL
-----------
-https://blog.csdn.net/weixin_43270713/article/details/105768708
+參考資料：https://blog.csdn.net/weixin_43270713/article/details/105768708
 
 
 
@@ -110,9 +112,21 @@ vscode 使用 pipenv 環境中的 jupyter
    import sys => print(sys.path)
 
 
-URL
----------------
-https://www.douban.com/note/750959014/
+參考資料：https://www.douban.com/note/750959014/ ; https://codingnote.cc/zh-tw/p/191622/
+
+
+
+
+
+vscode 配置 python 環境
+====================
+1. 點擊 Extensions 圖示，安裝微軟官方的 Python 擴充套件
+2. 點擊 Extensions 圖示，安裝 Jun Han 的 Code Runner 擴充套件
+3. 點擊 Manage 圖示 > Settings > 輸入【python formatting】> 確認採用 autopep8
+4. 點擊 Manage 圖示 > Settings > 輸入【FormatOnSave】> 勾選【Format a file on save】選項，VSCode 在儲存檔案時，自動依照 PEP8 程式碼風格排版程式碼
+5. 點擊 Manage 圖示 > Command Palette... > 輸入【python: Select Interpreter】 > 選擇【Enter interpreter path】 > 選擇【Find(搜尋)】 > 選擇 Python 直譯器
+
+參考資料：https://www.learncodewithmike.com/2019/11/python2-visual-studio-code-python.html
 
 
 
@@ -140,5 +154,12 @@ Install via Snap
 ----------
 sudo apt install snapd
 sudo snap install vscode --classic
+
+
+
+
+參考資料
+====================
+Python Journey (2) - VS Code 基本使用技巧  https://www.weithenn.org/2018/05/python-journey-part02-how-to-use-vscode.html
 
 
