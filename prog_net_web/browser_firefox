@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
 # program: Using to note the knowledge about Firefox
 # made by: Engells
@@ -10,10 +10,16 @@
 使用套件
 ====================
 NotScripts: 禁止執行 scripts
+uBlock Origin： 禁止廣告
 Privacy Badger: 禁止追蹤
 HTTPS Everywhere: 強制使用 HTTPS 協定
-Stylish: 搭配 Darker Google
-FVD: 下載 Flash Video
+Stylus: 搭配 Darker Google
+ImTranslator：翻譯套件
+Vimium: 用鍵盤取代滑鼠瀏覽網頁支援 Chrome、Firefox 瀏覽器
+Tampermonkey: 插入腳本到特定網站
+video DoenloadHelper：
+--FVD: 下載 Flash Video
+Temp Mail: 臨時郵件地址產生器
 
 
 

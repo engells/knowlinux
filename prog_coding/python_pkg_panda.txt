@@ -1,153 +1,137 @@
-# vim:ts=4
+## vim:ts=4
 # program: Memo thr package of panda
 # made by: Engells
 # date: May 3, 2019
 # content: Just for memo
 
-import pandas as pd
 
 
 
 Series
 ====================
-my_obj = pd.Series([4, 7, -5, 3])
-my_obj.values
-my_obj.index
-    => RangeIndex(start=0, stop=4, step=1)
-my_obj[0]
+產生 Series
+---------------
+obj_serial = pd.Series(range(10),index=['a', 'a', 'b', 'b', 'b', 'c', 'c', 'c', 'c', 'c'])
+obj_serial = pd.Series([4, 7, -5, 3], , index=['a', 'b', 'c', 'd'])
+dic_data = {'name':'pineapple','birthday':'1996-1-1','luckynumber':7 }
+obj_serial = pd.Series(dic_data)
 
-my_obj2 = pd.Series([8,9,10,11], index=['a','b','c','d'])
-my_obj2['a']
 
-'a' in my_obj2
+查詢 Series 相關資訊
+---------------
+obj_serial.values
+obj_serial.index
 
-dic_data = {'name':'apple','birthday':'1996-1-1','luckynumber':7 }
-my_obj3 = pd.Series(dic_data)
 
-registration = [True,False,True,True]
-registration = pd.Series(registration)
-registration
+選取 Series 內部資料
+---------------
+obj_serial[index_ref] 
 
-dictionary = {'A':'an animal',
-              'B':'a color',
-              'C':'a fruit'}
-dictionary = pd.Series(dictionary)
-dictionary
+
+編輯 DataFrame 內部資料
+---------------
+
 
 
 
 DataFrame
 ====================
-data = {'name': ['Bob', 'Nancy','Amy','Elsa','Jack'],
-        'year': [1996, 1997, 1997, 1996, 1997],
-        'month': [8, 8, 7, 1, 12],
-        'day':[11,23,8,3,11]}
-
-myframe = pd.DataFrame(data)
-myframe
-
-myframe2 = pd.DataFrame(data,columns=['name','year', 'month', 'day'])
-    # 更改 columns 順序
-
-myframe3 = pd.DataFrame(data,columns=['name','year', 'month', 'day','luckynumber'])
-    # 新增 columns
-
-luckynumber = ['3','2','1','7','8']
-luckynumber = pd.Series(luckynumber)
-myframe3['luckynumber'] = luckynumber
-
-
-
-read csv file
-====================
-df = pd.read_csv('./path/to/csv')
+產生 DataFrame 與存檔
+---------------
+obj_frame = pd.DataFrame(dict_data, columns=[], index=[[])    # 可更改 columns 順序
+obj_pandas.read_csv(檔案名稱)、 obj_pandas.read_json(檔案名稱)、 obj_pandas.read_html(檔案名稱)
   # pd.read_table(url/to/file, sep = ":", header = TRUE) sep = '\t'
   # pd.read_excel(url/to/file)
   # pd.read_json(url/to/file)
+obj_frame.to_csv(檔案名稱)、 obj_frame.to_json(檔案名稱)、 obj_frame.to_html(檔案名稱)、 obj_frame.to_excel(檔案名稱)
 
 
-df.head(3)
-df.tail()
-df.info()
-df.shape
-    # 檔案的大小，顯示(rows,columns)
-
-df['Name'][0:4]
-df[['Name','Team']]
-
-df.insert(3,column="sport",value="Basketball")
-df = df.dropna()        # delete row of NaN
-df = df.fillna(0)        # reolace NaN with '0'
-df.sort_values("Name")
-df.sort_values("Name",ascending= False)
+查詢 DataFrame 相關資訊
+---------------
+obj_frame.info()、 obj_frame.describe()
+obj_frame.index、 obj_frame.columns
+obj_frame.head()、 obj_frame.tail()
 
 
+選取 DataFrame 內部資料
+---------------
+obj_frame[column_name][index_name_ref | index_number_ref]
+obj_frame[[column_name1, column_name2, ... ]][index_name_ref | index_number_ref]
+obj_frame.loc[row_name_ref, column_name_ref]
+obj_frame.iloc[row_number_ref, column_number_ref]
 
-df = pd.Series(range(10),index=['a', 'a', 'b', 'b', 'b','c','c','c','c','c'])
-df['c'] 
+obj_frame['column_name'].isin(['value1', 'value2', 'value3', ...])
+obj_frame['column_name'].isnull()
+obj_frame['column_name'].notnull()
+obj_frame['column_name'].between('value1', 'value2')
+obj_frame[(filter1 | filter2)] 、 obj_frame[(filter1 & filter2)]
+obj_frame[]== | != | < | <= | > | >=
 
-df = pd.DataFrame(np.random.randn(4,2),index=['a', 'a', 'b', 'b'])
+
+編輯 DataFrame 內部資料
+---------------
+obj_frame.sort_values("column_name", ascending= False)
+obj_frame.drop(['column_name'], axis=1)    # 記得要給定 axis=1 或 axis="columns" 為欄。若 axis=0 或 asxis = "row" 為代表列
+obj_frame.drop(labels=["Box Office","Actor"], axis="columns")    # axis=1 => axis="columns"， axis=0 => asxis = "row"
+    # labels=None, axis=0, index=None, columns=None, inplace=False
+obj_frame.dropna()    # 刪除 NaN 的資料
+obj_frame.fillna(0)    # 亦可將 NaN 換為 0 以外之數值或字串
+obj_frame.insert()
+obj_frame.concat(obj1, obj2 ...)    # 列合併，垂直方向合併
+obj_frame.merge(obj1, obj2 ...)     # 欄位合併，水平方向合併
+
+
+
+Examples
+---------------
+my_frame = pd.DataFrame(np.random.randn(4,2),index=['a', 'a', 'b', 'b'])
     # create a array of 4R*2C
 
-df.ix['b']
 
-employees["Gender"] == "Male"    # find value of Gender is Male
-fliter = (employees["Gender"] == "Male")
-employees[fliter]
 
-mask = employees['Team'] != "Finance"
-employees["Salary"] > 148941
-employees[employees["Salary"] > 148941]
-mask = employees["Start Date"] <= "1980-05-01"
-employees[mask]
-
-mask1 = employees["Team"] != "Marketing"
-mask2 = employees["Start Date"] < "1980-01-01"
-employees[(mask1 & mask2)]
-employees[(mask1 | mask2)]
-
-mask = employees["Team"].isin(["Legal","Scales","Product"])
-
-mask = employees["Team"].isnull()
-mask = employees["Team"].notnull()
-
-employees[employees["Start Date"].between("2009-11-10","2010-01-20")]
+Intro
+---------------
+DataFrame 是 Pandas 最重要的資料結構，基本上使用 Pandas 進行資料分析和操作大部分都是在使用 DataFrame。DataFrame 的結構類似於關聯式資料庫的資料表（table）是由欄（column）和列的索引（index）所組成。索引相當於試算表 sheet 的 row name。
 
 
 
-Index
+
+Index & MultiIndex
 ====================
-bond = pd.read_csv("csv/jamesbond.csv",index_col="Film").head(3)  # read a film list
-bond.index
-boud.set_index("Film" , inplace=True)    # inplace=True is needed
-bond.reset_index(inplace=True)           # restore the original index
+自定義 index
+---------------
+obj_frame = pd.read_csv("/path/to/file", index_col="column_name")
+obj_frame = pd.read_csv("/path/to/file", index_col=["column_name1", "column_name2"]) 
 
-bond = pd.read_csv("csv/jamesbond.csv",index_col="Film")
-bond.loc["Goldfinger"]                    # show the row which idex is Goldfinger
-bond.loc[["Goldfinger","From Russia with Love"]]    # show the row which idex is Goldfinge and From Russia ...
-bond.loc["From Russia with Love","Actor"]           # show the actor of From Russia with Love
+obj_frame.set_index("column_name", inplace = True)    # inplace=True is needed
+obj_frame.set_index(keys = ["column_name1", "column_name2"], inplace = True)
 
-
-bond = pd.read_csv("csv/jamesbond.csv")
-bond.iloc[15]
-bond.iloc[[0,4]]
-bond.iloc[0:4]
-
-bond = pd.read_csv("csv/jamesbond.csv",index_col="Film")
-bond.rename(columns={"Year":"Release Date","Box Office":"Revenue"},inplace=True)   # rename column name
-bond.rename(index={"Dr. No":"Doctor No",
-                   "GoldenEye":"Golden Eye",
-                   "The World Is Not Enough":"Best bond Movie Ever"},inplace=True)
-
-bond.drop(labels=["Box Office","Actor"], axis="columns")
-bond.drop(labels=["Box Office","Actor"], axis=1)
-    # axis=1 => axis="columns"， axis=0 => asxis = "row"
+obj_frame.reset_index(inplace = True)           # restore the original index
 
 
+查詢 index
+---------------
+obj_frame.index
+obj_frame.index.names
+obj_frame.index.get_level_values(index_number_ref | index_name_ref)
 
 
-MultiIndex
-====================
+index 排序
+---------------
+obj_frame.sort_index(inplace = True)
+
+
+更改 index 或欄位的名稱
+---------------
+obj_frame.rename(columns={"Year":"Release Date","Box Office":"Revenue"} ,inplace = True)   # rename column name
+obj_frame.rename(index={"Dr. No":"Doctor No", "GoldenEye":"Golden Eye", "The World Is Not Enough":"Best bond Movie Ever"}, inplace = True)
+obj_frame.index.set_names(["index_name1", "index_name2"], inplace = True)
+
+
+
+
+Examples
+---------------
 index1 = [('Taichung',2018),('Taichung',2017),
           ('Changhua',2018),('Changhua',2017),
           ('Taipei',2018),('Taipei',2017),
@@ -198,79 +182,24 @@ ironman.index.names = ['area','year']
 
 
 
-Groupby
+Groupby == SQL GROUP BY
 ====================
-fortune = pd.read_csv("./csv/fortune1000.csv",index_col="Rank")
-sector = fortune.groupby("Sector")
-type(sector)     # pandas.core.groupby.DataFrameGroupBy
-sector.size()
-sectors.get_group("Energy")
+obj_frame.groupby("column_name")
+type(obj_frame.groupby("column_name"))     
+obj_frame.groupby("column_name").size()
+obj_frame.groupby("column_name").get_group("class_name")
 
-
-col = ['class','name','hbd']
-data = [['class0', 'user0', '1993-10-01'],
-        ['class0', 'user1', '1992-10-02'],
-        ['class1', 'user2', '1990-10-01'],
-        ['class2', 'user3', '1983-10-03'],
-        ['class1', 'user4', '1991-10-02'],
-        ['class0', 'user5', '2001-10-03']]
-frame = pd.DataFrame(data,columns=col)
-frame_class = frame.groupby('class')
-frame_class.groups
-frame_class.get_group("class1")
-
-df = pd.DataFrame({'A' : ['foo', 'bar', 'foo', 'bar',
-                      'foo', 'bar', 'foo', 'foo'],
-                   'B' : ['one', 'one', 'two', 'three',
-                          'two', 'two', 'one', 'three'],
-                   'C' : np.random.randn(8),
-                   'D' : np.random.randn(8)})
-
-df.groupby('A').sum()
-df.groupby('A','B').sum()
-
-bigmac = pd.read_csv("./csv/bigmac.csv",parse_dates=["Date"])
-bigmac.head(10)
-bigmac.set_index(keys = ["Date","Country"],inplace=True)
-bigmac.index.names => FrozenList(['Date', 'Country'])
-type(bigmac.index) => pandas.core.indexes.multi.MultiIndex
-
-bigmac = pd.read_csv("./csv/bigmac.csv",parse_dates=["Date"],index_col=["Date","Country"])
-bigmac.sort_index(inplace=True)
-bigmac.head(10)
-bigmac.index.get_level_values(0)  bigmac.index.get_level_values("Date")
-bigmac.index.get_level_values(1)  bigmac.index.get_level_values("Country")
-
-bigmac.index.set_names(["Day","Location"],inplace=True)    # change name of index
-
-ref urls: https://pandas.pydata.org/pandas-docs/stable/10min.html#stack
 
 
 
 String
 ====================
-lower(), upper(), title(), len()
-
-chicago = pd.read_csv("./csv/chicago.csv")
-chicago["Department"] = chicago["Department"].astype("category")
-chicago["Name"].str.title()
-type(chicago["Name"].str)    => pandas.core.strings.StringMethods
-
-chicago["Name"].str.lower().head(3)
-chicago["Name"].str.upper().head(3)
-
-chicago["Position Title"] = chicago["Position Title"].str.title()
-chicago["Department"] = chicago["Department"].str.replace("MGMNT","MANAGEMENT")
+obj_string.lower(), obj_string.upper(), obj_string.title(), obj_string.len()
+obj_frame.str.lower() , obj_frame.str.upper(), obj_frame.str.title(), obj_frame.str.len(), obj_frame.str.replace()
+obj_frame.str.startswith(), obj_frame.str.endswith(), obj_frame.str.contains(), obj_frame.str.split()
 
 chicago["Position Title"].str.lower().str.contains("water").head()
 mask = chicago["Position Title"].str.lower().str.startswith("water")
 chicago[mask].head() 
-
-mask = chicago["Position Title"].str.lower().str.endswith("ist")
-chicago[mask].head()
-
-chicago["Name"].str.split(",").head()
-chicago["Name"].str.split(",").str.get(0).str.title()
-
 
 
