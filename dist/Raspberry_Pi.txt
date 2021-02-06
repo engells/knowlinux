@@ -1,7 +1,8 @@
+##!/bin/bash
 # vim:ts=4
 # program: Knowhow about Raspberry Pi
 # made by: Engells
-# date: Apr 13, 2019
+# date: Feb 5, 2021
 # content: Just for memo
 
 
@@ -11,6 +12,7 @@ Environment
 account:	admit
 passwd:		acctatpi~year5
 vncserver:	abcd1234
+ip4 addr:	192.168.1.121:62 / 192.168.1.122:62
 
 先插好 HDMI 接線再開機，避免訊號輸出至 RC
 
@@ -171,10 +173,9 @@ sudo apt install rpimonitor
 
 
 
-
 設定無線網路固定網址
 ====================
-edit /etc/network/interfaces/wlana
+edit /etc/network/interfaces.d/wlana
 	auto lo
 	iface lo inet loopback
 
@@ -184,23 +185,47 @@ edit /etc/network/interfaces/wlana
 	allow-hotplug wlan0
 	auto wlan0
 	iface wlan0 inet static
-	address 192.168.1.121   
+	address 192.168.1.122
 	gateway 192.168.1.1
 	netmask 255.255.255.0
 	network 192.168.1.1
 	broadcast 192.168.1.255
 	pre-up wpa_supplicant -Dwext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -B 
-	#wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-	#wpa-ssid "xxxx"
-	#wpa-psk "xxxx"
-	#key_mgmt=WPA-PSK
 
 	wireless-power off
 	iface default inet dhcp
 
+edit /boot/wpa_supplicant.conf, add the follows:
+	country=TW
+	ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+	update_config=1
+
+	network={
+		ssid="SSID_NAME"
+		psk="SSID_KEY"
+		key_mgmt=WPA-PSK
+		scan_ssid=1
+		priority=2
+	}
+
 sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
 # sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-# 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces/xxxx 有無語法錯誤
+# 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces.d/xxxx 有無語法錯誤
+
+
+
+
+設定有線網路固定網址
+====================
+sudo vim /etc/dhcpcd.conf
+	interface eth0  #有線網路
+	static ip_address=192.168.1.124
+	static routers=192.168.1.1
+	static domain_name_servers=192.168.1.1
+	#interface wlan0  #無線網路
+	#static ip_address=192.168.1.122
+	#static routers=192.168.1.1
+	#static domain_name_servers=192.168.1.1
 
 
 
@@ -230,7 +255,9 @@ config.txt 取消註解
 	hdmi_mode：當 hdmi_group=2，而 hdmi_mode=16 時，表示使用 1024x768 60 Hz 的解析度。
 	 hdmi_mode=69   1920x1200  60 Hz  
 	 hdmi_mode=70   1920x1200  75 Hz
-	URL: http://elinux.org/RPiconfig
+
+URL
+	http://elinux.org/RPiconfig
 
 
 
@@ -311,21 +338,8 @@ sudo swapoff /var/swap
 下載 raspbian stretch lite 或其他鏡像 img
 鏡像 dump 至 SD Card
 	dd if=/path/to/img_file of=/dev/sd_card bs=8M
-設定無線網路環境
-	touch /boot/wpa_supplicant.conf, add the follows:
-	country=TW
-	ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-	update_config=1
-
-	network={
-		ssid="SSID_NAME"
-		scan_ssid=1
-		psk="SSID_KEY"
-		key_mgmt=WPA-PSK
-		priority=2
-	}
 啟用 SSH
-	touch /path/to/raspberry_pi/boot/ssh
+	touch /path/to/raspberry_pi/boot/ssh    # or login Raspberry and run raspi-config to enable ssh
 開機：先插入鍵盤、滑鼠，接著開啟螢幕，插上 HDMI，最後插上樹莓派電源。
 組態設定
 	sudo raspi-config

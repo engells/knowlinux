@@ -1,7 +1,7 @@
 ## vim:ts=4
 # program: Memo thr package of panda
 # made by: Engells
-# date: May 3, 2019
+# date: Feb 5, 2021
 # content: Just for memo
 
 
@@ -82,13 +82,6 @@ obj_frame.merge(obj1, obj2 ...)     # 欄位合併，水平方向合併
 
 
 
-Examples
----------------
-my_frame = pd.DataFrame(np.random.randn(4,2),index=['a', 'a', 'b', 'b'])
-    # create a array of 4R*2C
-
-
-
 Intro
 ---------------
 DataFrame 是 Pandas 最重要的資料結構，基本上使用 Pandas 進行資料分析和操作大部分都是在使用 DataFrame。DataFrame 的結構類似於關聯式資料庫的資料表（table）是由欄（column）和列的索引（index）所組成。索引相當於試算表 sheet 的 row name。
@@ -126,58 +119,6 @@ obj_frame.sort_index(inplace = True)
 obj_frame.rename(columns={"Year":"Release Date","Box Office":"Revenue"} ,inplace = True)   # rename column name
 obj_frame.rename(index={"Dr. No":"Doctor No", "GoldenEye":"Golden Eye", "The World Is Not Enough":"Best bond Movie Ever"}, inplace = True)
 obj_frame.index.set_names(["index_name1", "index_name2"], inplace = True)
-
-
-
-
-Examples
----------------
-index1 = [('Taichung',2018),('Taichung',2017),
-          ('Changhua',2018),('Changhua',2017),
-          ('Taipei',2018),('Taipei',2017),
-          ('Kaohsiung',2018),('Kaohsiung',2017)]
-index2 = pd.MultiIndex.from_tuples(index)
-elementary = [
-    800,780,
-    620,580,
-    1500,1350,
-    1100,998
-]
-
-ironman = pd.Series(elementary, index=index2)
-  Taichung   2018     800
-             2017     780
-  Changhua   2018     620
-             2017     580
-  Taipei     2018    1500
-             2017    1350
-  Kaohsiung  2018    1100
-             2017     998
-  dtype: int64
-
-ironman[:,2017]
-  Taichung      780
-  Changhua      580
-  Taipei       1350
-  Kaohsiung     998
-  dtype: int64
-
-ironman[ironman > 600]               #遮罩
-ironman[['Changhua','Kaohsiung']]    #fancy索引
-
-MultiIndex和DataFrame之間做轉換
-  unstack(): MultiIndex => DataFrame
-  stack(): DataFrame => MultiIndex
-
-ironman_unstack = ironman.unstack()
-ironman_unstack
-              2017	2018
-  Changhua     580   620
-  Kaohsiung    998  1100
-  Taichung     780   800
-  Taipei      1350  1500
-
-ironman.index.names = ['area','year']
 
 
 

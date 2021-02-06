@@ -1,4 +1,9 @@
-# vim:ts=2
+## vim:ts=2
+# program: Knowhow about Android
+# made by: Engells
+# date: Apr, 2019
+# content: Just for memo
+
 
 
 英派 9300+ 規格
@@ -24,7 +29,7 @@ Java
 	library:	Java runtime library, 函式庫
 Android
 	languaage:	java
-	virtual: machine	Dalvik / dex, Dalvik executable
+	virtual: 	machine	Dalvik / dex, Dalvik executable
 	library:	Java runtime library, 函式庫
 
 

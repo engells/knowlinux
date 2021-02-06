@@ -1,3 +1,4 @@
+##!/bin/bash
 # vim:ts=2
 # program: knowhow about DOSBox
 # made by: Engells
