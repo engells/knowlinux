@@ -1,0 +1,46 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Feb 12, 2021
+# content: Just for memo
+
+
+
+指令
+====================
+make mapping
+---------------
+語法： [mode_id][nore][map] key_definition actions
+  " mode: n for normal mode ...
+  " nore: no recursive mapping in each mode
+  " map: mean for mapping
+
+
+Examples
+  :noremap <Up> <Nop> => disable key <Up> in normal and visual mode
+  :nnoremap <Down> <Nop>
+  :vnoremap <Left> <Nop>
+  :inoremap <Right> <Nop>
+
+
+cancel mapping
+---------------
+語法： [mode_id][map] key_definition
+
+Examples
+  :unmap <Up>
+  :nunmap <Down>
+  :vunmap <Left>
+  :iunmap <Right>
+
+
+
+other commands
+----------------
+:mapclear
+:h key-notation, to find ket definition
+:let mapleader = ","
+
+
+

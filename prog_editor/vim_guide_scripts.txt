@@ -9,7 +9,7 @@
 
 option
 ====================
-commands stntax:
+commands syntax:
 	set <name1> <name2>=<value2>
 	setlocal <name1> <name2>=<value2>
 
