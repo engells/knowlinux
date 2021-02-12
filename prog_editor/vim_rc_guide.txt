@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
 # program: Using to note the knowledge about vim configure
 # made by: Engells
@@ -28,7 +28,7 @@ hi CursorLineNr cterm=bold ctermfg=Green ctermbg=Black
 set cursorcolumn	" <=> set nocursorcolumn
 hi CursorColumn cterm=none ctermbg=DarkMagenta ctermfg=White	" cterm 為 color terminal，另有 term 及 gui
 set ruler			" 右下角顯示游標座標
-set number			" 在左側顯示行號 <=> set nonumber
+set number			" 顯示列號 <=> set nonumber
 hi LineNr cterm=bold ctermfg=Grey ctermbg=Black
 
 
@@ -117,7 +117,7 @@ set noswapfile			" 停用 swap
 set directory			" 設定 swap 檔案所在目錄
 set updatetime=23000	" 每隔 23 秒自動更新
 set updatecount=4000	"
-
-
+highlight Comment ctermfg=cyan    " 設定註解的顏色
+highlight Search term=reverse ctermbg=4 ctermfg=7    " 設定搜尋到的字串顏色
 
 

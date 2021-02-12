@@ -217,7 +217,34 @@ sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i
 
 設定有線網路固定網址
 ====================
-sudo vim /etc/dhcpcd.conf
+Raspbian 7.0 以下版本
+---------------
+編輯 /etc/network/interfaces
+	auto lo
+	iface lo inet loopback
+
+	allow-hotplug eth0
+	auto eth0
+	iface eth0 inet static
+	address 192.168.1.124
+	netmask 255.255.255.0
+	gateway 192.168.1.1
+	dns-nameservers 8.8.8.8
+	dns-search 8.8.4.4
+
+	allow-hotplug wlan0
+	auto wlan0
+	iface wlan0 inet manual
+		wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+
+	iface home inet dhcp
+	iface work inet dhcp
+	iface default inet dhcp
+
+
+Raspbian 8.0 (Kernel 4.9) 以上版本
+---------------
+編輯 /etc/dhcpcd.conf
 	interface eth0  #有線網路
 	static ip_address=192.168.1.124
 	static routers=192.168.1.1
@@ -226,6 +253,10 @@ sudo vim /etc/dhcpcd.conf
 	#static ip_address=192.168.1.122
 	#static routers=192.168.1.1
 	#static domain_name_servers=192.168.1.1
+
+啟用服務
+	systemctl enable dhcpcd
+	systemctl enable networking
 
 
 

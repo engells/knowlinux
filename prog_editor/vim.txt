@@ -2,53 +2,22 @@
 # vim:ts=2
 # program: Using to note the knowledge about vim
 # made by: Engells
-# date: Mar 14, 2019
+# date: Feb 11, 2021
 # content: Just for memo
 
 
 
-vim 8.0
-===================
-套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/xxxx/start 或 ~/.vim/pack/xxxx/opt
-	示例安裝 NERDTree：git clone https://github.com/scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
-  安裝非自動啟用套件： 在 vim 內執行指令 :packadd nerdtree 套件位置在： ~/.vim/pack/xxxx/opt/package_name
-
-把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
-想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/xxxx/start/ale
-升級所有套件，執行： git submodule update --recursive --remote 或 git submodule foreach --recursive git pull origin master
-
-
-git submoudle
-----------
-add submodule
-	git submodule init
-	git submodule add https://github.com/vim-airline/vim-airline.git path/to/submodule
-	git add .gitmodules path/to/submodule
-	git commit
-
-update submodule
-----------
-	git submodule update --remote --merge or git submodule update --init --remote --recursive --merge
-	git commit
-	****
-	git submodule foreach git pull origin master
-	git commit -am "Updated plugins."
-
-remove submodule
-----------
-	git submodule deinit path/to/submodule
-	git rm path/to/submodule
-	rm -Rf .git/modules/path/to/submodule
-	git commit
-	****
-	git rm --cached path/to/submodule
-	rm -rf path/to/submodule
-	edit .gitmodules and .git/config
-	git add .gitmodules
-	git commit -m "Remove a submodule"
-	git submodule sync
-
-
+memo
+====================
+viw visual inner word 
+vaw aroubf word
+vi" inner ""
+vit inner tag
+v}
+v{
+<C-w> <C-u>
+~ => lower <--> upper case
+. => repeat actions
 
 
 Session
@@ -70,28 +39,6 @@ commands
 
 
 
-
-plugin & plugin-manager
-====================
-plugin-managr
-----------
-vim-plug
-  # 下載 https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim 至 ~/.vim/autoload，編輯 .vimrc 中加入下列內容：
-  # call plug#begin('~/.vim/plugs') Plug 'plug_name'... call plug#end() ，然後在 vim 中輸入 :PlugInstall 就會安裝。
-  # 實作中，將相關內容寫入 ~/.vim/confs/exrc_vim_plug 檔案
-  # 更新 plugin，在 vim 中輸入 :PlugUpdate 指令
-  # 更新 vim-plug 本身，在 vim 中輸入 :PlugUpgrade 指令
-	# 移除 plugin，把不需要的 plugin 刪除或註解掉，接著進入 Vim 輸入 :PlugClean 指令
-
-Vundle
-  # 編輯 .vimrc 中加入右列內容：Plugin 'tpope/vim-fugitive'，然後在 vim 中打 :PluginInstall 就會安裝。
-
-Pathogen
-  # 把要加入的 plugin 的資料夾放在 bundle/ 底下就完工了！刪除也是，直接砍掉 bundle/ 底下對應資料夾就可以
-
-
-
-
 vim
 ====================
 游標移動
@@ -106,26 +53,34 @@ vim
 
 編輯
   插入 I i a A
-  取代 cw c0 c^ c$ cc <num>cc ; <num>s S ; r R
-  刪除 dw d0 d^ d$ dd <num>dd ; <num>x X
+  取代 cw c0 c^ c$ cc <num>cc C ; <num>s S ; r R +++ c => change
+  刪除 dw d0 d^ d$ dd <num>dd D ; <num>x X 
 	複製 yw y0 y^ y$ yy <num>yy
   貼上 p P ; [Ctrl]-R → 0	在下一行貼上複製或刪除的內容，適用於編輯模式及指令行
-  選取 v V
+  選取 v V <C-v>
 
 搜尋與取代
   向下搜尋 /搜尋字串 ; /\c搜尋字串 ; *(將游標移到字串上，直接按 "*" 也可以做向下搜尋) ; :set ic ; 	:set noic	搜尋時要分大小寫
-  向上搜尋 ?搜尋字串 ; 	?\c搜尋字串 ; 
-  繼續下一個搜尋結果	n					
-  繼續上一個搜尋結果	N					
+  向上搜尋 ?搜尋字串 ; 	?\c搜尋字串 ;
+  繼續下一個搜尋結果	n
+  繼續上一個搜尋結果	N
   取代  :起始行,終止行s/搜尋字串/取代字串/gic	從第 n 行到第 n 行取代字串 (後面的 g: 整行全部 i: 不分大小寫 c: 詢問)
   取代  :1,$s/搜尋字串/取代字串/gic		全部取代字串 (後面的 g: 整行全部 i: 不分大小寫 c: 詢問)
 
-緩衝區
+縮排
+  向右縮 >> <num>>> ; visual mode 選取整列後，按 >
+  向左縮 << <num><< ; visual mode 選取整列後，按 <
+  自動依照程式語言類型縮排 =
+
+緩衝區(buffer is a in-memory text of a file)
   檔案內容緩衝區			如刪除、yank、置換,給 Put 要用的 registers 緩衝區
   書籤緩衝區				m[a-z] `[a-z] '[a-z] `` ''
 									m[A-Z]
   檔案間緩衝區    :n :2n :N											<= argument list
-                :bn :bp :bl :b[#] :b檔名				<= buffer list
+                :bn :bp :bf :bl :b[#] :b檔名		<= move to next | previous | first | last buffer
+                 <C+^>                        <= move to previous edited buffer
+                :tab ba                       <= all buffers to each own tab
+                :bd                           <= delete current buffer
                 :files 或 :buffers 或 :ls			<= 會列出目前 buffer 中的所有檔案
                 # 代表前一次編輯的檔案，% 是目前編輯中的檔案
 
@@ -150,6 +105,7 @@ vim
   <C+w> Shift K 視窗往上移
   <C+w> Shift L 視窗往右移
 
+  :new 開一空的新視窗
   :vnew 縱向分割視窗
   :sv <filename> 載入檔案＋縱向分割視窗
   :vs <filename> 載入檔案＋橫向分割視窗
@@ -163,13 +119,13 @@ vim
   :vert[ical] res[ize] -num		現行視窗寬度調減 num 欄
 
 
-標籤頁
-  :tabnew 開空白標籤頁
+標籤頁(tab is a collection of windows)
+  :tabnew 開空白標籤頁，或是 gt:tabe
   :tabe filename 在新標籤頁打開一個檔案
   :tabc 關閉標籤頁
   :tabo 關閉其他標籤頁
-  :tabn 下一個標籤頁 或是 gt, C-PageDown
-  :tabp 上一個標籤頁 或是 gT, C-PageUp
+  :tabn 下一個標籤頁，或是 gt, C-PageDown
+  :tabp 上一個標籤頁，或是 gT, C-PageUp
   :tabr 第一個標籤頁
   :tabl 最後一個標籤頁
   :tabs 顯示所有標籤頁

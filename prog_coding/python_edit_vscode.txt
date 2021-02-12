@@ -125,8 +125,11 @@ vscode 配置 python 環境
 3. 點擊 Manage 圖示 > Settings > 輸入【python formatting】> 確認採用 autopep8
 4. 點擊 Manage 圖示 > Settings > 輸入【FormatOnSave】> 勾選【Format a file on save】選項，VSCode 在儲存檔案時，自動依照 PEP8 程式碼風格排版程式碼
 5. 點擊 Manage 圖示 > Command Palette... > 輸入【python: Select Interpreter】 > 選擇【Enter interpreter path】 > 選擇【Find(搜尋)】 > 選擇 Python 直譯器
+6. 在設置（settings.json）里添加 "python.linting.pylintArgs": ["--generate-members"]
+   # pylint 是 vscode 的 python 語法檢查器，為靜態檢查，在取用第三方庫時，有些組件只有在運行程式碼的時候才會被建立，pylint 就找不到該組件，以上列設置避免相關問題
 
 參考資料：https://www.learncodewithmike.com/2019/11/python2-visual-studio-code-python.html
+　　　　　https://blog.csdn.net/ngy321/article/details/88972255
 
 
 

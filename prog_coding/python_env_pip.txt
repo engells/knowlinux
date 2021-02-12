@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
 # program: Using to note the knowledge about pip
 # made by: Engells
@@ -12,7 +12,8 @@
 python3 -m pip install --user --upgrade package_name
     # 用 shell 所執行 python 版本的 sys.path 裡的 pip 安裝 package
     # -m 參數意指 run library module which in site-packages as a script
-    # --user 參數意指將套件安裝至 $HOME，否則預設安裝至系統目錄如： /usr/local/lib/python[x].[y]，如此會需要管理者權限
+    # --user 參數意指將套件安裝至 $HOME/.local/lib/python[x].[y]，否則預設安裝至系統目錄如： /usr/local/lib/python[x].[y]，如此會需要管理者權限
+    #   注意，在 pipenv 虛擬環境內升級 pip 自身時，不要使用本參數，使 pip 安裝至虛擬環境，以保持虛擬環境完整
     # --upgrade 參數意指套件若已安裝，則升級至新版
 python3 -m pip install --upgrade pip
     # 更新 pip 到最新版本

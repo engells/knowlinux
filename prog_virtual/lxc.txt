@@ -1,8 +1,8 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=2
 # program: Using to note the knowledge about lxc
 # made by: Engells
-# date: Jan 29, 2021
+# date: Feb 8, 2021
 # content: Just for memo
 
 
@@ -66,6 +66,12 @@ Network
 
 Physiacal hard disk partition
 	work in privileged mode
+
+Public directory and tmpfs
+  lxc.mount.entry = /zvir/share mnt/share none bind 0 0
+  lxc.mount.entry = /tmp/z_tmpfs mnt/tmpfs none bind 0 0
+  lxc.mount.entry = /tmp/z_cache_[lxc_container_name] home/admit/.cache none bind 0 0
+  lxc.mount.entry = /tmp/z_downloads home/admit/downloads none bind 0 0
 
 
 

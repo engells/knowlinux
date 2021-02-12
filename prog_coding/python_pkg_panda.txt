@@ -19,13 +19,13 @@ obj_serial = pd.Series(dic_data)
 
 查詢 Series 相關資訊
 ---------------
-obj_serial.values
-obj_serial.index
+pd.Series.values
+pd.Series.index
 
 
 選取 Series 內部資料
 ---------------
-obj_serial[index_ref] 
+pd.Series[index_ref] 
 
 
 編輯 DataFrame 內部資料
@@ -48,38 +48,37 @@ obj_frame.to_csv(檔案名稱)、 obj_frame.to_json(檔案名稱)、 obj_frame.t
 
 查詢 DataFrame 相關資訊
 ---------------
-obj_frame.info()、 obj_frame.describe()
-obj_frame.index、 obj_frame.columns
-obj_frame.head()、 obj_frame.tail()
+pandas.DataFrame.info()、 pandas.DataFrame.describe()
+pandas.DataFrame.index、 pandas.DataFrame.columns
+pandas.DataFrame.head()、 pandas.DataFrame.tail()
 
 
 選取 DataFrame 內部資料
 ---------------
-obj_frame[column_name][index_name_ref | index_number_ref]
-obj_frame[[column_name1, column_name2, ... ]][index_name_ref | index_number_ref]
-obj_frame.loc[row_name_ref, column_name_ref]
-obj_frame.iloc[row_number_ref, column_number_ref]
+pandas.DataFrame[column_name][index_name_ref | index_number_ref]
+pandas.DataFrame[[column_name1, column_name2, ... ]][index_name_ref | index_number_ref]
+pandas.DataFrame.loc[row_name_ref, column_name_ref]
+pandas.DataFrame.iloc[row_number_ref, column_number_ref]
 
-obj_frame['column_name'].isin(['value1', 'value2', 'value3', ...])
-obj_frame['column_name'].isnull()
-obj_frame['column_name'].notnull()
-obj_frame['column_name'].between('value1', 'value2')
-obj_frame[(filter1 | filter2)] 、 obj_frame[(filter1 & filter2)]
-obj_frame[]== | != | < | <= | > | >=
+pandas.DataFrame['column_name'].isin(['value1', 'value2', 'value3', ...])
+pandas.DataFrame['column_name'].isnull()
+pandas.DataFrame['column_name'].notnull()
+pandas.DataFrame['column_name'].between('value1', 'value2')
+pandas.DataFrame[(filter1 | filter2)] 、 pandas.DataFrame[(filter1 & filter2)]
+pandas.DataFrame[]== | != | < | <= | > | >=
 
 
 編輯 DataFrame 內部資料
 ---------------
-obj_frame.sort_values("column_name", ascending= False)
-obj_frame.drop(['column_name'], axis=1)    # 記得要給定 axis=1 或 axis="columns" 為欄。若 axis=0 或 asxis = "row" 為代表列
-obj_frame.drop(labels=["Box Office","Actor"], axis="columns")    # axis=1 => axis="columns"， axis=0 => asxis = "row"
+pandas.DataFrame.sort_values("column_name", ascending= False)
+pandas.DataFrame.drop(['column_name'], axis=1)    # 記得要給定 axis=1 或 axis="columns" 為欄。若 axis=0 或 asxis = "row" 為代表列
+pandas.DataFrame.drop(labels=["Box Office","Actor"], axis="columns")    # axis=1 => axis="columns"， axis=0 => asxis = "row"
     # labels=None, axis=0, index=None, columns=None, inplace=False
-obj_frame.dropna()    # 刪除 NaN 的資料
-obj_frame.fillna(0)    # 亦可將 NaN 換為 0 以外之數值或字串
-obj_frame.insert()
-obj_frame.concat(obj1, obj2 ...)    # 列合併，垂直方向合併
-obj_frame.merge(obj1, obj2 ...)     # 欄位合併，水平方向合併
-
+pandas.DataFrame.dropna()    # 刪除 NaN 的資料
+pandas.DataFrame.fillna(0)    # 亦可將 NaN 換為 0 以外之數值或字串
+pandas.DataFrame.insert()
+pandas.DataFrame.concat(obj1, obj2 ...)    # 列合併，垂直方向合併
+pandas.DataFrame.merge(obj1, obj2 ...)     # 欄位合併，水平方向合併
 
 
 Intro
@@ -104,31 +103,31 @@ obj_frame.reset_index(inplace = True)           # restore the original index
 
 查詢 index
 ---------------
-obj_frame.index
-obj_frame.index.names
-obj_frame.index.get_level_values(index_number_ref | index_name_ref)
+pandas.DataFrame.index
+pandas.DataFrame.index.names
+pandas.DataFrame.index.get_level_values(index_number_ref | index_name_ref)
 
 
 index 排序
 ---------------
-obj_frame.sort_index(inplace = True)
+pandas.DataFrame.sort_index(inplace = True)
 
 
 更改 index 或欄位的名稱
 ---------------
-obj_frame.rename(columns={"Year":"Release Date","Box Office":"Revenue"} ,inplace = True)   # rename column name
-obj_frame.rename(index={"Dr. No":"Doctor No", "GoldenEye":"Golden Eye", "The World Is Not Enough":"Best bond Movie Ever"}, inplace = True)
-obj_frame.index.set_names(["index_name1", "index_name2"], inplace = True)
+pandas.DataFrame.rename(columns={"Year":"Release Date","Box Office":"Revenue"} ,inplace = True)   # rename column name
+pandas.DataFrame.rename(index={"Dr. No":"Doctor No", "GoldenEye":"Golden Eye", "The World Is Not Enough":"Best bond Movie Ever"}, inplace = True)
+pandas.DataFrame.index.set_names(["index_name1", "index_name2"], inplace = True)
 
 
 
 
 Groupby == SQL GROUP BY
 ====================
-obj_frame.groupby("column_name")
+pandas.DataFrame.groupby("column_name")
 type(obj_frame.groupby("column_name"))     
-obj_frame.groupby("column_name").size()
-obj_frame.groupby("column_name").get_group("class_name")
+pandas.DataFrame.groupby("column_name").size()
+pandas.DataFrame.groupby("column_name").get_group("class_name")
 
 
 
@@ -136,11 +135,19 @@ obj_frame.groupby("column_name").get_group("class_name")
 String
 ====================
 obj_string.lower(), obj_string.upper(), obj_string.title(), obj_string.len()
-obj_frame.str.lower() , obj_frame.str.upper(), obj_frame.str.title(), obj_frame.str.len(), obj_frame.str.replace()
-obj_frame.str.startswith(), obj_frame.str.endswith(), obj_frame.str.contains(), obj_frame.str.split()
+pandas.DataFrame.str.lower() , obj_frame.str.upper(), obj_frame.str.title(), obj_frame.str.len(), obj_frame.str.replace()
+pandas.DataFrame.str.startswith(), obj_frame.str.endswith(), obj_frame.str.contains(), obj_frame.str.split()
 
 chicago["Position Title"].str.lower().str.contains("water").head()
 mask = chicago["Position Title"].str.lower().str.startswith("water")
 chicago[mask].head() 
+
+
+
+
+Plot
+====================
+pandas.DataFrame.plot(*args, **kwargs)
+
 
 

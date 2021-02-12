@@ -1,3 +1,4 @@
+##!/bin/bash
 # vim:ts=2
 # program:Using to note the knowledge about Git
 # made by: Engells

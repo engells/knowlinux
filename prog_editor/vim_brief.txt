@@ -1,11 +1,14 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
 # program: Using to note the knowledge about vim
 # made by: Engells
 # date: Mar 14, 2019
 # content: Just for memo
 
+
+
 檔案功能
+====================
 	指令				說明
 * 	:w				存檔 (加 ! 表示強制存檔)
 * 	:w 檔案名稱		另存新檔
@@ -31,7 +34,10 @@
 	:Tex 路徑		新增頁籤後，再於指定路徑開啟檔案瀏覽器
 
 
+
+
 視窗分割
+====================
 	指令				說明
 * 	:new			新增水平分割視窗
 * 	:new 檔案名稱		新增水平分割視窗，並在新增的視窗載入檔案
@@ -45,7 +51,10 @@
 * 	:only			僅保留目前的視窗
 
 
+
+
 頁籤
+====================
 	指令				說明
 * 	:tabe			新增頁籤
 * 	:tabe 檔案名稱	新增頁籤，並在新頁籤載入檔案
@@ -87,25 +96,4 @@
 * 	v				新增垂直視窗
 
 
-vim 的設定檔
 
-通常我會編輯 /etc/vimrc，在檔案最後加入:
-
-" 顯示列號
-set number
-" 語法高亮度顯示
-syntax on
-" 標記搜尋到的字串
-set hlsearch
-" 自動縮排
-set autoindent
-" 顯示說明
-set ruler
-" 顯示編輯狀態
-set showmode
-" 設定註解的顏色
-highlight Comment ctermfg=cyan
-" 設定搜尋到的字串顏色
-highlight Search term=reverse ctermbg=4 ctermfg=7
-" 設定 tab 鍵的字元數
-set tabstop=4

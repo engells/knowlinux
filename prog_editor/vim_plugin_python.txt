@@ -1,0 +1,427 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim plugins
+# made by: Engells
+# date: Feb 11, 2021
+# content: Just for memo
+
+
+
+plugins
+====================
+To build ide for python
+----------
+scrooloose/nerdtree
+YouCompleteMe
+majutsushi/tagbar
+kien/ctrlp.vim
+jiangmiao/auto-pairs
+Yggdroot/indentLine
+vim-scripts/indentpython.vim
+
+python-mode/python-mode?
+vim-scripts/taglist.vim?
+
+scrooloose/syntastic (optional)				# check syatax while saving file
+scrooloose/nerdcommenter (optional)		# convient comments
+Chiel92/vim-autoformat (optional)			# help coding in pep8 format, support by "pip3 install autopep8"
+tell-k/vim-autopep8 (optional)				# check pep8 rules while saving file, support by "apt package python3-pep8"
+nvie/vim-flake8 (optional)						# check flake8 rules while saving file, support by "apt package python3-flake8"
+skywind3000/asyncrun.vim
+
+tmhedberg/SimpylFold
+ludovicchabant/vim-gutentags
+
+參考資料
+	fzuwwl's blog						https://coderatwork.cn/ide/2019/01/28/turn-vim-as-an-ide.html
+	鲁子银 										https://sq.163yun.com/blog/article/197471096162713600
+	Vim 插键及配置						https://michael728.github.io/2018/12/02/tools-vim-plugin-config/
+	mac下配置vim							https://codertw.com/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80/491946/
+	打造-python-使用的-vim		https://blog.beck.idv.tw/linux/%E6%89%93%E9%80%A0-python-%E4%BD%BF%E7%94%A8%E7%9A%84-vim/
+	python学习-vim插件安装			https://blog.51cto.com/11555417/2150626
+
+
+
+
+YouCompleteMe
+====================
+安裝(可運作於 pipenv 虛擬環境)
+----------
+apt install build-essential cmake python-dev? python3-dev
+git clone https://github.com/Valloric/YouCompleteMe.git  ~/.vim/pack/plugins/start/you_complete_me
+  # 可考慮 git clone --recurse-submodules https://github.com/Valloric/YouCompleteMe.git ~/.vim/pack/plugins/start/YouCompleteMe
+  # 若出現下載中斷的情形，執行：cd path/to/YouCompleteMe && git submodule update --init --recursive
+cd ~/.vim/pack/plugins/start/YouCompleteMe && git submodule update --init --recursive
+  # 官方建議執行 git submodule update --init --recursive 再執行安裝程式
+cd ~/.vim/pack/plugins/start/YouCompleteMe && python3 install.py
+	# 不建議使用 chmod a+x install.sh  &&  ./install.sh --clang-completer
+  # 不需要 sudo 權限，參數 --clang-completer 可不加入
+
+
+.vimrc 組態
+----------
+" 補全選單的開啟與關閉
+set completeopt = longest,menu
+let g:ycm_min_num_of_chars_for_completion = 2									" 從第2個鍵入字元就開始羅列匹配項
+let g:ycm_cache_omnifunc = 0																	" 禁止快取匹配項,每次都重新生成匹配項
+let g:ycm_autoclose_preview_window_after_completion = 1				" 智慧關閉自動補全視窗
+autocmd InsertLeave * if pumvisible() == 0 | pclose | endif		" 離開插入模式後自動關閉預覽視窗
+
+" 補全選單中各項之間進行切換和選取：預設使用 tab  s-tab 進行上下切換，使用空格選取。可進行自定義設定：
+"let g:ycm_key_list_select_completion = ['<c-n>']
+"let g:ycm_key_list_select_completion = ['<Down>']							" 通過上下鍵在補全選單中進行切換
+"let g:ycm_key_list_previous_completion = ['<c-p>']
+"let g:ycm_key_list_previous_completion = ['<Up>']
+"let g:ycm_key_list_select_completion = ['<c-n>', '<Down>']			" 改以 Crtl＋n，啟用補完
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"						" Enter 代表確認目前選項
+
+" 開啟各種補全引擎
+let g:ycm_collect_identifiers_from_tags_files = 1							" use tags files created by ctags
+let g:ycm_auto_trigger = 1																		" 開啟 YCM 基於識別符號補全，預設為1
+let g:ycm_seed_identifiers_with_syntax = 1      			        " 語法關鍵字補完
+let g:ycm_complete_in_comments = 1														" 在註釋輸入中也能補全
+let g:ycm_complete_in_strings = 1															" 在字串輸入中也能補全
+let g:ycm_collect_identifiers_from_comments_and_strings = 0		" 註釋和字串中的文字也會被收入補全
+
+" 重對映快捷鍵
+"上下左右鍵的行為 會顯示其他資訊,inoremap由 i 插入模式和 noremap 不重對映組成，只對映一層，不會對映到對映的對映
+inoremap <expr> <Down>     pumvisible() ? "\<C-n>" : "\<Down>"
+inoremap <expr> <Up>       pumvisible() ? "\<C-p>" : "\<Up>"
+inoremap <expr> <PageDown> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<PageDown>"
+inoremap <expr> <PageUp>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<PageUp>"
+"nnoremap <F5> :YcmForceCompileAndDiagnostics<CR>											" force recomile with syntastic
+"nnoremap <leader>lo :lopen<CR>																				" open locationlist
+"nnoremap <leader>lc :lclose<CR>																			" close locationlist
+"inoremap <leader><leader> <C-x><C-o>
+nnoremap <leader>jd :YcmCompleter GoToDefinitionElseDeclaration<CR>		" <jd> to definition
+let g:ycm_confirm_extra_conf=0																				" auto load ycm_extra_conf.py without user's confirmation
+
+set runtimepath+=~/path/to/YouCompleteMe
+let g:ycm_global_ycm_extra_conf = '~/path/to/YouCompleteMe/.ycm_extra_conf.py'
+let g:syntastic_ignore_files=[".*\.py$"]
+let g:ycm_key_list_previous_completion = ['<c-p>', '<Up>']
+let g:ycm_global_ycm_extra_conf='~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_show_diagnostics_ui = 0                                 " 禁用語法檢查
+map <F6> :YcmCompleter GoTo<CR>
+highlight Pmenu ctermfg=15 ctermbg=0 guifg=#000000 guibg=#111100	" set popup menu background
+
+let g:ycm_filetype_blacklist = {
+      \ 'tagbar' : 1,
+      \ 'qf' : 1,
+      \ 'notes' : 1,
+      \ 'markdown' : 1,
+      \ 'unite' : 1,
+      \ 'text' : 1,
+      \ 'vimwiki' : 1,
+      \ 'gitcommit' : 1,
+      \}
+
+參考資料：
+  http://www.mikewootc.com/wiki/tool/sw_develop/vim_ycm_ubuntu_1604.html
+
+
+
+
+majutsushi/tagbar
+====================
+git clone https://github.com/majutsushi/tagbar.git ~/.vim/pack/plugins/start/tag_bar
+
+.vimrc 組態
+----------
+nmap <F12> :TagbarToggle<CR>
+" 启动时自动focus
+let g:tagbar_autofocus = 1
+
+"让tagbar在页面左侧显示，默认右边
+let g:tagbar_left = 1
+"设置tagbar的宽度为30列，默认40
+let g:tagbar_width = 30
+"这是tagbar一打开，光标即在tagbar页面内，默认在vim打开的文件内
+let g:tagbar_autofocus = 1
+"设置标签不排序，默认排序
+let g:tagbar_sort = 0
+
+"NerdTree + TagBar in the same panel
+"NerdTree####################################################
+"去除第一行的帮助提示
+let NERDTreeMinimalUI=1
+"在左边占多宽
+let NERDTreeWinSize=28
+"不高亮显示光标所在的文件
+let NERDTreeHighlightCursorline=0
+"当前目录的设定
+let NERDTreeChDirMode = 2
+"自动退出
+autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+"打开vim时自动打开
+autocmd VimEnter * NERDTree
+"<F11>作为toggle
+nmap <F11> :NERDTreeToggle<CR>
+
+"Tagbar######################################################
+"在这儿设定二者的分布
+let g:tagbar_vertical = 25
+"去除第一行的帮助信息
+let g:tagbar_compact = 1
+"当编辑代码时，在Tagbar自动追踪变量
+let g:tagbar_autoshowtag = 1
+"个人爱好，展开关闭文件夹的图标
+let g:tagbar_iconchars = ['▸', '▾']
+"<F12>作为toggle
+nmap <F12> :TagbarToggle<CR>
+"打开vim时自动打开
+autocmd VimEnter * nested :TagbarOpen
+wincmd l
+"如果不加这句，打开vim的时候当前光标会在Nerdtree区域
+autocmd VimEnter * wincmd l
+
+
+
+
+CtrlP (optional)
+====================
+安裝
+----------
+git clone https://github.com/ctrlpvim/ctrlp.vim.git ~/.vim/pack/plugins/start/ctrlp
+
+
+.vimrc 組態
+----------
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_match_window = 'bottom,order:btt,min:1,max:10,results:128'
+"let g:ctrlp_cmd = 'CtrlP'
+"let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn|pyc)$'
+
+
+使用
+----------
+按下 Esc 或 <Ctrl-c> 可退出ctrlp，返回到Vim窗口中
+按下 F5 用于刷新当前操作路径下的文件缓存，可以使用命令 let g:ctrlp_cache_dir = $HOME.'/.cache/ctrlp' 设置缓存文件存放路径
+使用 <Ctrl-k> 和 <Ctrl-j> 在模糊搜索结果列表中上下移动 (当然也可以使用键盘上的上下方向键)
+使用 <Ctrl-f> 和 <Ctrl-b> 在查找文件模式、查找缓冲区模式、查找MRU文件几种模式间进行切换 (cycle between modes)
+使用 <Ctrl-d> 在 路径匹配 和 文件名匹配 之间切换 (switch to filename search instead of full path) ，可以通过设置 let g:ctrlp_by_filename = 1 来设置默认使用 文件名匹配 模式进行模糊搜索
+使用 <Ctrl-r> 在 字符串模式 和 正则表达式模式 之间切换 (switch to regexp mode)
+使用 <Ctrl-t> 在新的Vim标签页中打开文件 (open the selected entry in a new tab)
+使用 <Ctrl-v> 垂直分割窗口打开文件
+使用 <Ctrl-x> 水平分割窗口打开文件
+使用 <Ctrl-p> 或` 选择前或后一条历史记录
+<Ctrl-y> 用于当搜索的目标文件不存在时创建文件及父目录 (create a new file and its parent directories)
+使用 <Ctrl-z> 标记或取消标记多个文件， 标记多个文件后可以使用 <Ctrl-o> 同时打开多个文件 (mark/unmark multiple files and to open them)
+
+
+
+
+jiangmiao/auto-pairs
+====================
+安裝
+----------
+git clone https://github.com/jiangmiao/auto-pairs.git ~/.vim/pack/plugins/start/auto_pairs
+
+
+.vimrc 組態
+----------
+let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"'}
+let g:AutoPairs['<']='>'																				" add pair of <>
+let b:AutoPairs = g:AutoPairs																		" set AutoPair applies in buff
+let g:AutoPairsShortcutToggle = '<M-p>'													" default ALT+p
+let g:AutoPairsShortcutFastWrap = '<M-e>'												" add a '()', default ALT+e
+let g:AutoPairsShortcutJump = '<M-n>'														" downlevel (),, default ALT+b
+let g:AutoPairsShortcutBackInsert = '<M-b>'
+"let g:AutoPairsMapBS = 1																				" <backspace> to delete () and '
+"let g:AutoPairsMapCh = 1
+"let g:AutoPairsMapCR = 1
+"let g:AutoPairsCenterLine = 1
+"let g:AutoPairsMapSpace = 1
+"let g:AutoPairsFlyMode = 0
+"let g:AutoPairsMultilineClose = 1
+
+
+
+
+indentline
+====================
+安裝
+----------
+git clone https://github.com/Yggdroot/indentLine.git  ~/.vim/pack/plugins/start/indent_line
+
+
+.vimrc 組態
+----------
+let g:indentLine_char='¦'   
+let g:indentLine_enabled = 1								" enable indentLine, g:indentLine_enabled = 0, disable indentLine
+"let g:indentLine_concealcursor = 'inc'			" concealcursor is a vim property
+"let g:indentLine_conceallevel = 2					" conceallevel is a vim property
+
+:IndentLinesToggle													" enable or disable indentLine
+
+
+
+
+indentpython
+====================
+安裝
+----------
+git clone https://github.com/vim-scripts/indentpython.vim.git ~/.vim/pack/plugins/start/indentpython.vim
+
+
+
+
+tell-k/vim-autopep8 (optional)
+====================
+安裝
+----------
+git clone https://github.com/tell-k/vim-autopep8.git ~/.vim/pack/plugins/start/vim-autopep8
+pip3 install --upgrade autopep8 or apt install python3-pep8
+
+
+.vimrc 組態
+----------
+autocmd FileType python noremap <buffer> <key> :call Autopep8()<CR>
+:%! autopep8 -
+let g:autopep8_disable_show_diff=1
+
+
+
+
+nvie/vim-flake8 (optional)
+====================
+安裝
+----------
+git clone https://github.com/nvie/vim-flake8.git ~/.vim/pack/plugins/start/vim-flake8
+sudo apt install python3-flake8
+
+
+.vimrc 組態
+----------
+autocmd FileType python map <buffer> <key> :call flake8#Flake8()<CR>
+let g:flake8_show_in_gutter=1
+let g:flake8_show_in_file=1
+call flake8#Flake8UnplaceMarkers()
+
+
+
+
+scrooloose/syntastic (optional)
+====================
+安裝
+----------
+git clone https://github.com/vim-syntastic/syntastic.git ~/.vim/pack/plugins/start/syntastic
+
+
+
+
+SimplyFold (optional)
+====================
+安裝
+----------
+git clone https://github.com/tmhedberg/SimpylFold.git  ~/.vim/pack/plugins/start/SimpylFold
+
+
+.vimrc 組態
+----------
+set foldmethod=indent									" 根據每行的縮排開啟摺疊
+set foldlevel=99
+nnoremap <space> za										" 使用空格鍵摺疊
+let g:SimpylFold_docstring_preview=1	" 希望看到摺疊程式碼的文件字串？
+
+
+
+
+taglist
+====================
+安裝
+----------
+sudo apt install ctags + cd /path/to/project + sudo ctags -R * + vimrc set tags=/path/to/project/tags
+git clone https://github.com/vim-scripts/taglist.vim.git  ~/.vim/pack/plugins/start/taglist
+	# https://www.vim.org/scripts/script.php?script_id=273
+
+
+.vimrc 組態
+----------
+let Tlist_Use_Right_Window = 1					" taglist window appear on right side
+let Tlist_File_Fold_Auto_Close = 1			" 同時顯示多個檔案的 tag 時，設定為 1，使 taglist 只顯示當前檔案 tag，其它檔案的 tag 都摺疊起來。
+let Tlist_Show_One_File = 1							" 只顯示一個檔案中的tag，預設為顯示多個
+let Tlist_Sort_Type ='name'							"	Tag的排序規則，以名字排序。預設是以在檔案中出現的順序排序
+let Tlist_Auto_Open = 1									" Open Taglist Window when vim init
+let Tlist_GainFocus_On_ToggleOpen = 1		" taglist視窗開啟時，立刻切換為有焦點狀態
+let Tlist_Exit_OnlyWindow = 1						" 如果 taglist 視窗是最後一個視窗，則退出 vim
+let Tlist_WinWidth = 32									"設定窗體寬度為32，可以根據自己喜好設定
+"let Tlist_WinHeight = 100
+let Tlist_Ctags_Cmd='/path/to/ctags'		"設定ctags程式的位置，/usr/bin/ctag
+map t :TlistToggle<CR>									"熱鍵設定，設成 Leader t 來撥出和關閉 taglist
+noremap <key> :!ctags -R<CR>
+
+
+使用
+----------
+通過熱鍵 t（, t）或者 :TlistToggle 彈出/關閉標籤視窗
+在標籤視窗按 F1 可以開啟以下幫助內容
+o 在一個新開啟的視窗中顯示游標下 tag
+顯示游標下 tag 的原型定義
+u 更新taglist視窗中的tag
+s 更改排序方式，在按名字排序和按出現順序排序間切換
+x taglist 視窗放大和縮小，方便檢視較長的 tag
+開啟一個摺疊，同 zo
+將 tag 摺疊起來，同 zc
+開啟所有的摺疊，同 zR
+= 將所有tag摺疊起來，同 zM
+[[ 跳到前一個檔案
+]] 跳到後一個檔案
+q 關閉taglist視窗
+
+
+
+
+vim-airline
+====================
+安裝 airline
+----------
+以 vim-plug 或 vundle 安裝
+  vim-airline/vim-airline
+  vim-airline/vim-airline-themes
+在 vim 建立 airline 的說明文件，非必要步驟
+  :helptags vim-airline
+
+
+設定字型
+----------
+mkdir ~/.fonts && cd ~/.fonts && git clone https://github.com/Lokaltog/powerline-fonts
+fc–cache –vf ~/.fonts
+terminal > Edit > Profiles… > General Font，選擇名稱帶有 for Powerline 的字型
+
+另有參考的字型
+  cd ~/.fonts && wget https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf
+  cd ~/.config/fontconfig/conf.d/ && wget https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf
+
+組態設定
+----------
+" 顯示顏色
+set t_Co=256
+" set status line
+set laststatus=2
+" 使用佈景如 wombat 或 base16
+let g:airline_theme='wombat'
+" 使用 powerline 特製字型
+let g:airline_powerline_fonts = 1
+" 開啟 tabline
+let g:airline#extensions#tabline#enabled = 1
+" 顯示 tabline 中 buffer 編號
+let g:airline#extensions#tabline#buffer_nr_show = 1
+" tabline 中當前 buffer 兩端的分隔字元
+let g:airline#extensions#tabline#left_sep = ' '
+" tabline 中未啟動 buffer 兩端的分隔字元
+let g:airline#extensions#tabline#left_alt_sep = '|'
+" 映射切換buffer的鍵位
+nnoremap [b :bp<CR>
+nnoremap ]b :bn<CR>
+" 映射<leader>num到num buffer
+map <leader>1 :b 1<CR>
+map <leader>2 :b 2<CR>
+map <leader>3 :b 3<CR>
+map <leader>4 :b 4<CR>
+map <leader>5 :b 5<CR>
+map <leader>6 :b 6<CR>
+map <leader>7 :b 7<CR>
+map <leader>8 :b 8<CR>
+map <leader>9 :b 9<CR>
+

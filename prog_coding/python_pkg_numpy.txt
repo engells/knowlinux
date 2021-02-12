@@ -1,4 +1,5 @@
-## vim:ts=4
+##!/bin/bash
+# vim:ts=4
 # program: Memo thr package of numpy
 # made by: Engells
 # date: Feb 5, 2021
@@ -10,47 +11,35 @@ ndarray
 ====================
 產生陣列
 ---------------
-my_array = np.zeros(10, dtype=int)      # 建立一個內容為0 長度為10的整數陣列
-my_array = np.ones((3,5) ,dtype=float)  # 建立一個內容為1 3x5 的浮點數陣列
-my_array = np.empty((3,2) )             # 建立一個內容為1 3x2 的無初始值陣列
-my_array = np.full((4,2), 2.2)          # 建立一個內容為2.2 4x2 的浮點數陣列
-my_array = np.arange(0,20,2)            # 建立一個依序填滿的陣列 0 到 20 間隔為2
-my_array = np.linspace(0,1,5)           # 建立一個 5 個值的陣列，在 0 到 1 間平均分布
+numpy.zeros(10, dtype=int)        # numpy.zeros(shape, dtype=float, order='C', *, like=None)
+numpy.ones((3,5) ,dtype=float)    # numpy.ones(shape, dtype=None, order='C', *, like=None
+numpy.empty((3,2) )               # numpy.empty(shape, dtype=float, order='C', *, like=None)
+numpy.full((4,2), 2.2)            # numpy.full(shape, fill_value, dtype=None, order='C', *, like=None)
+numpy.arange(0,20,2)              # numpy.arange([start, ]stop, [step, ]dtype=None, *, like=None)
+numpy.linspace(0,1,5)             # numpy.linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None, axis=0)
 
-my_array = np.random.normal(0,1,(3,3))  # 建立一個 3*3 陣列，內容為常態分佈的亂數值 平均 0，標準差 1
-my_array = np.random.randint(0,10,(3,3))# 建立一個 3*3 陣列，內容介於 0 到 10 的整數
-? my_array = np.random.random((3,3))      # 建立一個 3*3 陣列，在 0 到 1 間亂數值
-? my_array = np.random.ranf((5))          # 建立一個 5 陣列，在 0 到 1 間亂數值
-? my_array = np.random.sample((2,3))      # 建立一個 2*3 陣列，在 0 到 1 間亂數值
+numpy.random.normal(0,1,(5,3))    # numpy.random.normal(loc=0.0, scale=1.0, size=None)
+numpy.random.randint(0,10,(5,3)   # numpy.random.randint(low, high=None, size=None, dtype='l')
+numpy.random.randn(5, 4)          # numpy.random.randn(d0, d1, ..., dn)           
+numpy.random.random(size=None)    # Return random floats in the half-open interval [0.0, 1.0)
+numpy.random.ranf(size=None)      # Return random floats in the half-open interval [0.0, 1.0)
+numpy.random.sample(size=None)    # Return random floats in the half-open interval [0.0, 1.0)
 
-my_array = np.array([[ 0.226, -0.23 , -0.86],
-                 [ 0.5639, 0.2379, 0.904]])
+numpy.array([1, 2, 3], dtype=complex)    # numpy.array(object, dtype=None, *, copy=True, order='K', subok=False, ndmin=0, like=None)
+numpy.array([[ 0.226, -0.23 , -0.86], [ 0.5639, 0.2379, 0.904]])
+numpy.array(python_list)
 
-my_array = np.array([1, 2, 3], dtype=complex)
 
-my_data1 = [6, 7.5, 8, 0, 1]
-my_arr1 = np.array(my_data1)
-
-my_data2 = [[1, 2, 3, 4], [5, 6, 7, 8]]
-arr2 = np.array(my_data2)
 
 
 Numpy 陣列屬性
 ----------
-ndim()：取得陣列的維度數量
-shape()：陣列的形狀
-dtype()：資料型態
-size()：陣列的數量
-itemsize()：陣列中元素的大小(位元組為單位)
-nbytes()：陣列的大小(位元組為單位) 一般來說 nbytes = itemsize * size
-
-
-arr_x = np.random.randint(10, size=(3,4))
-print(arr_x)
-np.all(x<8,axis = 0)
-np.sum(arr_x>5,axis = 1)          # 計算大於 5 的數量，應用了 True 相當於數值 1 的效果
-np.sum((arr_x > 5) & (arr_x <8))
-arr_x[(x>5) & (x <8)]
+numpy.array.ndim()：取得陣列的維度數量
+numpy.array.shape()：陣列的形狀
+numpy.array.dtype()：資料型態
+numpy.array.size()：陣列的數量
+numpy.array.itemsize()：陣列中元素的大小(位元組為單位)
+numpy.array.nbytes()：陣列的大小(位元組為單位) 一般來說 nbytes = itemsize * size
 
 
 
@@ -71,14 +60,7 @@ print("arr_x3[1,2,1]----->", arr_x3[1:, :, :5:2])
 
 Slicing and Reshape
 ====================
-myarr = np.arange(10)
-slice = myarr[5:8]
-myarr[5:8] = 7
-slice[1] = 87
-myarr
-
-arr = np.array([1,2,3])
-arr_reshape = arr.reshape((3,1))  
+ 
 
 
 
@@ -102,73 +84,46 @@ arr_z1,arr_z2,arr_z3 = np.split(arr_z,[3,5])
 
 Broadcasting
 ====================
-a = np.array([1,2,3])
-b = np.array([2,2,2])
-a * b => array([2, 4, 6])
 
-c = np.array([1.0, 2.0, 3.0])
-d = 2
-c * d => array([2, 4, 6])
-
-x = np.arange(4)        # x is a 1*4 array
-xx = x.reshape(4,1)     # xx is a 4*1 array
-y = np.ones(5)
-(xx + y)
-
-s = np.arange(6)
-s = s.reshape((3, 2))
-     # s => array([[0,1],[2,3],[4,5]])
-
-x = np.zeros((5, 2))
-	# x => array([0,0],[0,0],[0,0],[0,0],[0,0])
-y = x.T
-    # T means transpose
-	# y => array([0,0,0,0,0],[0,0,0,0,0])
-
-y = np.array([1,2,3,4])
-y.base is None
-
-x = np.arange(4)
-xx = x.reshape(4,1)
-y = np.ones(5)
-(xx + y)
-xx.base is x
 
 
 
 Statistac
 ====================
-np.random.randn()    # create a random data
-np.random.randn(2, 4) + 1.920929
+numpy.array.mean()
+numpy.array.sum()
+numpy.array.min()
+numpy.array.max()
+numpy.array.cumsum(x)    # accumulated sum
+numpy.array.std()
 
-np.random.randint(low=4,high=10,size=10)
+arr_x = np.random.randint(10, size=(3,4))
+print(arr_x)
+np.all(x<8,axis = 0)
+np.sum(arr_x>5,axis = 1)          # 計算大於 5 的數量，應用了 True 相當於數值 1 的效果
+np.sum((arr_x > 5) & (arr_x <8))
+arr_x[(x>5) & (x <8)]
 
-x = np.random.randn(5, 4)
-x.mean()
-x.sum()
-x.min()
-x.max()
-np.cumsum(x)    # accumulated sum
-np..std()
 
 
 
 File input and output
 ====================
-x = np.arange(10)
-np.save('my_array', x)   # save a file with name of my_array.npy
-np.load('my_array.npy')  # load a file with name of my_array.npy
+numpy.save
+numpy.load
+numpy.savez
+    # my_array_a = [1,2,3,4,5,6]
+    # my_array_b = [7,8,9,10,11,12]
+    # np.savez('my_archive.npz', a=my_array_a, b=my_array_b)  # 儲存多個陣列在一個zip的檔案中
+    # myArch = np.load('my_archive.npz')
+    # myArch['b']    # get aData
+    # myArch['a']
 
-amy_array = [1,2,3,4,5,6]
-bmy_array = [7,8,9,10,11,12]
-np.savez('my_archive.npz', a=aData, b=bData)
-myArch = np.load('my_archive.npz')
-myArch['b']    # get aData
-myArch['a']
 
-!cat my_txt.txt
-myArr = np.loadtxt('my_txt.txt', delimiter=',')
-np.savetxt('txtfile.txt', myArr)
+numpy.loadtxt('txt_file_name', delimiter=',')  # delimiter=',' 是指資料或數值的分隔的符號
+numpy.savetxt('txt_file_name', numpy.array)
+numpy.genfromtxt(fname, dtype=<type 'float'>, comments='#', delimiter=None, skip_header=0, skip_footer=0, converters=None, missing_values=None, filling_values=None, usecols=None, names=None, excludelist=None, deletechars=None, replace_space='_', autostrip=False, case_sensitive=True, defaultfmt='f%i', unpack=None, usemask=False, loose=True, invalid_raise=True, max_rows=None)
+
 
 
 

@@ -1,7 +1,8 @@
+##!/bin/bash
 # vim:ts=4
 # program: Using to note the knowledge about systemd
 # made by: Engells
-# date: Mar 26, 2019
+# date: Feb 8, 2021
 # content: Just for memo
 
 
@@ -23,6 +24,7 @@ systemctl set-property xxxx.service CPUShares=500
 
 
 
+
 自行定義開機及關機自動執行程式
 ====================
 開機自動執行程式
@@ -37,6 +39,7 @@ systemctl set-property xxxx.service CPUShares=500
 		Created symlink /etc/systemd/system/halt.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
 		Created symlink /etc/systemd/system/reboot.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
 		Created symlink /etc/systemd/system/shutdown.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
+
 
 
 
@@ -75,6 +78,7 @@ Target(/etc/systemd/system/) 與 RunLevel 的對應關係
     Runlevel 4           |    runlevel4.target -> multi-user.target
     Runlevel 5           |    runlevel5.target -> graphical.target
     Runlevel 6           |    runlevel6.target -> reboot.target
+
 
 
 
@@ -132,6 +136,7 @@ WantedBy=multi-user.target
 
 
 
+
 Target 組態檔案
 ====================
 systemctl cat multi-user.target
@@ -143,6 +148,7 @@ Requires=basic.target								# 要求與 basic.target 一起執行
 Conflicts=rescue.service rescue.target				# 若 rescue.service 等已在執行，本 target 不能執行
 After=basic.target rescue.service rescue.target		# 在 basic.target 等之後執行
 AllowIsolate=yes									# 允許以 systemctl isolate 指令切換至 multi-user.target
+
 
 
 
@@ -203,10 +209,13 @@ systemctl is-enabled application.service
 systemctl list-dependencies application.service
 systemctl list-dependencies --all application.service
 
+systemctl list-units            # list all active service
 systemctl list-unit-files
 systemctl list-unit-files --type=service
 systemctl cat xxxx.service
-
+systemctl list-units --all
+systemctl list-units --all --state=inactive
+systemctl list-units --type=service
 
 hostnamectl						# show hostname
 hostnamectl set-hostname xxxx	# set hostname
@@ -224,6 +233,7 @@ timedatectl set-time HH:MM:SS
 loginctl list-sessions			# show current sessions
 loginctl list-users				# show data of current login user
 loginctl show-user xxxx			# show data of user xxxx
+
 
 
 
@@ -259,8 +269,11 @@ systemctl list-unit-files
 	/usr/lib/sysyemd
 
 
+
 URL
 ====================
 http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html
 http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html
+https://blog.gtwang.org/linux/linux-basic-systemctl-systemd-service-unit-tutorial-examples/
+
 
