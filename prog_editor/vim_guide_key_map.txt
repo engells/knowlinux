@@ -16,6 +16,13 @@ make mapping
   "   map, for normal and visual | map! | nmap, normal mode | vmap, visual | imap, Insert | cmap, cmdline | omap, operator
   " nore: no recursive mapping in each mode
   " map: mean for mapping
+  " 特殊參數
+  "   <buffer>
+  "   <silent>
+  "   <special>
+  "   <script>
+  "   <expr>
+  "   <unique>
 
 
 Examples
@@ -23,6 +30,8 @@ Examples
   :nnoremap <Down> <Nop>
   :vnoremap <Left> <Nop>
   :inoremap <Right> <Nop>
+  :nnoremap <leader>sv :source $MYVIMRC<cr>		" <leader>sv to reload .vimrc
+  :nnoremap <buffer> <leader>x dd
 
 
 cancel mapping
@@ -42,7 +51,8 @@ other commands
 :mapclear
 :h key-notation, to find ket definition
 :let mapleader = ","
-
+:let localmapleader = "\\"
+:unmap {lhs}					" 取消普通模式下 lhs 的映射，其他模式不受影響
 
 
 

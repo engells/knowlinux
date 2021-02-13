@@ -1,0 +1,45 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about vim status line
+# made by: Engells
+# date: Feb 13, 2021
+# content: Just for memo, http://learnvimscriptthehardway.onefloweroneworld.com/chapters/00.html
+
+
+
+語法(syntax)
+====================
+set laststatus=2 | laststatus=1			" 開啟狀態列
+set statusline=<options>
+  " 常見參數如下：
+  "「%t」代表檔案名稱；「%F」代表檔案路徑；「%y」代表檔案類型；
+  "「%c」代表目前游標所在的欄號；「%l」代表目前游標所在的列號；「%L」代表總列數；
+  "「%3p」代表目前瀏覽位置的進度百分比，以 3 位數字顯示，不足位數放在左邊。「%-4p」，以 4 位數字顯示，不足位數放在右邊。
+  "「%=」代表所有之後的訊息靠向狀態列右側
+  " 參數 %{...}，會將大括弧內函數或指令或變數運算後展開
+  " 在 vim 內參數的 id 形式為 &variable_name
+  " \ ，反斜線後接一個空格，代表空一格，常用於區隔不同性質資料。如欄數與檔案名稱之間，用空格區別之。
+  " 可用指令 :help 'statusline' 查詢相關資料，注意單引號可省略
+
+
+
+
+示例
+====================
+:set statusline=%f\ -\ FileType:\ %y
+
+:set statusline=Current:\ %4l\ Total:\ %4L
+  " 效果為： Current: xx   Total: xxxx。%4l
+
+:set statusline=Current:\ %-4l\ Total:\ %-4L
+  " %-4l => 以四位數字顯示游標所在列數，不足位數放在右邊
+  " %04l => 以四位數字顯示游標所在列數，不足位數以 0 替代
+  " %F => 檔案完整路徑
+  " %.20F => 檔案完整路徑，最多 20 字元
+
+:set statusline=[%{expand('%:p')}] 
+:set statusline+=[%{strlen(&fenc)?&fenc:&enc},\ %{&ff},\%{strlen(&filetype)?&filetype:'plain'}]
+:set statusline+=%{FileSize()}
+:set statusline+=%{IsBinary()}%=%c,%l/%L\ [%3p%%]
+
+

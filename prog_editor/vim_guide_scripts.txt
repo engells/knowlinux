@@ -23,35 +23,6 @@ examples:
 
 
 
-mappings
-====================
-commands stntax:
-	map <left-keys> <right-keys>		" 定義熱鍵(指令映射)，不能有註釋的文字接續在同一行
-	unmap <left-keys>								" 取消 <left-keys> 之映射
-  mapclear												" 取消所有映射
-	noremap													" 非遞迴方式映射熱鍵，nore + map，nore，即 no recirsing 意指非遞迴方式
-	let mapleader = "-"							" 設置 Leader 符號 
-	let localmapleader = "\\"
-  特殊參數
-    <buffer>
-    <silent> → nmap <silent> b a							" 所映射指令不會在底部命令列顯現
-    <special>
-    <script>
-    <expr>
-    <unique>
-
-examples:
-  :map b a 																		" 將 b 映射為 a
-  :map b a ＋ map c b													" 輸入 c 映射為 b，b 再映射為 a，產生遞迴(recirsing)效果 
-	:nnoremap <leader>sv :source $MYVIMRC<cr>		" 設置 <leader>sv，以重載 .vimrc
-	:nnoremap <buffer> <leader>x dd							" 僅在目前作業檔案啟用 <leader>x 作為 dd 的熱鍵
-  :imap <c-d> <esc>ddi												" 在插入模式下定義 Ctrl + D 等於 ESC + dd + i 之複合作用
-	:inoremap <esc> <nop>												" 在插入模式下取消 ESC 鍵作用
-  :unmap {lhs}																" 取消普通模式下 lhs 的映射，其他模式不受影響
-
-
-
-
 abbreviations
 ====================
 通常用於 insert、replace、command 模式
@@ -111,25 +82,6 @@ Operator-Pending
   v => 進入可視模式
   g_ => 移到最後非空白字元
 :onoremap ah :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rg_vk0"<cr>
-
-
-
-
-Status line
-====================
-:set statusline=%f\ -\ FileType:\ %y
-  %f => file name
-  %y => file type 
-  %l => cursor line number
-  %L => the numbers of a file
-:set statusline=Current:\ %4l\ Total:\ %4L
-  %4l => 以四位數字顯示游標所在列數
-:set statusline=Current:\ %-4l\ Total:\ %-4L
-  %-4l => 以四位數字顯示游標所在列數，不足位數放在右邊
-  %04l => 以四位數字顯示游標所在列數，不足位數以 0 替代
-  %F => 檔案完整路徑
-  %.20F => 檔案完整路徑，最多 20 字元
-  %= => 所有之後的訊息靠右對齊
 
 
 

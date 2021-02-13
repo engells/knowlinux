@@ -80,17 +80,6 @@ set mouse=a, mouse=nv											" 只在 Normal 以及 Visual 模式使用滑鼠
 
 
 "---- Miscellaneous ----
-set laststatus=2 | laststatus=1									" 開啟狀態列
-set statusline=[%{expand('%:p')}] 
-set statusline+=[%{strlen(&fenc)?&fenc:&enc},\ %{&ff},\%{strlen(&filetype)?&filetype:'plain'}]
-set statusline+=%{FileSize()}
-set statusline+=%{IsBinary()}%=%c,%l/%L\ [%3p%%]
-    " 設定「statusline」環境變數，顯示狀態列的文字格式。注意語法 %{...} &variable ，可用指令 :help 'statusline' 查詢
-    "「%t」代表檔案名稱；「%F」代表檔案路徑；「%y」代表檔案類型；「%=」代表左右分隔，其後的內容靠向右側；
-    "「%c」代表目前游標所在的行號；「%l」代表目前游標所在的列號；「%L」代表總列數；「%3p」代表目前瀏覽位置的進度百分比，以 3 位數字顯示。
-set statusline=Current:\ %-4l\ Total:\ %-4L
-    "效果為： Current: xx   Total: xxxx。「\ %-4l」表示空一格，4 位數字顯示欄位(column)，數字向右對齊。
-
 set showcmd | noshowcmd											" 顯示暫存指令 
 set showmode | noshowmode										" 顯示 vim 的模式 
 set autowrite | noautowrite 
