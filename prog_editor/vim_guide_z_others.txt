@@ -16,16 +16,6 @@ Session
 
 
 
-Commands
-====================
-:r! command  => show result under current line
-:nr! command
-:m,nr! command => can't undo
-:r sh
-
-
-
-
 Folding
 ====================
 url:	http://ctwyw.com/?p=43
@@ -109,9 +99,18 @@ Ex 模式 (Ex-mode)
 
 將設定檔切分成數個檔案
   利用 source 指令可讓 vim 載入外部設定檔
-    for CONFIG in split(glob('~/.vim/vimrc.d/*.vim'), '\n')
+    for CONFIG in split(glob('/path/to/*.vim'), '\n')
       exe 'source' CONFIG
     endfor
+  指令 :echo split(glob('/path/to/*.vim'), '\n')，可查詢外部設定檔完整路徑暨檔名
+
+
+預設目錄結構
+  1. 指令 :help vimfiles，可以查詢 vim 預設目錄結
+  2. $HOME/.vim/autoload/，執行 vim 時，自動執行該目錄底下的 xxxx.vim 檔案
+  3. $HOME/.vim/ftplugin/，編輯不同類型(html、css、python等)檔案時，執行該目錄底下對應的 xxxx.vim 檔案
+  4. $HOME/.vim/plugin/，執行 vim 時，該目錄底下的 xxxx.vim 檔案作為 .vimrc 的補充檔案執行
+  5. $HOME/.vim/colors，該目錄為 vim 的佈景主題檔案所在
 
 
 

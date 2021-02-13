@@ -62,6 +62,7 @@ vim-plug
   # 更新 plugin，在 vim 中輸入 :PlugUpdate 指令
   # 更新 vim-plug 本身，在 vim 中輸入 :PlugUpgrade 指令
 	# 移除 plugin，把不需要的 plugin 刪除或註解掉，接著進入 Vim 輸入 :PlugClean 指令
+  # URL: https://github.com/junegunn/vim-plug
 
 Vundle
   # 編輯 .vimrc 中加入右列內容：Plugin 'tpope/vim-fugitive'，然後在 vim 中打 :PluginInstall 就會安裝。

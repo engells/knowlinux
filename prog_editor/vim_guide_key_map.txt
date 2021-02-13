@@ -12,7 +12,8 @@
 make mapping
 ---------------
 語法： [mode_id][nore][map] key_definition actions
-  " mode: n for normal mode ...
+  " mode_id: n for normal mode ...
+  "   map, for normal and visual | map! | nmap, normal mode | vmap, visual | imap, Insert | cmap, cmdline | omap, operator
   " nore: no recursive mapping in each mode
   " map: mean for mapping
 
@@ -42,5 +43,26 @@ other commands
 :h key-notation, to find ket definition
 :let mapleader = ","
 
+
+
+
+示例
+====================
+let mapleader=";"               " 將「;」設為熱鍵的領(頭)鍵
+let g:mapleader="\<Space>"      " 將「空白鍵」設為熱鍵的領(頭)鍵
+nmap LB 0                       " 定義快速鍵到行首和行尾
+nmap LE $
+vnoremap <Leader>y "+y          " 設置熱鍵將選中文字區塊複製至系統剪貼板
+nmap <Leader>p "+p              " 設置熱鍵將系統剪貼板內容粘貼至 vim
+nmap <Leader>q :q<CR>           " 定義熱鍵關閉當前分割窗口
+nmap <Leader>w :w<CR>           " 定義熱鍵保存當前視窗內容
+nmap <Leader>WQ :wa<CR>:q<CR>   " 定義熱鍵保存所有視窗內容並退出 vim
+nmap <Leader>Q :qa!<CR>         " 不做任何保存，直接退出 vim
+nnoremap nw <C-W><C-W>          " 依次遍歷子視窗
+nnoremap <Leader>hw <C-W>h      " 跳轉至左方的窗口
+nnoremap <Leader>jw <C-W>j      " 跳轉至下方的子窗口
+nnoremap <Leader>kw <C-W>k      " 跳轉至上方的子窗口
+nnoremap <Leader>lw <C-W>l      " 跳轉至右方的窗口
+nmap <Leader>M %                " 定義熱鍵在結對符之間跳轉
 
 

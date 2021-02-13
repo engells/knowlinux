@@ -48,13 +48,27 @@
 其它指令
 ====================
 	指令				說明
+*	~				英文字母大小寫互換
+* 	.				重覆上一個指令
+*	retab			將檔案內現有之「TAB」字元替換為空白字元
 * 	J				將游標行與下一行合併
 * 	u				還原指令
 * 	<C+R>			重做指令
 * 	<C+N>			自動補齊曾輸入過的單字
-* 	.				重覆上一個指令
+
 	! 命令			執行 linux 指令，並顯示執行結果
+	:r! command		執行 linux 指令，將執行結果寫入游標所在列
+	:nr! command	將第 n 列文字作為 linux 指令執行
+	:m,nr! command	將第 m 至 n 列文字作為 linux 指令執行，無法 undo
+	:r sh_file			執行 sh script
+
 	TOhtml			將目前編輯的檔案轉換成 HTML 原始碼 (會新增一個水平分割視窗)
+	:swapname		查詢 swap
+	:preserve		將修改保存至 swap
+	:recover		自 swap 回復文件
+
+	:color <Tab>	逐一出現在 $HOME/.vim/colors 的佈景主題，:color 完整指令 :colorscheme
+	:color <C-d>	列出全部在 $HOME/.vim/colors 的佈景主題
 
 
 
