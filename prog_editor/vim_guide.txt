@@ -9,14 +9,7 @@
 
 memo
 ====================
-viw => visual inner word 
-vaw => aroubf word
-vi" => inner ""
-vit => inner tag
-v}
-v{
 <C-w> <C-u>
-
 
 try ... catch ... endtry
 
@@ -24,6 +17,28 @@ set scrolloff=3
 set list | set nolist
 
 qa q @a 5@a
+
+
+
+
+Text object
+====================
+語法
+---------------
+[number]<command>[text object or motion]
+  " number: 指作業次數
+  " command: 執行的具體命令， 最常見如刪除用 d, 修改用 c, 
+  " vtext object or motion: 指的是需要操作的文本對象，比如單詞、句子、段落等
+
+
+示例
+---------------
+viw : visual inner word 
+vaw : aroubf word
+vi" : inner ""
+vit : inner tag
+v}  : visual to the end of paragraph
+v{  : visual to the prior paragraph
 
 
 
@@ -78,7 +93,7 @@ qa q @a 5@a
 ---------------
 :n :2n :N											<= 切換到下一個開啟的檔案
 :bn :bp :bf :bl :b[#] :b檔名		<= move to next | previous | first | last buffer
-<C+^>                        <= move to previous edited buffer
+<C+^>                         <= move to previous edited buffer
 :tab ba                       <= all buffers to each own tab
 :bd                           <= delete current buffer
 :files 或 :buffers 或 :ls			<= 會列出目前 buffer 中的所有檔案

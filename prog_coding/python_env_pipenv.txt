@@ -7,7 +7,16 @@
 
 
 
-指令
+常用指令
+====================
+pipenv --venv
+pipenv --clear
+pipenv lock && pipenv sync
+
+
+
+
+一般指令
 ====================   
 cd /path/to/project env && export PIPENV_VENV_IN_PROJECT=1 && pipenv --three
     # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。
@@ -60,8 +69,8 @@ pipenv graph
 pipenv lock --requirements > requirements.txt
     # 產生 requirements.txt 給特定平台如：AWS Elastic Beanstalk
 
-pip3 install --user --upgrade pipenv
-    # 更新 pipenv
+python3 -m pip install --upgrade --user pipenv
+    # 更新 pipenv，亦可用 pip3 install --user --upgrade pipenv 指令，在 pipenv 虛擬環境外執行。
 
 pipenv install --dev
     # 依 Pipfile 與 Pipfile.lock 內容重建 Python 虛擬環境

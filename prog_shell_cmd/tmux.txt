@@ -1,8 +1,10 @@
+##!/bin/bash
 # vim:ts=2
 # program: Using to note knowhow about tmux
 # made by: Engells
-# date: Mar 31, 2019
+# date: Feb 17, 2021
 # content: Just for memo
+
 
 
 tmux 指令
@@ -11,7 +13,8 @@ bind-key 方向鍵				# 切換 window
 bind-key [0...9]		# 切換 window
 bind-key K					# 關閉 window
 C-d 								# 關閉 tmux panel
-bind-key [					# 翻頁 scroll, PgUP pgDown q
+bind-key [					# 進入翻頁 scroll 模式，可按 PgUP 或 PgDown 向前或向後翻頁，按 q 鍵離開本模式。
+bind-key PgUP				# 向上翻頁
 
 tmux or tmux new -s session_name						# 新增 session
 tmux attach or tmux attach -t session-id		# 連回 session
