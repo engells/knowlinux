@@ -1,0 +1,32 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Monitor Apps on Raspberry Pi
+# made by: Engells
+# date: Feb 19, 2021
+# content: Just for memo
+
+
+
+RPi-Monitor 樹莓派的監控系統
+====================
+commands
+----------
+http://xxx.xxx.xxx.xxx:8888
+sudo /etc/init.d/rpimonitor update
+sudo systemctl restart rpimonitor
+sudo systemctl start rpimonitor
+sudo systemctl stop rpimonitor
+
+edit /etc/rpimonitor/data.conf
+  # include=/etc/rpimonitor/template/wlan.conf
+
+
+install
+----------
+sudo apt install dirmngr
+sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2C0D3C0F
+sudo wget http://goo.gl/vewCLL -O /etc/apt/sources.list.d/rpimonitor.list
+sudo apt update
+sudo apt install rpimonitor
+
+

@@ -1,0 +1,84 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about RetroPie on Raspberry Pi
+# made by: Engells
+# date: Feb 5, 2021
+# content: Just for memo
+
+
+
+RetroPie
+====================
+設定語系
+----------
+locale
+	# sudo locale-gen en_US.UTF-8 UTF-8; sudo update-locale en_US.UTF-8 UTF-8; sudo export LANGUAGE=en_US.UTF-8  
+	# sudo export LC_ALL=en_US.UTF-8; sudo export LANG=en_US.UTF-8; sudo export LANGUAGE=en_US.UTF-8  
+	# sudo reboot
+
+
+安裝 RetroPie 
+----------
+sudo apt install git lsb-release
+su - pi
+git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git
+cd RetroPie-Setup
+chmod +x retropie_setup.sh
+sudo ./retropie_setup.sh	# choose complete install
+	# sudo rpi-update, if libbrcmEGL.so not found.
+
+
+設定 RetroPie
+----------
+sudo ./retropie_setup.sh
+	#  tools>>autostart => Start EmulationStation at Boot: Boots into EmulationStation
+sudo vi /etc/inittab
+	# 1:2345:respawn:/sbin/getty --autologin pi --noclear 38400 tty1
+
+
+開始遊戲
+----------
+run command emulationstation in the terminal	# 初次執行會出設定搖桿畫面
+rom => ~/RetroPie/roms/emulator_name
+
+
+SSH to emulationstation
+----------
+nohup emulationstation &
+chmod +x ~/ex.sh && vi es.sh
+	#!/bin/bash
+	export DISPLAY=:0  
+	nohup emulationstation &  
+
+
+Trouble shoot
+----------
+VolumeControl::Init() - Failed to attach to default card 
+	vi /boot/config.txt (option, for no sound)
+		# dtparam=audio=on
+		# hdmi_drive=2
+		# hdmi_force_hotplug=1
+		# hdmi_force_edid_audio=1
+
+VolumeControl::init() - Failed to find mixer elements
+	raspi-config，audio => HDMI
+    sudo ./retropie_setup.sh，audio => HDMI
+    RetroPie ，audio => HDMI
+
+More shader
+	retropie_setup.sh => Configuration tools => 140 RetroArch => Online Updater => Update GLSL Shaders
+
+General shader
+	retropie_setup.sh => Configuration tools 804 configedit => libretro => default option
+	retropie => Configuration Editor => Video Smoothing False => True
+
+"controller not configured​"
+	sudo nano /opt/retropie/configs/all/retroarch.cfg	
+		# input_joypad_driver = "udev" => sdl
+
+
+URL
+----------
+http://homtang.com/retropie/
+
+
