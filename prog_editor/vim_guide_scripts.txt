@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=2
 # program: Using to note the knowledge about vim scripts
 # made by: Engells
@@ -27,19 +27,19 @@ abbreviations
 ====================
 通常用於 insert、replace、command 模式
 
-commands stntax:
-  abbrev <left-string> <right-string>		" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
+commands syntax:
+  abbrev <left-string> <right-string>	          	" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
 
 examples:
-  :iabbrev adn and											" 在插入模式下，adn 字串由 and 字串取代
-  :iabbrev @@ steve@stevelosh.com				" 在插入模式下，@@ 字串由 steve@stevelosh.com 字串取代，變相成為簡易輸入電郵地址
+  :iabbrev adn and									          		" 在插入模式下，adn 字串由 and 字串取代
+  :iabbrev <buffer> @@ steve@stevelosh.com				" 在插入模式及目前緩衝區下，@@ 字串由 steve@stevelosh.com 字串取代，變相成為簡易輸入電郵地址
 
 
 
 
-autocmd
+autocommand
 ====================
-commands stntax:
+commands syntax:
 	autocmd event1,event2,... filter_pattern command
 
 examples:
@@ -48,6 +48,7 @@ examples:
 	:autocmd BufWritePre *.html :normal gg=G		" 對 html 類型檔案存檔前，對檔案內容縮排
 	:autocmd BufNewFile,BufRead *.html setlocal nowrap
 	:autocmd FileType python  nnoremap <buffer> <localleader>c I#<esc>	" Python文件（副檔名 .py）,將游標移至任一列，敲鍵盤<localleader>c 即可註釋該列
+  :autocmd FileType python  :iabbrev <buffer> iff if:
 
 	:augroup testgroup
 	:	autocmd!  <= 清除同名 autocmd group 所定義命令

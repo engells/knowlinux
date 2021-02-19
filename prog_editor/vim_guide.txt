@@ -23,16 +23,18 @@ qa q @a 5@a
 
 Text object
 ====================
-語法
+Syntax
 ---------------
-[number]<command>[text object or motion]
+[number]<command><prep>[text object or motion]
   " number: 指作業次數
   " command: 執行的具體命令， 最常見如刪除用 d, 修改用 c, 
+  " prep: 介係詞，用以標定範圍，如 to、in、at
   " vtext object or motion: 指的是需要操作的文本對象，比如單詞、句子、段落等
 
 
 示例
 ---------------
+vt, : visual until comma
 viw : visual inner word 
 vaw : aroubf word
 vi" : inner ""
@@ -95,9 +97,15 @@ v{  : visual to the prior paragraph
 :bn :bp :bf :bl :b[#] :b檔名		<= move to next | previous | first | last buffer
 <C+^>                         <= move to previous edited buffer
 :tab ba                       <= all buffers to each own tab
-:bd                           <= delete current buffer
+:bd :bd [#]                   <= delete current buffer | delete buffer with id
 :files 或 :buffers 或 :ls			<= 會列出目前 buffer 中的所有檔案
-# 代表前一次編輯的檔案，% 是目前編輯中的檔案
+  " % 是目前編輯中的緩衝區
+  " # 代表前一次編輯的檔案
+  " + 代表已經更改的緩衝區
+  " - 代表非活動的緩衝區
+  " a 代表當前被啟用緩衝區
+  " h 代表隱藏的緩衝區
+  " = 代表只讀緩衝區
 
 
 檔案內容緩衝區

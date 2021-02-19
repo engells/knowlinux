@@ -73,9 +73,9 @@ python.os.walk()
 
 open(filename, mode) # mode => r,w,X,a
 
-import csv ; csv.writer ; csv.writer.writerow ; csv.reader
-import xml.etree.ElementTree
-import json
+import csv ; csv.writer() ; csv.writer.writerow() ; csv.reader() ; csv.DictReader() ; csv.DictWriter()
+import xml.etree.ElementTree()
+import json ; json.dumps() ; json.loads()
 import yaml
 
 
@@ -84,5 +84,5 @@ import yaml
 ===============
 2017 iT 邦幫忙鐵人賽 R 語言使用者的 Python 學習筆記 系列    https://ithelp.ithome.com.tw/users/20103511/ironman/1077?page=1
 2018 iT 邦幫忙鐵人賽 使用Python進行資料分析 系列    https://ithelp.ithome.com.tw/users/20107514/ironman/1399
-
+2019 iT 邦幫忙鐵人賽 python 入門到分析股市 系列     https://ithelp.ithome.com.tw/users/20111390/ironman/1791
 

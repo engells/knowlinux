@@ -50,8 +50,8 @@ other commands
 ----------------
 :mapclear
 :h key-notation, to find ket definition
-:let mapleader = ","
-:let localmapleader = "\\"
+:let mapleader = ",,"
+:let maplocalleader = "\\"
 :unmap {lhs}					" 取消普通模式下 lhs 的映射，其他模式不受影響
 
 
