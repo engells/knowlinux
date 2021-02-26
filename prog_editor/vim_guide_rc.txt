@@ -98,6 +98,7 @@ set swapfile | noswapfile										" 啟用 swap
 set directory													" 設定 swap 檔案所在目錄
 set updatetime=23000											" 每隔 23 秒自動更新
 set updatecount=4000											" swap 檔案內容達 4000 字元後存入實體硬碟
+set scrollbind 													" 讓視窗內容同步移動，可簡寫為：set scb
 highlight Comment ctermfg=cyan									" 設定註解的顏色
 
 

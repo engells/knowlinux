@@ -37,42 +37,12 @@ examples:
 
 
 
-autocommand
-====================
-commands syntax:
-	autocmd event1,event2,... filter_pattern command
-
-examples:
-	:autocmd BufNewFile * :write								" 開新檔案時，立刻儲存
-	:autocmd BufNewFile *.txt :write						" 開 txt 類型新檔案時，立刻儲存
-	:autocmd BufWritePre *.html :normal gg=G		" 對 html 類型檔案存檔前，對檔案內容縮排
-	:autocmd BufNewFile,BufRead *.html setlocal nowrap
-	:autocmd FileType python  nnoremap <buffer> <localleader>c I#<esc>	" Python文件（副檔名 .py）,將游標移至任一列，敲鍵盤<localleader>c 即可註釋該列
-  :autocmd FileType python  :iabbrev <buffer> iff if:
-
-	:augroup testgroup
-	:	autocmd!  <= 清除同名 autocmd group 所定義命令
-	:	autocmd BufWrite * :echom "Foo"
-	:	autocmd BufWrite * :echom "Bar"
-	:augroup END
-
-
-
-
-Operator-Pending 常用到的 Operator 有d，y 和 c
-
-help documents
-	:help autocmd-events
-
-
-
-
 Operator-Pending
 ====================
-:onoremap il( :<c-u>normal! F)vi(<cr>
+:onoremap il( :<c-u>normal! f)vi(<cr>
   <c-u> => make sure mapping active
   normal! => 模擬按下按鍵，但不能識別特殊符號如 <CR>，故常搭配 execute
-  F) => 向後移動至最近的 ) 字元
+  f) => 向後移動至最近的 ) 字元
   vi( => 進入可視模式選取括弧內所有內容
 :onoremap ih :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rkvg_"<cr>
   execute => run a vim script
@@ -83,6 +53,8 @@ Operator-Pending
   v => 進入可視模式
   g_ => 移到最後非空白字元
 :onoremap ah :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rg_vk0"<cr>
+
+Operator-Pending 常用到的 Operator 有d，y 和 c
 
 
 

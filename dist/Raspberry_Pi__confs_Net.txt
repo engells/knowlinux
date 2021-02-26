@@ -1,0 +1,186 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Raspberry Pi Network
+# made by: Engells
+# date: Feb 21, 2021
+# content: Just for memo
+
+
+
+Quick Reference
+====================
+修改 /boot/wpa_supplicant.conf
+修改 /etc/wpa_supplicant/wpa_supplicant.conf
+  # 適用 Raspbian Buster
+修改 /etc/network/interfaces，樹莓派實際上是在本檔執行所有在 /etc/network/interfaces.d/ 目錄的檔案，預設為動態網址
+修改 /etc/network/interfaces.d/wlana
+修改 /etc/dhcpcd.conf，樹莓派預設在此檔設置固定網址
+修改 /etc/netplan/50-cloud-init.yaml
+  # 適用 Ubuntu 20.04 on Raspberry Pi
+
+
+
+
+Raspbian 設定無線網路固定網址
+====================
+Method 1:
+---------------
+edit /etc/network/interfaces.d/wlana
+  auto lo
+  iface lo inet loopback
+
+  auto eth0
+  iface eth0 inet dhcp
+
+  allow-hotplug wlan0
+  auto wlan0
+  iface wlan0 inet static
+  address 192.168.1.122
+  gateway 192.168.1.1
+  netmask 255.255.255.0
+  network 192.168.1.1
+  broadcast 192.168.1.255
+  pre-up wpa_supplicant -Dwext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -B 
+
+  wireless-power off
+  iface default inet dhcp
+
+
+Method 2: 
+---------------
+edit /boot/wpa_supplicant.conf
+  country=TW
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+  update_config=1
+
+  network={
+    ssid="SSID_NAME"
+    psk="SSID_KEY"
+    key_mgmt=WPA-PSK
+    scan_ssid=1
+    priority=2
+  }
+
+active network
+  sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
+    # 必須執行上述指令，將 wlan0 套用 /etc/wpa_supplicant/wpa_supplicant.conf 組態檔
+    # sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+    # 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces.d/xxxx 有無語法錯誤
+
+
+
+
+Raspbian 設定有線網路固定網址
+====================
+Raspbian 7.0 以下版本
+---------------
+編輯 /etc/network/interfaces
+	auto lo
+	iface lo inet loopback
+
+	allow-hotplug eth0
+	auto eth0
+	iface eth0 inet static
+	address 192.168.1.124
+	netmask 255.255.255.0
+	gateway 192.168.1.1
+	dns-nameservers 8.8.8.8
+	dns-search 8.8.4.4
+
+	allow-hotplug wlan0
+	auto wlan0
+	iface wlan0 inet manual
+		wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+
+	iface home inet dhcp
+	iface work inet dhcp
+	iface default inet dhcp
+
+備註
+  1. 注意 wlan0 是套用 /etc/wpa_supplicant/wpa_supplicant.conf 設定。該檔案參閱前段方法 2
+  2. wpa-roam /path/to/file.conf 適用固定網址。動態網址的設定為 wpa-conf /path/to/file.conf
+  3. 參考資料 https://kknews.cc/zh-tw/tech/m3opmnp.html
+
+
+Raspbian 8.0 (Kernel 4.9) 以上版本
+---------------
+編輯 /etc/dhcpcd.conf
+	interface eth0  #有線網路
+	static ip_address=192.168.1.124
+	static routers=192.168.1.1
+	static domain_name_servers=192.168.1.1
+	#interface wlan0  #無線網路
+	#static ip_address=192.168.1.122
+	#static routers=192.168.1.1
+	#static domain_name_servers=192.168.1.1
+
+啟用服務
+	systemctl enable dhcpcd
+	systemctl enable networking
+
+
+
+
+Ubuntu on Raspberry Pi 設定固定網址網路
+====================
+edit /etc/netplan/50-cloud-init.yaml
+---------------
+network:
+    version: 2
+    renderer: networkd
+    ethernets:
+        eth0:
+            dhcp4: false
+            dhcp6: no
+            addresses: [192.168.1.125/24]
+            gateway4: 192.168.1.1
+            nameservers:
+                addresses: [8.8.8.8, 8.8.4.4, 114.114.114.114]
+    wifis:
+        wlan0:
+            dhcp4: false
+            dhcp6: false
+            optional: true
+            access-points:
+                "your_ssid":
+                    password: "your_ssid_passwd"
+            addresses: [192.168.1.126/24]
+            gateway4: 192.168.1.1
+            nameservers:
+                addresses: [8.8.8.8, 8.8.4.4, 114.114.114.114]
+
+
+Active network
+---------------
+sudo netplan generate
+sudo netplan try
+sudo netplan apply
+systemctl daemon-reload
+networkctl status <interface-id>
+edit  /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  network: {config: disabled}
+
+
+修改無線網路生效了以後可能遇到開機變慢
+---------------
+edit /etc/systemd/system/network-online.target.wants/networking.service
+  TimeoutStartSec=5min ==> TimeoutStartSec=2sec
+
+edit /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+   [Service] ==> TimeoutStartSec=2sec
+
+
+WiFi 改用 5G 頻段： 因應隨身碟插入 USB 3.0 的埠後，2.4GHz 的 WiFi 就連不上或很不穩
+---------------
+sudo apt install iw
+edit /etc/default/crda
+  REGDOMAIN=TW
+sudo iw reg set TW
+
+
+參考文件
+----------------
+Raspberry Pi 4 WiFi 設置分享    https://blog.bepsvpt.me/2020/05/24/raspberry-pi-4-wifi-setup/
+树莓派配置 eth0 wlan0 静态 IP    https://blog.csdn.net/mayi_xiaochaun/article/details/78634588
+
+

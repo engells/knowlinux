@@ -116,6 +116,7 @@ ssh -v -X ubuntu@10.0.3.101
 	# or ssh -v -X -C -o CompressionLevel=9 user_name@remote_computer_ip
 /usr/bin/firefox
 	# need packages: xauth dbus dbus-x11 libcanberra-gtk-module libcanberra-gtk3-module
+  # chromium: xauth dbus dbus-x11 x11-apps? mesa-utils? alas-utils?
 
 
 Method 2:
@@ -131,9 +132,10 @@ container:
 	export DISPLAY=:0
 
 
-----------
 url:
-	url:http://www.rendoumi.com/lxcrong-qi-nei-ru-he-yun-xing-firefox/
+----------
+	lxc容器內如何運行Firefox :: http://www.rendoumi.com/lxcrong-qi-nei-ru-he-yun-xing-firefox/
+  github Roadmaster/google-chrome-lxc.sh :: https://gist.github.com/Roadmaster/0de007826485d0e5a9c856171a9a1e9c
 
 
 

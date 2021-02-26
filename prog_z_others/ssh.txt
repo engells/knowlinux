@@ -46,7 +46,7 @@ SSH 安全性設定
 ====================
 1. SSH 預設埠號是 22，改成其他的埠號。
 2. 禁止以 root 帳號登入
-   /etc/ssh/sshd_config => PermitRootlogin no
+   /etc/ssh/sshd_config => PermitRootLogin no
 3. 只准特定帳號或群組登入 SSH
    /etc/ssh/sshd_config => AllowUsers my_name | AllowGroups my_group 
 4. 帳號是空密碼, 禁止登入:

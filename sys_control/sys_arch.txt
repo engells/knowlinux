@@ -1,8 +1,49 @@
+##!/bin/bash
+# vim:ts=2
+# program: knowhow about System Architecture
+# made by: Engells
+# date: Feb 21, 2021
+# content: 
+
+
+
+查看CPU型號、核心數量、頻率和溫度
+====================
+1. 查看 CPU 型號與其他資訊，指令如下
+  cat /proc/cpuinfo
+  lscpu
+
+2. 每秒自動取得目前的 CPU 頻率，指令如下
+  watch -n 1 "cat /proc/cpuinfo | grep MHz"
+  watch -n 1 "lscpu"
+
+3. 查看 CPU 的溫度，使用 lm-sensors 套件
+  sudo apt-get install lm-sensors
+  yes | sudo sensors-detect
+  sensors or watch sensors
+
+4. 查看 CPU 的溫度，使用 psensor 套件
+  sudo apt install psensor
+  psensor
+
+5. 查看 CPU 的溫度，使用 Hardinfo 套件
+  sudo apt install hardinfo
+  hardinfo
+
+6. 查看 CPU 的溫度，讀取系統檔
+  cat /sys/class/thermal/thermal_zone0/temp
+
+
+參考資料
+---------------
+Linux系統下如何查看CPU型號、核心數量、頻率和溫度？    https://magiclen.org/linux-view-cpu/
+如何在Ubuntu Linux上获取CPU温度    https://zhuanlan.zhihu.com/p/143123436
+
 
 
 
 HS: /, /usr, /var
-==============================
+====================
 /boot：開機使用檔案
 /dev：裝置
 /etc：程式組態
@@ -27,7 +68,7 @@ HS: /, /usr, /var
 
 
 檔案權限
-==============================
+====================
 user / group / other
 chattr / lsattr
 SUID / SGID / SBIT
@@ -39,7 +80,7 @@ SELinux
 
 Filesystem
 http://people.ofset.org/~ckhung/b/sa/filesystem.php
-==============================
+====================
 loopback
 cloop, compressed loopback file system, live CD
   pkg: cloop-utils
@@ -58,7 +99,8 @@ aufs
 
 
 syslog
-==============================
+====================
 /etc/syslog.conf
 /etc/rsyslog.d/50-default.conf
+
 

@@ -2,16 +2,30 @@
 # vim:ts=4
 # program: Using to note the knowledge about vim
 # made by: Engells
-# date: Feb 12, 2021
+# date: Feb 22, 2021
 # content: Just for memo
 
 
 
 指令
 ====================
+make augroup
+---------------
+語法：
+  :augroup {name}     " create a augroup
+  :augroup! {name}    " delete a augroup
+
+Examples
+  :augroup testgroup
+  :	autocmd!  <= 清除同名 autocmd group 所定義命令
+  :	autocmd BufWrite * :echom "Foo"
+  :	autocmd BufWrite * :echom "Bar"
+  :augroup END
+
+
 make mapping
 ---------------
-語法： [mode_id][nore][map] key_definition actions
+語法： [mode_id][nore][map] key_definition actions1 actions2 *** :au[tocmd] [group] {event} {pattern} [nested] {cmd}
   " mode_id: n for normal mode ...
   "   map, for normal and visual | map! | nmap, normal mode | vmap, visual | imap, Insert | cmap, cmdline | omap, operator
   " nore: no recursive mapping in each mode
@@ -45,7 +59,6 @@ Examples
   :iunmap <Right>
 
 
-
 other commands
 ----------------
 :mapclear
@@ -53,6 +66,7 @@ other commands
 :let mapleader = ",,"
 :let maplocalleader = "\\"
 :unmap {lhs}					" 取消普通模式下 lhs 的映射，其他模式不受影響
+
 
 
 
@@ -74,5 +88,22 @@ nnoremap <Leader>jw <C-W>j      " 跳轉至下方的子窗口
 nnoremap <Leader>kw <C-W>k      " 跳轉至上方的子窗口
 nnoremap <Leader>lw <C-W>l      " 跳轉至右方的窗口
 nmap <Leader>M %                " 定義熱鍵在結對符之間跳轉
+autocmd BufNewFile * :write		" 開新檔案時，立刻儲存
+autocmd BufNewFile *.txt :write	" 開 txt 類型新檔案時，立刻儲存
+autocmd BufWritePre *.html :normal gg=G    " 對 html 類型檔案存檔前，對檔案內容縮排
+autocmd BufNewFile,BufRead *.html setlocal nowrap
+autocmd FileType python nnoremap <buffer> <localleader>c I#<esc>    " Python文件（副檔名 .py）,將游標移至任一列，敲鍵盤<localleader>c 即可註釋該列
+autocmd FileType python :iabbrev <buffer> iff if:
+
+
+
+
+補充資料
+====================
+{rhs} 之前可能顯示一個特殊字元:
+  " * 表示它不可重映射； & 表示僅腳本的局部映射可以被重映射； @ 表示緩沖區的局部映射
+
+help documents
+	:help autocmd-events
 
 

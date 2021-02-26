@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Knowhow about Raspberry Pi
 # made by: Engells
-# date: Feb 5, 2021
+# date: Feb 26, 2021
 # content: Just for memo
 
 
@@ -26,110 +26,15 @@ sudo update-rc.d -f ssh defaults 20		# allow ssh login
 sudo reboot
 sudo sync && sudo shutdown -r now
 
-sudo apt install tightvncserver	passwd:1234abcd
-	vncpasswd
-	vncserver -geometry 1024x768 :1
-	vncserver -list
-	vncserver -kill :9
-	vnc://192.168.1.121:5901
-	sudo systemctl stop vncserver-x11-serviced.service
 dosbox
 	edit conf => usescancodes=false
 
 
 
 
-設定無線網路固定網址
-====================
-edit /etc/network/interfaces.d/wlana
-	auto lo
-	iface lo inet loopback
-
-	auto eth0
-	iface eth0 inet dhcp
-
-	allow-hotplug wlan0
-	auto wlan0
-	iface wlan0 inet static
-	address 192.168.1.122
-	gateway 192.168.1.1
-	netmask 255.255.255.0
-	network 192.168.1.1
-	broadcast 192.168.1.255
-	pre-up wpa_supplicant -Dwext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -B 
-
-	wireless-power off
-	iface default inet dhcp
-
-edit /boot/wpa_supplicant.conf, add the follows:
-	country=TW
-	ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-	update_config=1
-
-	network={
-		ssid="SSID_NAME"
-		psk="SSID_KEY"
-		key_mgmt=WPA-PSK
-		scan_ssid=1
-		priority=2
-	}
-
-sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
-# sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-# 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces.d/xxxx 有無語法錯誤
-
-
-
-
-設定有線網路固定網址
-====================
-Raspbian 7.0 以下版本
----------------
-編輯 /etc/network/interfaces
-	auto lo
-	iface lo inet loopback
-
-	allow-hotplug eth0
-	auto eth0
-	iface eth0 inet static
-	address 192.168.1.124
-	netmask 255.255.255.0
-	gateway 192.168.1.1
-	dns-nameservers 8.8.8.8
-	dns-search 8.8.4.4
-
-	allow-hotplug wlan0
-	auto wlan0
-	iface wlan0 inet manual
-		wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
-
-	iface home inet dhcp
-	iface work inet dhcp
-	iface default inet dhcp
-
-
-Raspbian 8.0 (Kernel 4.9) 以上版本
----------------
-編輯 /etc/dhcpcd.conf
-	interface eth0  #有線網路
-	static ip_address=192.168.1.124
-	static routers=192.168.1.1
-	static domain_name_servers=192.168.1.1
-	#interface wlan0  #無線網路
-	#static ip_address=192.168.1.122
-	#static routers=192.168.1.1
-	#static domain_name_servers=192.168.1.1
-
-啟用服務
-	systemctl enable dhcpcd
-	systemctl enable networking
-
-
-
-
 設定螢幕解析度
 ====================
-config.txt 取消註解
+/boot/config.txt 取消註解
 	hdmi_safe=1				# 安全啟動 HDMI
 	hdmi_drive=2			# 強制使用 HDMI
 	config_hdmi_boost=4		# 640x480 60Hz，mode=9  => 800x600 60Hz；mode=16 => 1024x768 60Hz； mode=82 => 1080p 60Hz
@@ -159,85 +64,31 @@ URL
 
 
 
-中文設定
-====================
-sudo raspi-config
-	Internationalisation Options => Change Locale => zh_TW.UTF-8 UTF-8 => zh_TW.UTF-8 => 重新開機
-
-安裝中文輸入法
-	sudo apt-get install scim scim-tables-zh scim-chewing
-	 # 同時按下Ctrl及空白鍵，即可切換中文輸入法
-
-安裝中文字型
-	sudo apt-get install ttf-wqy-zenhei
-
-
-
-
-遠端桌面控制
-====================
-使用 VNC
-----------
-sudo apt install tightvncserver
-sudo tightvncserver
-	# 設定密碼 & 完全存取
-vncserver :1 
-	# 設定 VNC Server 連線位置為 1。也可為 2 或其他號碼
-
-
-XRDP
-----------
-sudo apt install xrdp tightvncserver
-sudo systemctl enable xrdp
-
-
-
-
-設定 SWAP
-====================
-cutomized swap size
-----------
-edit /etc/dphys-swapfile
-	#CONF_SWAPSIZE=100
-	CONF_SWAPFACTOR=2
-	CONF_MAXSWAP=xxxx	# MiB
-
-sudo service dphys-swapfile restart && swapon -s
-
-
-auto swap size
-----------
-edit /etc/dphys-swapfile
-	CONF_SWAPSIZE=xxxx	# MiB
-
-sudo service dphys-swapfile restart && swapon -s
-
-
-swap on USB
-----------
-make a ext4 system on a usb sticker, as /dev/sda1
-blkid
-edit /etc/fstab, add /dev/sda
-	UUID=xxxx-xxxx...	/usbdisk	ext4	defaults	0	0
-sudo mkdir /usbdisk
-mount -a && df -h
-edit /etc/dphys-swapfile
-	CONF_SWAPFILE=/usbdisk/swap
-sudo service dphys-swapfile restart && swapon -s
-sudo swapoff /var/swap
-
-
-
-
-安裝 Raspberry
+安裝 Raspbian
 ====================
 下載 raspbian stretch lite 或其他鏡像 img
 鏡像 dump 至 SD Card
 	dd if=/path/to/img_file of=/dev/sd_card bs=8M
 啟用 SSH
 	touch /path/to/raspberry_pi/boot/ssh    # or login Raspberry and run raspi-config to enable ssh
+其他設定(備用)
+    edit /boot/config
+    edit /boot/wpa_supplicant.conf
 開機：先插入鍵盤、滑鼠，接著開啟螢幕，插上 HDMI，最後插上樹莓派電源。
 組態設定
 	sudo raspi-config
+    sudo /usr/bin/rootfs-expand    # expand rootfs on microsd card
+
+
+
+
+其他指令
+====================
+inxi -D                                       # 查詢 Linux 系統軟硬體資訊，安裝 sudo apt install inxi
+lshw                                          # 查詢 Linux 系統軟硬體資訊，以 sudo 方式執行
+cat /etc/os-release                           # 查詢 OS 版本資訊
+cat /etc/issue                                # 查詢 Linux distro 版本
+cat /etc/debian_version                       # 查詢 Debian 版本編號
+strings /boot/start.elf | grep VC_BUILD_ID    # 查詢 firmware 版本
 
 

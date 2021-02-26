@@ -90,3 +90,10 @@ git clone --recursive repo_url /path/to/target
 
 
 
+
+參考資料
+---------------
+子模組    https://zlargon.gitbooks.io/git-tutorial/content/advanced/submodule.html
+
+
+
