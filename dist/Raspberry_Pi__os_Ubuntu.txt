@@ -7,149 +7,14 @@
 
 
 
-設置無線網路
+安裝概要
 ====================
-1. 移除無線網卡的鎖定狀態
-  a. 備置 rfkill 工具
-    sido apt install rfkill
-
-  b. 查詢無線網卡的鎖定情形
-    rfkill list
-
-  c. 若有無線網卡被鎖，解除鎖定
-    sudo rfkill unblock wifi
-
-
-2. 配置無線網卡網址
-  a. 編輯 /etc/netplan/01-xxxx.ymal 檔案，必要時自行建立該檔
-    network:
-      version: 2
-        ethernets:
-          eth0:
-            dhcp4: no
-            dhcp6: no
-            addresses: [192.168.1.126/24]
-            gateway4: 192.168.1.1
-            nameservers:
-            addresses: [8.8.8.8, 8.8.4.4]
-          wlan0:
-            dhcp4: no
-            dhcp6: no
-            addresses: [192.168.1.125/24]
-            gateway4: 192.168.1.1
-            nameservers:
-            addresses: [8.8.8.8, 8.8.4.4]
-
-  b. 注意，在隱藏式 SSID AP 的環境中，無線網卡設定在 ethernets: 區段，而非 wifis: 區段。
-
-  c. 啟用無線網卡網址設定
-    sudo netplan --debug try
-    sudo netplan --debug generate
-    sudo systemctl daemon-reload
-    sudo netplan --debug apply
-
-
-3. 使用 wpa_supplicant 工具連接無線網路
-  a. 備置 wpa_supplicant 工具
-    sudo apt install wpasupplicant
-      # wpa_supplicant 處理通訊協定、加密協定及部份驅動程式。相似之軟體有 wireless-tools 套件及其建置之 iwconfig
-      # Ubuntu Server 20.04.1 已經預裝 wpa_supplicant 軟體，此外可以預置的 ip 指令替用 iwconfig
-
-  b. 將無線網路登入密碼加密
-    wpa_passphrase wifi_ESSID wifi_passwd | sudo tee /etc/wpa_supplicant/xxxx.conf
-      # wpa_supplicant 組態檔並沒有限制為 /etc/wpa_supplicant.conf 或 /etc/wpa_supplicant/wpa_supplicant.conf
-      # 手動至組態檔加入 scan_ssid=1 設定，以搜尋隱藏式 SSID AP
-
-  c. 測試無線網卡是否可連上網路
-    sudo wpa_supplicant -B -c /etc/wpa_supplicant/xxxx.conf -i wlan0
-      # 參數 -B 表示背景執行，若要觀察執行過程，可取消本參數
-      # 參數 -c 表示組態檔案完整路徑及檔名
-      # 參數 -i 表示無線網卡裝置
-    ip address show
-      # 正常狀態下，可顯現無線網卡之 Access Point 及 IP
-
-
-4. 設定開機自動連結無線網路
-  a. 配置 wpa_supplicant.service
-    sudo cp /lib/systemd/system/wpa_supplicant.service /etc/systemd/system/wpa_supplicant.service
-    sudo vim /etc/systemd/system/wpa_supplicant.service
-      # 將 ExecStart=/sbin/wpa_supplicant 後續之 -u -s -O /run/wpa_supplicant 字串改為 -u -s -c /etc/wpa_supplicant/xxxx.conf -i wlan0
-      # 在 ExecStart 後加入 Restart=always
-      # 將 Alias=dbus-fi.w1.wpa_supplicant1.service 最前方加註 # 符號
-      # 將 Before= 後之字串改為 network.target systemd-networkd.service
-
-  b. 配置 unblock-wifi.service
-    sudo vim /etc/systemd/system/unblock_wifi.service
-      [Unit]
-      Description=RFKill Unblock WiFi Devices
-      Requires=wpa_supplicant.service
-      After=wpa_supplicant.service
- 
-      [Service]
-      Type=oneshot
-      ExecStart=/usr/sbin/rfkill unblock wifi
-      ExecStop=
-      RemainAfterExit=yes
-      
-      [Install]
-      WantedBy=multi-user.target
-
-  c. 設定開機時啟用
-    sudo systemctl enable wpa_supplicant.service unblock_wifi.service
-    sudo systemctl disable connman.service NetworkManager.service
-
-  d. 若前述設定失效，啟用 /etc/rc.local 機制
-    sudo vim /etc/systemd/system/rc-local.service
-      [Unit]
-      Description=/etc/rc.local Compatibility
-      ConditionPathExists=/etc/rc.local
-      
-      [Service]
-      Type=forking
-      ExecStart=/etc/rc.local start
-      TimeoutSec=0
-      StandardOutput=tty
-      RemainAfterExit=yes
-      SysVStartPriority=99
-      
-      [Install]
-      WantedBy=multi-user.target
-
-    sudo touch /etc/rc.local && sudo chmod 600 /etc/rc.local && sudo vim /etc/rc.local
-      sudo wpa_supplicant -B -c /etc/wpa_supplicant/xxxx.conf -i wlan0
-      exit 0
-    
-    sudo systemctl enable rc-local
-
-
-5. 指定 5 GHz Wifi
-  a. 備置 iw 工具
-    sudo apt install iw wireless-tools
-    sudo iw reg set TW
-  
-  b. 查詢 wifi AP
-    sudo iw dev wlan0 scan | grep SSID
-    iwlist wlan0 scanning or iwlist wlan0 scanning | grep -C3 "ESSID_ref"
-    iwlist wlan0 freq  # show the frequency supported by net chip
-
-  c. 修改 wpa_supplicant 組態
-    sudo systemctl stop network-manager && sudo killall wpa_supplicant
-    sudo vim /etc/wpa_supplicant/xxxx.conf
-      bssid=d8:b1:90:3e:e4:6e
-    sudo wpa_supplicant -iwlp2s0 -c/etc/wpa_supplicant.conf
-
-
-6. 參考資料
-  a. Connect to Wi-Fi From Terminal on Ubuntu 18.04/20.04 with WPA Supplicant
-      https://www.linuxbabe.com/ubuntu/connect-to-wi-fi-from-terminal-on-ubuntu-18-04-19-04-with-wpa-supplicant
-  b. Using WPA_Supplicant to Connect to WPA2 Wi-fi from Terminal on Ubuntu 16.04 Server
-      https://www.linuxbabe.com/command-line/ubuntu-server-16-04-wifi-wpa-supplicant
-  c. Archlinux documents: wpa_supplicant    https://wiki.archlinux.org/index.php/WPA_supplicant
-  d. Raspberry Pi 4 WiFi 設置分享           https://blog.bepsvpt.me/2020/05/24/raspberry-pi-4-wifi-setup/
-  e. 树莓派折腾记（一）-- 安装系统          https://mrxiuxing.com/posts/2f81a42d.html
-  f. How do I set 5GHz as preferred band?   https://askubuntu.com/questions/1080645/how-do-i-set-5ghz-as-preferred-band
-  g. Why is wpa_cli producing error “Could not connect to wpa_supplicant: wlan0 - re-trying”?
-      https://raspberrypi.stackexchange.com/questions/63399/why-is-wpa-cli-producing-error-could-not-connect-to-wpa-supplicant-wlan0-re
+1. 移除 snap、clound-init
+2. 新增用戶，設定 /etc/ssh /sshd.conf
+3. 作業系統更新，重開機
+4. 設定無線網路
+5. 安裝桌面，包括 X-window、openbox | i3、slim(display manage)
+6. 其他，包括時區、感應器、中文環境等
 
 
 
@@ -166,18 +31,20 @@
     Pin: release a=*
     Pin-Priority: -10
 
+移除 clound-init
+  sudo apt purge cloud-init
+  sudo rm -Rf /etc/cloud
 
 安裝 GUI
   sudo apt install --no-install-recommends --no-install-suggests xserver-xorg-core
   sudo apt install --no-install-recommends --no-install-suggests openbox
-  sudo apt-get install xinit
+  sudo apt-get install xinit x11-xserver-utils
   sudo apt-get install slim
-
 
 切換 Lubuntu GUI 與 CLI
   方法一  sudo systemctl disable display-manager && sudo ln -s -f /dev/null /etc/systemd/system/display-manager.service
   方法二  sudo vim /etc/X11/default-display-manager    # 檔案內容若為 false 則為 CLS，若為 /usr/sbin/{gdm3, slim} 則為 GUI
-
+  ？？　  sudo ln -s -f /lib/systemd/system/mdm.service /etc/systemd/system/display-manager.service
 
 自動登入
   方法一
@@ -194,17 +61,16 @@
 
   Ubuntu Desktop 18.04 有相關檔案 /etc/systemd/system/getty.target.wants/getty@tty1.service
 
-
 設置時區
   sudo tzselect
 
+查詢 CPU 溫度
+  sudo apt install libraspberrypi-bin
+  sudo vcgencmd measure_temp or cat /sys/class/thermal/thermal_zone0/temp
+  sudo vcgencmd version
 
-移除 clound-init
-  sudo apt purge cloud-init
-  sudo rm -Rf /etc/cloud
-
-
-初次啟動指定固定 IP
-  vim /path/to/system-boot/network-config
+中文環境支援
+  sudo apt install language-pack-zh-hant language-pack-zh-hans ibus ibus-chewing
+  sudo vim /etc/fonts/fonts.conf
 
 

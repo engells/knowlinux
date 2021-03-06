@@ -1,0 +1,24 @@
+##!/bin/bash
+# vim:ts=4
+# program: Guide to shell command ip
+# made by: Engells
+# date: Feb 27, 2021
+# content: Only for memo
+
+
+
+ip: show / manipulate routing, network devices, interfaces and tunnels
+====================
+ip address show					# ip addr
+ip link set dev net_card_name down
+ip link set dev net_card_name up
+ip link show net_card_name
+
+
+
+
+wpa_supplicant
+====================
+wpa_cli -i<net_card_name> scan_results
+
+

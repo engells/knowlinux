@@ -14,11 +14,10 @@ Openbox 之自動啟動
 edit $HOME/.config/openbox/autostart 裡寫入自動啟動之程式，在每行指令之最後加上 ＆ 則可以將獨占變成背景執行。
 
 edit /etc/X11/xinit/xinitrc，輸入(gcin輸入法)：
-  export LANG=zh_TW.UTF-8
   export LC_CTYPE=zh_TW.UTF-8
   export GTK_IM_MODULE=gcin
-  export XMODIFIERS="@im=gcin"
-  gcin & 
+  export XMODIFIERS="@im=ibus"
+  ibus & 
 
 xrandr 
 
@@ -27,9 +26,9 @@ xrandr
 
 配置 Openbox
 ===================
-  cp /var/lib/openbox/debian-menu.xml ~/.config/openbox/debian-menu.xml
   cp /etc/xdg/openbox/{rc.xml, menu.xml, autostart, environment} ~/.config/openbox
-  openbox --reconfigure
+  cp /var/lib/openbox/debian-menu.xml ~/.config/openbox/debian-menu.xml
+  openbox --reconfigure  # run in X environment
 
 
 sudo apt install xcompmgr cairo-dock
@@ -47,7 +46,7 @@ openbox --reconfigure
 
 概述
 ====================
-Openbox 的配置文件主要有，~/.config/openbox/rc.xml 和~ /.config/openbox/menu.xml。前者可以由obconf更改，後者可由obmenu更改。
+Openbox 的配置文件主要有，~/.config/openbox/rc.xml 和~ /.config/openbox/menu.xml。前者可以由 obconf 更改，後者可由 obmenu 更改。
 rc.xml 定義鍵盤快捷鍵, 主題, 虛擬桌面等。
 menu.xml 定義在桌面用鼠標擊鍵時顯示的菜單、程式啟動器和快捷方式。
 autostart 在 Openbox 啟動時讀取。包含了一些需要啟動的程式，通常用來定義許多環境變量、啟動面板/dock、設置壁紙或者執行其他啟動腳本等等。
@@ -57,9 +56,8 @@ environment 在 Openbox-session 啟動時調用。包含了在 Openbox 上下文
 相關軟體
 ---------------
 slim：輕量級圖形登錄管理器，可以替代gdm/kdm
-lxappearance: lxde的外觀設置工具，可同樣用於openbox，設置主題，窗口字體等
+lxappearance: lxde的外觀設置工具，可同樣用於 openbox，設置主題，窗口字體等
 obconf：openbox的圖形化設置工具
-menumaker：讀取系統中安裝的所有程序並將它們添加到選單中，mmaker OpenBox3 -f -t rxvt
 obmenu：openbox的圖形化選單編輯工具
 tint2：提供下面板
 tint2conf: tint2的圖形化設置工具
@@ -70,6 +68,8 @@ pcmanfm: 文件管理工具
 obmixer: 托盤區音量圖標
 nm-applet: 網絡連接管理器
 scrot：截屏工具
+menu menu-xdg：產生選單
+menumaker：讀取系統中安裝的所有程序並將它們添加到選單中，mmaker OpenBox3 -f -t rxvt。Ubuntu 無此套件
 
 
 

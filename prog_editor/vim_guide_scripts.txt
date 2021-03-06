@@ -98,6 +98,7 @@ boolean 0 => false others => true
 if and function
 ====================
 if elseif else endif
+  one-line if: if ... | command1 | else | command2 | endif
 
 :set noignorecase
 :if "foo" ==? "FOO"					<= '==?' 忽略大小寫，'==#' 強制分辨大小寫

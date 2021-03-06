@@ -9,17 +9,18 @@
 
 memo
 ====================
-<C-w> <C-u>
+多重指令
+  命令列模式 command1 | command2
+  vimrc, if has("patch-7.4.710") | set listchars+=space:· | else | set listchars+=trail:· | endif
+
+command mode: <C-w> <C-u>
 
 try ... catch ... endtry
 
 set scrolloff=3
 set list | set nolist
 
-recording mode
-  qa q @a 5@a
-
-多重指令 command1 | command2
+recording mode:  qa q @a 5@a
 
 
 

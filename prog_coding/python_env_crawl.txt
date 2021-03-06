@@ -45,12 +45,13 @@ python3 python3-dev python3-pip zip unzip p7zip-full git build-essential cmake e
 
 安裝台股技術分析套件 TA-Lib (successful in lxc)
 ----------
-wget https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz 
-tar -xvf ta-lib-0.4.0-src.tar.gz 
-cd ta-lib 
-./configure --prefix=/usr 
-sudo make 
-sudo make install 
+wget https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+tar -xvf ta-lib-0.4.0-src.tar.gz
+cd ta-lib
+./configure --prefix=/usr -build=arm
+make or sudo make
+sudo make install
+cp /usr/lib/libta* /path/to/virtual/lib/python[x].[y]/site-packages/
 pipenv install ta-lib or sudo pip3 install ta-lib
 
 

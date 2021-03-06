@@ -1,0 +1,83 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about i3-wm
+# made by: Engells
+# date: Feb 27，2021
+# content: Just for memo
+
+
+
+常用指令
+====================
+啟動 i3 視窗管理器
+  在 TTY 中輸入 startx
+
+關閉 i3 視窗管理器
+  在 i3 視窗管理器中，按下組合鍵 <modifier> + Shift + E
+
+開啟新的終端機視窗
+  在 i3 中，按下組合鍵 <modifier> + Enter
+
+關閉所在終端機視窗
+  按下組合鍵 <modifier> + Shift + q
+
+堆疊排版
+  按下組合鍵 <modifier> + s ，會同步設定目前獲得焦點的視窗或是容器的上層容器的排版方式
+
+分頁排版
+  按下組合鍵 <modifier> + w ，會同步設定目前獲得焦點的視窗或是容器的上層容器的排版方式
+
+
+
+
+一般指令
+====================
+修改顯示器的解析度
+  在終端機下執行 xrandr  指令查看所有顯示器的名稱和支援的解析度。執行 xrandr --output 顯示器名稱 --mode 長x高 指令修改螢幕解析度
+
+調整視窗大小
+  按下組合鍵 <modifier> + r，進入視窗大小調整模式，可直接用滑鼠拉動視窗邊緣來調整視窗的大小，此時所有 i3 的組合鍵都會失效，工作區列的旁邊會出現 resize 字樣
+
+離開視窗大小調整模式
+  直接按下 ESC 鍵
+
+自終端機傳送 IPC 訊息給 i3 視窗管理器
+  使用 i3-msg 指令，如 i3-msg "layout tabbed"
+
+
+
+
+設定檔
+====================
+i3 設定檔路徑為 $HOME/.config/i3/config，可自 /etc/i3/config 複製
+i3 狀態列設定檔 $HOME/.config/i3status/config，可自 /etc/i3status.conf 複製
+<modifier>按鍵
+
+bindsym $mod+w layout tabbed
+  bindsym 指令添加組合鍵，
+  $mod 是使用 set $mod Mod4 指令來設定的，就是第一次開啟i3的時候所設定的 <modifier> 按鍵
+    Mod4 指 Win鍵，Mod1 指 Alt；Mod2 是 Num_Lock；lock 是 Caps_Lock；shift 是 Shift；control 是 Ctrl
+  layout 指令是用來控制目前焦點的視窗或是容器的上層容器的排版方式，是專門給 i3 看的 IP C訊息
+
+在 i3 啟動後自動開啟終端機視窗：在 i3 的設定檔加上指令： exec --no-startup-id gnome-terminal
+永久保存螢幕解析度：在 i3 的設定檔加上指令： exec --no-startup-id "xrandr --output Virtual1 --mode 1440x900"
+
+
+
+
+概述
+====================
+i3 是一款基於 X11 的視窗管理器(Window Manager)，使用效能極佳的 C 語言開發而成的，介面簡潔、輕巧卻不失實用性，功能強調視窗的佈局和快捷鍵，非常適合用在伺服器上配合其它指令工具或是圖形工具來監看系統狀態和查詢文件。
+
+i3 的視窗架構分為4個層級，分別是：顯示器(monitor, output)→工作區(workspace)[→容器(container)[→……→容器(container)]]→視窗(window)。i3 支援多顯示器，一個顯示器可以有擁有多個工作區。在所有顯示器中的工作區之代號均不會重複。
+
+
+
+
+參考資料
+====================
+在Ubuntu Server安裝i3視窗管理器 :: https://magiclen.org/ubuntu-server-i3/
+urxvt及vim配色方案 :: http://www.unixlinux.online/unixlinux/linuxjc/linuxjc/201702/33216.html
+git Z-Shang/MyRC :: https://github.com/Z-Shang/MyRC
+
+

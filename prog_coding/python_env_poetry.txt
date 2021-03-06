@@ -1,0 +1,80 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about poetry
+# made by: Engells
+# date: Feb 28, 2021
+# content: Just for memo
+
+
+
+常用指令
+====================
+poetry add
+poetry remove
+poetry update
+poetry lock
+
+
+
+
+一般指令
+====================   
+poetry --version
+poetry new dir_name --name proj_name  # --src
+poetry init  # create a pyproject.toml file interactively
+  --name: Name of the package.
+  --description: Description of the package.
+  --author: Author of the package.
+  --python Compatible Python versions.
+  --dependency: Package to require with a version constraint. Should be in format foo:1.0.0.
+  --dev-dependency: Development requirements, see --require
+poetry install  # reads the pyproject.toml file from the current project, resolves the dependencies, and installs them
+  --no-dev: Do not install dev dependencies.
+  --no-root: Do not install the root package (your project).
+  --extras (-E): Features to install (multiple values allowed).
+poetry show
+poetry cache list
+
+poetry env use /full/path/to/python
+  # 專案目錄下產生 envs.toml
+poetry env list
+poetry env info
+poetry env info --path
+poetry env remove python
+
+poetry config --local  # 專案目錄下產生 poetry.toml
+poetry config --list
+
+poetry export --without-hashes -f requirements.txt -o requirements.txt
+
+
+
+
+建置及環境設置
+====================
+安裝 poetry
+  cd /path && curl -o https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+  cd /path && POETRY_HOME=/etc/poetry python get-poetry.py
+
+移除 poetry
+  cd /path && python get-poetry.py --uninstall
+  cd /path && POETRY_UNINSTALL=1 python get-poetry.py
+
+環境設置
+  config file: ~/.config/pypoetry/config.toml
+  commands:
+    poetry config virtualenvs.in-project true
+    poetry config virtualenvs.create true
+    poetry config virtualenvs.path /path/to/target
+    poetry config cache-dir /path/to/target
+
+
+
+
+參考資料
+====================  
+poetry documents :: https://python-poetry.org/docs/
+Python包管理之poetry基本使用 :: https://zhuanlan.zhihu.com/p/110721747
+環境建置教學 Conda, Poetry, Docker, Github, Dockerhub :: https://medium.com/allenyummy-note/...
+
+

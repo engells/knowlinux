@@ -1,6 +1,6 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
-# program:Using to note the knowledge about vim
+# program:Using to note the knowledge about locale
 # made by: Engells
 # date: Aug 29, 2017
 # content: 內容並未最佳化，單純作為書摘使用
@@ -33,7 +33,7 @@ dpkg-reconfigure locales
   安裝新的語系
     locale-gen zh_TW.UTF-8 或 dpkg-reconfigure locales
     # 以上的步驟可順利產生新的語系
-    # 套件 language-pack-zh-hant 為繁體中文，language-pack-zh-hant 為簡體中文，language-pack-gnome-zh-hant 及 language-pack-gnome-zh-hans 為 Gnome 環境對應套件
+    # 套件 language-pack-zh-hant 為繁體中文，language-pack-zh-hans 為簡體中文，language-pack-gnome-zh-hant 及 language-pack-gnome-zh-hans 為 Gnome 環境對應套件
 
 在 Debian 安裝新的語系
   安裝套件支援語系的設定
@@ -121,3 +121,6 @@ export LANGUAGE=zh_TW
 
 參考資料：
   http://moto.debian.org.tw/viewtopic.php?t=6213
+  https://sites.google.com/site/laohuangdediannaowo/csie/desktop/chinese
+
+

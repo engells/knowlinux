@@ -9,7 +9,6 @@
 
 常用指令
 ====================
-ip addr						# 查詢 ip
 sudo netplan try			# 檢查設定檔格式
 sudo netplan apply			# 啟用 netplan 組態
 sudo netplan --debug apply	# 以偵錯模式啟用 netplan 組態
@@ -207,6 +206,7 @@ network:
 
 簡介
 ====================
+NetPlan：YAML network configuration abstraction for various backends
 組態檔 /etc/netplan/*.yaml => backend config => Network Manager、systemd-networkd
 後端程式：Netplan 可選 networkd 或 Network Manager 作為後端。
 相關程式：Network Manager、systemd-networkd

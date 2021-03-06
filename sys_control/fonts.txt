@@ -1,23 +1,29 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
 # program:Using to note the knowledge about vim
 # made by: Engells
-# date: Aug 29, 2017
+# date: March 2, 2021
 # content: 內容並未最佳化，單純作為書摘使用
-
 
 
 
 設定字體
 ====================
 繁體中文字體設定檔：
-  檔案 /etc/fonts/conf.d/fonts.conf 或 ~/.config/fontconfig/fonts.conf，後者可能需要手動建立
-  檔案 69-language-selector-zh-tw.conf 字體有三種：serif、sans-serif 及 monospace。各字體有單獨之區段，各區段所列出之字型，即為引用順序。
-    若在 font family 出現類似 zh-tw 的語系判斷字句，建議刪除，共有三處：
-      <test name="lang">
-        <string>zh-tw</string>
-      </test>
-  檔案 65-nonlatin.conf 可設定中文以及其他非拉丁字母對應字型，不確定與 69-language-selector-zh-tw.con 的適用順序。 
+  系統層級
+    檔案 /etc/fonts/conf.d/fonts.conf
+    檔案 69-language-selector-zh-tw.conf 字體有三種：serif、sans-serif 及 monospace。各字體有單獨之區段，各區段所列出之字型，即為引用順序。
+      若在 font family 出現類似 zh-tw 的語系判斷字句，建議刪除，共有三處：
+        <test name="lang">
+          <string>zh-tw</string>
+        </test>
+    檔案 65-nonlatin.conf 可設定中文以及其他非拉丁字母對應字型，不確定與 69-language-selector-zh-tw.con 的適用順序。 
+
+  使用者層級
+    檔案 或 $HOME/.config/fontconfig/conf.d/，可能需要手動建立
+    指令示例
+      fc-cache -vf $HOME/.local/share/fonts
+      cp 10-powerline-symbols.conf $HOME/.config/fontconfig/conf.d/ 
 
 字型顯示
   建議系統字型使用蘋果黑體、蘋果儷黑體或微軟正黑體。
@@ -26,6 +32,9 @@
 Linux 以 fontconfig 套件來管理跟控制字型，可使用 fontconfig 程式，自行設定螢幕顯示字型繪製的方法，或轉換字體格式為 ttf
   http://wiki.ubuntu-tw.org/index.php?title=HowtoCustomFontswithFontconfig
   http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?viewmode=compact&order=DESC&topic_id=51992&forum=8
+
+字體安裝位置設定
+  編輯 /etc/fonts/fonts.conf，在 <!-- Font directory list --> 區段加入或修改相關路徑
 
 
 參考資料：

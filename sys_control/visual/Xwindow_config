@@ -1,9 +1,14 @@
+##!/bin/bash
 # vim:ts=4
+# program: Knowhow about X-Window
+# made by: Engells
+# date: Feb 28, 2021
+# content: Only for memo
 
 
 
 進入視窗環境過程摘要
-==============================
+====================
 GDM 登錄，進入視窗環境
 	GDM + $HOME/.dmrc + $HOME/.xprofile
 
@@ -14,12 +19,13 @@ GDM 登錄，進入視窗環境
 
 
 X configures
-==============================
+====================
 
 startx to xinit
 -------------------------
-xinit [cliet options] -- [server or display options]
+xinit [[client] options ] [-- [server] [display] options]
 xinit xterm -geometry +1+1 -n login -display :0 -- X :0		<= original xinit command
+xinit xterm -geometry +1+1 -n login -display :0 -- /usr/bin/Xorg :0
 
 
 server arguments sequences
@@ -54,7 +60,7 @@ http://newtoypia.blogspot.tw/2012/06/xinitrc-xsession-xprofile.html#more
 
 
 Ubuntu 的 X
-==============================
+====================
 使用套件：xorg
 	該套件提供 Server、Client 及 Lib 等。預設不產生 xorg.conf。
 	網路資料，使用 service lightdm stop + Xorg -configure 指令產生 xorg.conf.new，再複製成 /etc/X11/xorg.conf
@@ -75,8 +81,8 @@ Ubuntu 的 X
 
 
 石頭閒語
-http://blog.roodo.com/rocksaying/archives/19886616.html
-==============================
+http://blog.roodo.com/rocksaying/archives/19886616.html :: https://www.itread01.com/p/162041.html
+====================
 
 GDM 自動登入
 -------------------------
