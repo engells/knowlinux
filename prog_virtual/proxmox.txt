@@ -1,9 +1,61 @@
-#!/bin/bash
+##!/bin/bash
 # vim:ts=4
 # program:Using to note the knowledge about proxmox
 # made by: Engells
-# date: Aug 10, 2017
+# date: Mar 11, 2021
 # content: 內容並未最佳化，單純作為書摘使用
+
+
+
+PVE direct IO
+====================
+Direct to HD
+---------------
+啟用 Host AT-D
+  BIOS => Advance => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advance => System Agent (SA) Configuration => VT-D >> Enable
+修改開機選項
+  編輯 /etc/default/grub >> GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on pcie_acs_override=downstream"
+  sudo update-grub
+  sudo reboot
+修改啟用模組
+  編輯 /etc/modules，加入
+    vfio
+    vfio_iommu_type1
+    vfio_pcioptions
+    vfio_virqfd
+  sudo update-initramfs -u -k all
+
+
+Direct to GPU
+---------------
+啟用 Host AT-D
+  BIOS => Advance => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advance => System Agent (SA) Configuration => VT-D >> Enable
+修改開機選項
+  編輯 /etc/default/grub >> GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on pcie_acs_override=downstream video=efifb:off,vesafb:off"
+  sudo update-grub
+  sudo reboot
+修改啟用模組
+  編輯 /etc/modules，加入
+    vfio
+    vfio_iommu_type1
+    vfio_pcioptions
+    vfio_virqfd
+  編輯 /etc/modprobe.d/pve-blacklist.conf
+    echo "blacklist snd_hda_intel" >> /etc/modprobe.d/pve-blacklist.conf
+    echo "blacklist snd_hda_codec_hdmi" >> /etc/modprobe.d/pve-blacklist.conf
+    echo "blacklist i915" >> /etc/modprobe.d/pve-blacklist.conf
+    update-initramfs -u
+
+
+參考資料
+---------------
+PVE 虛擬機直通 SATA硬盤，安裝、洗白黑群暉 :: https://www.v2rayssr.com/pve-nas.html
+Promox VE(PVE)虛擬機安裝黑群暉保姆級圖文教程 :: https://www.10bests.com/install-synology-dsm-on-pve/
+電腦數位 篇二：intel小主機安裝PVE+Kodi(18.6)+OpenWrt，實現HTPC+旁路由功能 :: https://post.smzdm.com/p/a9926n90/
+
+
 
 
 proxmox VE 4x 檔案位置
@@ -13,3 +65,5 @@ KVM 虛擬機：/var/lib/vz
 lxc 容器：/var/lib/lxc
 lxc 範本：/var/lib/vz/template/cache/xxxx.tar.gz
 iso 檔案：/var/lib/vz/template/iso
+
+
