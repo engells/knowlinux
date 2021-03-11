@@ -1,0 +1,42 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about LibreELEC
+# made by: Engells
+# date: Mar 9, 2021
+# content: Just for memo
+
+
+
+SSH
+====================
+root :: openelec
+
+
+
+Static IP
+====================
+查詢網路
+  login via ssh
+  connmanctl services
+
+設定網路
+  connmanctl config <entry_with_asterisk> --ipv4 manual 192.168.1.122 255.255.255.0 192.168.1.1
+  connmanctl config "$(connmanctl services | awk '/^\*/ {print $3}')" --ipv4 manual 192.168.1.122 255.255.255.0 192.168.1.1
+
+
+
+其他設定
+====================
+設置 => 佈景 => 字體 => Arial
+設置 => 區域 => 語言 => 繁中
+設置 => 媒體 => 清理資料庫
+設置 => 文件管理
+設置 => 服務 => 控制 => 允許 HTTP 遠程控制 ;; 允許異地遠程控制
+
+
+
+URL
+====================
+https://kodi.wiki/view/Main_Page ;; https://kodi.wiki/view/Web_interface
+
+

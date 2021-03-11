@@ -30,3 +30,11 @@ sudo apt update
 sudo apt install rpimonitor
 
 
+
+
+其他軟體
+====================
+RPi-Monitor ;; Pi-Dashboard ;; NetData
+Volumio
+
+

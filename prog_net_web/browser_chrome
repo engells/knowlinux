@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Using to note the knowledge about Chromium
 # made by: Engells
-# date: Mar 14, 2019
+# date: Mar 8, 2021
 # content: Just for memo
 
 
@@ -17,23 +17,22 @@ Run in a container
 
 使用套件
 ====================
-NotScripts: 禁止執行 scripts
+Script Defender: 禁止執行 scripts
+Stylus: 搭配 Darker Google
+uBlock Original: 阻擋廣告
 Privacy Badger: 禁止追蹤
 HTTPS Everywhere: 強制使用 HTTPS 協定
-Stylish: 搭配 Darker Google
+Tampermonket: scrips 管理
+Vimium: vim 風格快捷鍵
 
 #Change Colors: 將網頁背景變黑
 #New Tab Redirect: 設定新分頁初始網址
 
 
 
-Stylish 套件
-====================
-http://userstyles.org/styles/83862/night-shift-eye-care-fix-chrome
-
-
 
 設定檔
 ====================
 /.config/chromium/Default/User StyleSheets/Custom.css	?
+
 

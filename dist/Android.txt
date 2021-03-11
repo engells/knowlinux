@@ -1,0 +1,52 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Android
+# made by: Engells
+# date: Mar 9, 2021
+# content: Just for memo
+
+
+
+刷機
+====================
+adb reboot bootloader
+fastboot flash recovery twrp-3.5.0_9-0-Z00L.img
+fastboot reboot
+
+Sideload
+---------------
+phone TWRp => Advance => Sideload >>> computer => adb sideloa xxxx.zip
+
+
+
+
+adb 指令
+====================
+adb commands
+  adb reboot shutdown  # shutdown
+  adb reboot           # reboot
+  adb reboot recovery  # root to recovery mode
+  adb shell            # like login smart phone, su root ;; reboot -p # shutdown
+  adb devices
+
+fastboot commands
+  fastboot devices
+  fastboot reboot-bootloader
+  fastboot oem device-info
+
+install adb environment
+  android-tools-adb ;; android-tools-fastboot
+
+
+
+
+LineageOS
+====================
+reboot to TWRP => mount > inculde system => Advanced > File Manager > priv-app > SetupWizard > delete
+reboot to TWRP => run file manager => delete /system/priv-app/LineageSetupWizard directory
+
+URL
+---------------
+How to Fix Setup Wizard has Stopped on Android :: https://geekstraw.com/how-to-fix-setup-wizard-has-stopped-on-android/
+
+
