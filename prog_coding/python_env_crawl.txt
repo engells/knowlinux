@@ -126,3 +126,10 @@ os.pathabspath   獲得檔案的絕對路徑
 os.walk          取得目錄下所有檔案和目錄
 
 
+
+
+參考資料
+====================
+樹莓派安裝 twstock 套件 :: https://yhhuang1966.blogspot.com/search?updated-max=2019-04-08T22:40:00%2B08:00&max-results=7&start=7&by-date=false
+
+

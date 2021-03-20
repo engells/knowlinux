@@ -48,7 +48,7 @@ SSH 安全性設定
 2. 禁止以 root 帳號登入
    /etc/ssh/sshd_config => PermitRootLogin no
 3. 只准特定帳號或群組登入 SSH
-   /etc/ssh/sshd_config => AllowUsers my_name | AllowGroups my_group 
+   /etc/ssh/sshd_config => AllowUsers my_name | AllowGroups my_group
 4. 帳號是空密碼, 禁止登入:
    /etc/ssh/sshd_config => PermitEmptyPasswords no
 5. 只開啟 Protocol 2 版本

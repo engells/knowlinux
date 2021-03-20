@@ -1,7 +1,8 @@
+##/bin/bash
 # vim:ts=4
 # program: knowhow about QEMU
 # made by: Engells
-# date: Dec 2, 2020
+# date: Mar 14, 2020
 # content: 
 
 
@@ -12,7 +13,10 @@ qemu-system-i386 -hda /path/to/img_file_name -cdrom /path/to/dos_iso_file_name -
   # 以光碟映像檔開機，安裝 DOS 至虛擬硬碟
 
 qemu-system-x86_64 -enable-kvm -hda /path/to/img_file_name -boot c -m 32 -L .
- # 以虛擬硬碟開機
+  # 以虛擬硬碟開機
+
+qemu-system-arm、qemu-system-aarc64
+  # 模擬 arm 32 位元及 64 位元平台
 
 Ctl+Alt+2
   # 進入中控台，可執行指令

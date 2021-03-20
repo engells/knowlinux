@@ -35,6 +35,11 @@ sudo apt install rpimonitor
 其他軟體
 ====================
 RPi-Monitor ;; Pi-Dashboard ;; NetData
+vcgencmd measure_clock arm ; vcgencmd measure_volts ; vcgencmd measure_temp
+  使用 vcgencmd 指令查看 Raspberry Pi 的 CPU 溫度等資訊 - G.T.Wang :: https://blog.gtwang.org/iot/raspberry-pi-vcgencmd-hardware-information/
+htop ; speedometer ; s-tui
+  樹莓派監控 CPU 負載，溫度，內存和網路的工具 :: https://blog.csdn.net/xingqingly/article/details/104328570
 Volumio
+ufw
 
 

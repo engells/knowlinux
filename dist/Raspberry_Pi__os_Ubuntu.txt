@@ -15,6 +15,40 @@
 4. 設定無線網路
 5. 安裝桌面，包括 X-window、openbox | i3、slim(display manage)
 6. 其他，包括時區、感應器、中文環境等
+7. 最佳化桌面
+   GitHub - wimpysworld/desktopify :: https://github.com/wimpysworld/desktopify
+
+
+
+
+Docker
+====================
+安裝
+  sudo apt update
+​  sudo apt install apt-transport-https ca-certificates curl gnupg2 lsb-release software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt update
+  apt-cache policy docker-ce
+  ​sudo apt install docker-ce
+
+啟用
+  sudo systemctl enable docker
+  sudo systemctl start docker
+
+設置權限
+  sudo groupadd docker
+  sudo usermod -aG docker ${USER}
+
+測試
+  log out and log back
+  docker run arm64v8/hello-world
+    # 32 位元平台適用之 image 為 arm32v7/hello-world
+
+參考資料
+  Installing Docker in Raspberry Pi 4 :: https://brjapon.medium.com/setting-up-ubuntu-20-04-arm-64-under-raspberry-pi-4-970654d12696
+  Docker — 從入門到實踐
+    https://github.com/yeasy/docker_practice/blob/master/SUMMARY.md ;; https://yeasy.gitbook.io/docker_practice/install/raspberry-pi
 
 
 

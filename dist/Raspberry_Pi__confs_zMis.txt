@@ -24,8 +24,14 @@ sudo raspi-config
 
 遠端桌面控制
 ====================
-使用 VNC
-----------
+XRDP
+---------------
+sudo apt install xrdp tightvncserver
+sudo systemctl enable xrdp
+
+
+使用 tight VNC
+---------------
 sudo apt install tightvncserver
 sudo tightvncserver
 	# 設定密碼 & 完全存取
@@ -41,10 +47,18 @@ sudo apt install tightvncserver	passwd:1234abcd
 	sudo systemctl stop vncserver-x11-serviced.service
 
 
-XRDP
-----------
-sudo apt install xrdp tightvncserver
-sudo systemctl enable xrdp
+Raspbian 原生 VNC
+---------------
+sudo apt update && sudo apt install realvnc-vnc-server realvnc-vnc-viewer
+sudo raspi-config => interfacing Options >> VNC
+  # 設置檔(參考) /root/.vnc/config.d/vncserver-x11
+  #   Authentication=VncAuth
+  #   Encryption=AlwaysOff
+  #   Password=e0fd0472492935da
+  # 設定密碼： sudo vncpasswd -service
+  # 相關服務：  vncserver-x11-serviced.service
+  # 參考資料 :: https://www.raspberrypi.org/documentation/remote-access/vnc/
+  # 　　　　    https://help.realvnc.com/hc/en-us/articles/360002249917-VNC-Connect-and-Raspberry-Pi
 
 
 
@@ -52,7 +66,7 @@ sudo systemctl enable xrdp
 設定 SWAP
 ====================
 cutomized swap size
-----------
+---------------
 edit /etc/dphys-swapfile
 	#CONF_SWAPSIZE=100
 	CONF_SWAPFACTOR=2
@@ -62,7 +76,7 @@ sudo service dphys-swapfile restart && swapon -s
 
 
 auto swap size
-----------
+---------------
 edit /etc/dphys-swapfile
 	CONF_SWAPSIZE=xxxx	# MiB
 
@@ -70,7 +84,7 @@ sudo service dphys-swapfile restart && swapon -s
 
 
 swap on USB
-----------
+---------------
 make a ext4 system on a usb sticker, as /dev/sda1
 blkid
 edit /etc/fstab, add /dev/sda

@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Knowhow about Raspberry Pi Network
 # made by: Engells
-# date: Feb 21, 2021
+# date: Mar 15, 2021
 # content: Just for memo
 
 
@@ -10,15 +10,15 @@
 Quick Reference
 ====================
 Raspbian
-  修改 /boot/wpa_supplicant.conf
+  修改 /boot/wpa_supplicant.conf，首次開機時套用，之後相關設定轉移至 /etc/wpa_supplicant/xxxx.conf
   修改 /etc/wpa_supplicant/wpa_supplicant.conf
-  修改 /etc/network/interfaces，樹莓派實際上是在本檔執行所有在 /etc/network/interfaces.d/ 目錄的檔案，預設為動態網址
-  修改 /etc/network/interfaces.d/wlana
   修改 /etc/dhcpcd.conf，樹莓派預設在此檔設置固定網址
+  修改 /etc/network/interfaces，樹莓派實際上是在本檔中執行所有在 /etc/network/interfaces.d/ 目錄的檔案，預設為動態網址
+  修改 /etc/network/interfaces.d/wlana
 
 Ubuntu 20.04 on Raspberry Pi
   在 flash sd 後修改 /path/to/system-boot/net-config，該檔在樹莓開機後掛載在 /boot/firmware 目錄
-  修改 /etc/netplan/01_xxxx.yaml
+  修改 /etc/netplan/xxxx.yaml
   修改 /etc/wpa_supplicant/xxxx.conf
 
 
@@ -48,14 +48,14 @@ Ubuntu Server 20.04 設置無線網路
             addresses: [192.168.1.126/24]
             gateway4: 192.168.1.1
             nameservers:
-            addresses: [8.8.8.8, 8.8.4.4]
+              addresses: [8.8.8.8, 8.8.4.4]
           wlan0:
             dhcp4: no
             dhcp6: no
             addresses: [192.168.1.125/24]
             gateway4: 192.168.1.1
             nameservers:
-            addresses: [8.8.8.8, 8.8.4.4]
+              addresses: [8.8.8.8, 8.8.4.4]
 
   b. 注意，在隱藏式 SSID AP 的環境中，無線網卡設定在 ethernets: 區段，而非 wifis: 區段。
 
@@ -173,7 +173,35 @@ Ubuntu Server 20.04 設置無線網路
 
 Raspbian 設定無線網路固定網址
 ====================
-Method 1:
+Method 1: 
+---------------
+1.首次開機前，編輯 /path/tosd_card/boot/wpa_supplicant.conf
+  country=TW
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+  update_config=1
+
+  network={
+    ssid="SSID_NAME"
+    psk="SSID_KEY"
+    key_mgmt=WPA-PSK
+    scan_ssid=1
+    priority=2
+  }
+
+2.若無法啟用無線網路，則以有線方式連接後，編輯 /etc/wpa_supplicant/xxxx.conf
+  內容同上，可參閱 /path/to/confs_raspberry_pi/wifi.conf
+
+3.編輯 /etc/dhcpcd.conf
+  加入 wlan0 設定，格式比照 eth0 即可
+
+4.重啟網路
+  sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
+    # 必須執行上述指令，將 wlan0 套用 /etc/wpa_supplicant/wpa_supplicant.conf 組態檔
+    # sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+    # 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces.d/xxxx 有無語法錯誤
+
+
+Method 2:
 ---------------
 edit /etc/network/interfaces.d/wlana
   auto lo
@@ -196,32 +224,27 @@ edit /etc/network/interfaces.d/wlana
   iface default inet dhcp
 
 
-Method 2: 
----------------
-edit /boot/wpa_supplicant.conf
-  country=TW
-  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-  update_config=1
-
-  network={
-    ssid="SSID_NAME"
-    psk="SSID_KEY"
-    key_mgmt=WPA-PSK
-    scan_ssid=1
-    priority=2
-  }
-
-active network
-  sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
-    # 必須執行上述指令，將 wlan0 套用 /etc/wpa_supplicant/wpa_supplicant.conf 組態檔
-    # sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-    # 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces.d/xxxx 有無語法錯誤
-
-
 
 
 Raspbian 設定有線網路固定網址
 ====================
+Raspbian 8.0 (Kernel 4.9) 以上版本
+---------------
+編輯 /etc/dhcpcd.conf
+	interface eth0  #有線網路
+	static ip_address=192.168.1.124
+	static routers=192.168.1.1
+	static domain_name_servers=192.168.1.1
+	interface wlan0  #無線網路
+	static ip_address=192.168.1.122
+	static routers=192.168.1.1
+	static domain_name_servers=192.168.1.1
+
+啟用服務
+	systemctl enable dhcpcd
+	systemctl enable networking
+
+
 Raspbian 7.0 以下版本
 ---------------
 編輯 /etc/network/interfaces
@@ -252,28 +275,11 @@ Raspbian 7.0 以下版本
   3. 參考資料 https://kknews.cc/zh-tw/tech/m3opmnp.html
 
 
-Raspbian 8.0 (Kernel 4.9) 以上版本
----------------
-編輯 /etc/dhcpcd.conf
-	interface eth0  #有線網路
-	static ip_address=192.168.1.124
-	static routers=192.168.1.1
-	static domain_name_servers=192.168.1.1
-	#interface wlan0  #無線網路
-	#static ip_address=192.168.1.122
-	#static routers=192.168.1.1
-	#static domain_name_servers=192.168.1.1
-
-啟用服務
-	systemctl enable dhcpcd
-	systemctl enable networking
-
-
 
 
 Ubuntu on Raspberry Pi 設定固定網址網路
 ====================
-edit /etc/netplan/50-cloud-init.yaml, not work on hidden SSID
+edit /etc/netplan/xxxx.yaml，對於隱藏式 SSID 必須搭配 wpa_supplicant 機制
 ---------------
 network:
     version: 2

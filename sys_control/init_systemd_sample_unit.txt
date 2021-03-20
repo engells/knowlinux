@@ -1,0 +1,41 @@
+##/bin/bash
+# vim:ts=4
+# program: sample of systemd unit
+# made by: Engells
+# date: Mar 14, 2021
+# content: unit starts at computer booting
+
+
+
+nas_mount
+---------------
+[Unit]
+Description=Auto mount nas
+DefaultDependencies=no
+ConditionPathExists=/nas
+After=sysinit.target
+ 
+[Mount]
+What=/dev/sdb1
+Where=/nas
+Type=xfs
+ 
+[Install]
+WantedBy=multi-user.target
+
+
+
+units like docker, samba, cloud-torrent and aria2, start after nas_mount
+---------------
+[Unit]
+Requires=nas.mount data.mount
+After=nas.mount data.mount
+...
+
+
+
+URL
+---------------
+【樹莓派筆記】磁盤掛載問題 :: https://www.annhe.net/article-4233.html
+
+
