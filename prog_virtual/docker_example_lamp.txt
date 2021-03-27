@@ -3,7 +3,7 @@
 
 Jonny Huang 的學習筆記
 	URL: https://jonny-huang.github.io/docker/docker_03/
-
+  postgres:latest ;; nginx: ;; jrcs/letsencrypt-nginx-proxy-companion ;; jc21/nginx-proxy-manager ;; dpage/pgadmin4
 
 
 測試環境的設備如下：

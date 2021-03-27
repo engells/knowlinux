@@ -24,7 +24,7 @@ ssh -v -X user_name@remote_computer_ip nautilus --new-window
 以金鑰使用 SSH
 ====================
 本機端產生金鑰
-	ssh-keygen -t rsa  -b 4096
+	ssh-keygen -t rsa -b 4096
 		# 可從 linux shell 或 git bash for Windows 執行該指令
 		# 產生 id_rsa、id_rsa.pub 兩個檔案
 		# Linux 系統裏檔案位置在 ~/.ssh，Windows 系統裏檔案位置在 path\to\usrs\xxxx\.ssh

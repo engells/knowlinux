@@ -72,7 +72,8 @@ VNC 相關指令(realvnc-vnc-server)
   # sudo systemctl disable vncserver-x11-serviced.service, the service is seted by realvnc-server
 9. 樹莓派關機，接上電視後重開機，設置手把後退出 Emulation Station。
 10.上傳遊戲使用檔案，可用 SCP 指令上傳。視情況停用樹莓派 smbd 及 cups 服務
-
+11.其他安裝
+  # sudo apt install kodi-pvr-iptvsimple :: https://retropie.org.uk/docs/KODI/
 
 
 

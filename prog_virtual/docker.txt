@@ -2,7 +2,7 @@
 # vim:ts=2
 # program: Using to memo common commands
 # made by: Engells
-# date: Apr 8, 2019
+# date: Mar 26, 2021
 # content: Just for memo
 
 
@@ -12,7 +12,6 @@
 docker logs [container id or name]
 docker network create cdb-net
 docker network rm cdb-net
-docker commit containrt_name image_ref
 
 
 
@@ -22,7 +21,8 @@ docker commit containrt_name image_ref
 1. 安裝預設版本，apt install docker.io
 2. 開機時不啟動 docker，systemctl disable docker
 3. 需執行 docker 時再啟用，systemctl start docker
-4. 使用 lxcbr0 橋接器
+4. 執行 usermod -aG docker ${USER}，啟用 unprivileged mode。可執行 docker inspect --format='{{.HostConfig.Privileged}}' container_ref 確認
+5. 使用 lxcbr0 橋接器
 
 
 
@@ -34,28 +34,21 @@ Container 指令
 	docker inspect -f "{{ .State.Pid }}" container_id
 
 產生並啟動 container
-	docker run -it ubuntu:16.04 /bin/bash
+	docker run -it -d --name dbmaria -p 80:8080 -v /home/db/maria:/var//lib/maria -e MYSQL_ROOT_PASSWORD='123' -e MYSQL_DATABASE='ayu' \
+    ubuntu:16.04 /bin/bash
+    run： docker create + docker start == docker run，docker run 參數應可用於 docker create
 		-i：以互動模式啟動 container
 		-t：產生虛擬終端機
-		ubuntu:16.04：以 repository:tag 格式表示作為基底的 image
-		bin/bash：表示在 container 要執行的程式
-
-	docker run -d --name dbmaria -p 80:80 -v /home/db/maria:/var//lib/maria -e MYSQL_ROOT_PASSWORD='123' -e MYSQL_DATABASE='ayu' ubuntu:16.04
-		-d：背景執行 container，會傳回 container id
+		-d：背景執行 container
 		--name dbmaria：將 container 命名為 dbmaria
 		-p 80:8080：將 host 的 80 port 映射為 container 的 8080 port，可使用多個 -p 參數
 		-v /home/db/maria:/var//lib/maria：將 host 的 /home/db/maria 掛載為 container 的 /var//lib/maria，可使用多個 -v 參數
 		-e MYSQL_ROOT_PASSWORD='123'：設定環境參數，資料庫管理密碼為 123
 		-e MYSQL_DATABASE='ayu'：設定環境參數，資料庫為 ayu
-		--net=net_name：指定使用 net_name 網路，該網路由 docker network create 指令建立
+		ubuntu:16.04：以 repository:tag 格式表示作為基底的 image
+		bin/bash：表示在 container 要執行的程式
 		--rm
 		--restart=xxx
-
-	docker run -d --name dbshare -v /host/folder:/container/folder image_ref
-	docker run -d --name db01 --volumes-from dbshare image_ref
-	docker run -d --name db02 --volumes-from db01 image_ref
-
-  docker run --privileged image_name
     --privileged：以 privileged 模式產生 container
 
 啟動已存在之 container
@@ -76,10 +69,11 @@ Container 指令
 刪除 container
 	docker rm [container id]
 		僅能刪除停止運作之 container，可加入 -f 參數強制刪除運作中的 container
-
 	docker rm -f [container name]
-
 	docker rm $(docker ps -a -q)
+
+其他
+  docker restart
 
 
 
@@ -87,20 +81,16 @@ Container 指令
 Image 指令
 ====================
 查詢 repository images
-	docker search ubuntu:16.04
+	docker search image_name:image_tag
 
 查詢 local images
-	docker images
+	docker images == docker image ls
 
 下載 image
 	docker pull ubuntu:16.04
-	docker pull centos:latest
-
-登錄 Docker Repository
-	docker login
 
 刪除 image
-	docker rmi ubuntu:16.04
+	docker rmi image_name:image_tag == docker image rm image_name:image_tag
 	docker rmi $(docker images -q -f "dangling=true")
 		-q：--quiet
 		-f：--filter
@@ -111,7 +101,31 @@ Image 指令
 	docker load --input xenial.tar 或 docker load < xenial.tar
 
 修改 image 的 tag
-	docker tag
+	docker tag == docker image tag
+
+登錄 Docker Repository
+	docker login
+
+其他
+  docker inspect image_name:image_tag == docker image inspect
+  docker history image_name:image_tag == docker image history
+  docker commit --author='' --message=''
+  docker import == docker image import
+  docker push
+
+
+
+
+Volume and volume container 指令
+====================
+Volume
+  docker volume [create | inspect | ls | prune | rm] volum_name
+    volume 預設位置 /var/lib/docker/volumes/volume_name/_data
+
+volume container, 以 host 目錄掛進 container，並以該 container 作為 volume，此為較早期用法
+  docker run -d --name dbshare -v /host/folder:/container/folder image_ref
+  docker run -d --name db01 --volumes-from dbshare image_ref
+  docker run -d --name db02 --volumes-from db01 image_ref
 
 
 
@@ -119,10 +133,10 @@ Image 指令
 Network bridge
 ====================
 使用 docker 預設橋接器
----------------
+--------------------
 建立橋接網絡(bridge)
   docker network create -d bridge bridge_name
-	  # -d => --driver
+  docker network create --driver=bridge --subnet=172.26.0.0/16 --ip-range=172.26.1.0/24 --gateway=172.26.1.1 br0
 
 編輯預設橋接器組態
   edit /etc/default/docker
@@ -133,23 +147,41 @@ Network bridge
 
 
 使用自設橋接器
----------------
+--------------------
 停止 docker 服務，並刪除 docker 預設的橋接器
-  service docker stop or systemctl stop docker
-  ip link set dev bridge0 down or ifconfig bridge0 down && ifdown bridge0
-  brctl delbr bridge0
+  sudo systemctl stop docker | sudo service docker stop
+  sudo ip link set dev docker0 down | sudo ifconfig docker0 down | sudo ifdown docker0
+  sudo apt install bridge-utils && sudo brctl delbr docker0
 
-建立一個橋接器 dockbr0
-  brctl addbr dockbr0
-  ip addr add 192.168.5.1/24 dev dockbr0
-  ip link set dev dockbr0 up
+建立一個橋接器 brd0
+  sudo brctl addbr brd0
+  sudo ip addr add 172.26.1.1/24 dev brd0
+  sudo ip link set dev brd0 up
 
 檢視確認橋接器建立並啟動
-  ip addr show dockbr0
+  sudo ip addr show brd0
 
 設定 Docker 服務， 預設橋接到建立的橋接器上。
-  echo 'DOCKER_OPTS="-b=dockbr0"' >> /etc/default/docker
-  service docker start or systemctl restart docker
+  sudo vim /etc/docker/daemon.json >> {"bridge": "brg0"}
+    # sudo echo 'DOCKER_OPTS="--bridge=brd0"' >> /etc/default/docker
+  sudo systemctl restart docker | sudo service docker start
+
+
+網路
+---------------
+Container 互連
+  dockrn run -d --name srv_db image_ref
+  docker run -d --link srv_db:db_alias --name srv_web image_ref
+
+--net
+  --net=bridge                預設選項，container 有網卡及 IP，經由 veth 連接至 docker0 虛擬橋接器，各 container 互通
+  --net=none                  container 沒有網卡及 IP，只有 network namespace
+  --net=host                  container 沒有網卡及 IP，也沒有 network namespace
+  --net=container_ref         與 container_ref 共用網路配置
+  --net=user_defined_network  使用者以 docker network 自行建置網路，同一網路的 container 彼此可見
+
+其他指令
+  docker network [create | inspect | ls | rm | connect | disconnect] network_name
 
 
 
@@ -158,26 +190,13 @@ X11
 ====================
 Method 1:
 	https://blog.stackoverflow.club/99/
-----------
+---------------
 docker run -ti –net=host –rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix
 sudo apt-get install x11-xserver-utils && xhost +
 apt install dbus-x11 
 apt-get install libcanberra-gtk3-module
 apt install firefox
 firefox
-
-
-
-
-Unpriviledge mode
-====================
-usermod -aG docker user_name
-  # 若未建有 docker 群組，執行指令： groupadd docker
-	# 若未建有 user 帳戶，執行指令：：useradd -m -s /bin/bash user_name && passwd user_name
-logout and login 或執行指令： newgrp docker 轉換為 docker 群組身份
-
-check whether you are running a container in privileged mode, use the command:
-  docker inspect --format='{{.HostConfig.Privileged}}' container_id
 
 
 
@@ -196,50 +215,6 @@ Linux 執行 Docker GUI 的中文輸入法啟用方式
 
 
 
-Install Docker
-====================
-Ubuntu from docker.com
-----------
-sudo apt update && sudo apt install apt-transport-https ca-certificates	software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt update
-#apt install linux-image-extra-$(uname -r) linux-image-extra-virtual
-sudo apt install docker-ce			# apt-cache madison docker-ce 可查詢軟體版本。docker-engine 不需安裝。
-sudo systemctl start docker
-sudo systemctl enable docker    # 開機時啟動 Docker 服務
-sudo docker version
-sudo docker info     # 
-
-
-Ubuntu from apt
-----------
-apt remove docker docker-engine docker.io
-apt install docker.io
-systemctl start docker
-systemctl enable docker	 # optional
-docker --version
-
-
-Centos
-----------
-yum install -y docker  
-systemctl start docker  
-
-
-Proxmox VE 下的 LXC Ubuntu container 安裝及設定 docker-ce
-----------
-apt install gnupg2 curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(cat /etc/os-release | grep UBUNTU_CODENAME | cut -d '=' -f 2) stable"
-apt update && apt install docker-ce
-
-資料來源： https://www.pigo.idv.tw/archives/3322
-
-
-
-
 Reference
 ====================
 圖形介面的管理工具
@@ -250,41 +225,17 @@ Reference
 	打開網址 http://host_ip:9453，第一次登入需要設定 admin 帳號的密碼及管理方式(選本地 Local)
 
 
-docker-compose
-----------
-安裝(with root authority)
-	curl -L https://github.com/docker/compose/releases/download/1.24.0-rc3/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-	chmod +x /usr/local/bin/docker-compose
-URL:
-	https://github.com/docker/compose/releases
 
 
-
-
-Memo
+概述
 ====================
-Minimum image file
-----------
-FROM golang:alpine AS build-env
-WORKDIR /app
-ADD . /app
-RUN cd /app && go build -o goapp
-
-FROM alpine
-RUN apk update && \
-   apk add ca-certificates && \
-   update-ca-certificates && \
-   rm -rf /var/cache/apk/*
-WORKDIR /app
-COPY --from=build-env /app/goapp /app
-EXPOSE 8080
-ENTRYPOINT ./goapp
-
 習慣上 Docker 的影像（image）名稱會以這樣的格式命名： username/repository:tag
 
 組態檔案： /etc/default/docker
          /etc/docker/daemon.json => { ... "data-root": "/new-path/docker" ... }
          /lib/systemd/system/docker.service
+
+安裝 docker，視當時環境決定。自 Ubuntu 20.04 Focal 之後，可以 podman 代用 docker
 
 
 
@@ -292,7 +243,5 @@ ENTRYPOINT ./goapp
 參考資料
 ====================
 用 Docker 建立不同 Angular CLI 版本的開發環境： https://jonny-huang.github.io/docker/docker_01/
-
-
 
 
