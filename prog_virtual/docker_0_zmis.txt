@@ -1,0 +1,54 @@
+##/bin/bash
+# vim:ts=2
+# program: Miscellaneous know about docker
+# made by: Engells
+# date: Apr 9, 2021
+# content: Just for memo
+
+
+
+X11
+====================
+Method 1:
+	https://blog.stackoverflow.club/99/
+---------------
+docker run -ti –net=host –rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix
+sudo apt-get install x11-xserver-utils && xhost +
+apt install dbus-x11 
+apt-get install libcanberra-gtk3-module
+apt install firefox
+firefox
+
+
+
+
+Linux 執行 Docker GUI 的中文輸入法啟用方式
+====================
+略過 Docker 要 run 哪種 GUI ，只處理跑起來後的中文輸入法問題，主要是加上下述 -e 的那幾行：
+    docker run --rm \
+    -e XMODIFIERS="@im=ibus" \
+    -e QT_IM_MODULE="ibus" \
+    -e GTK_IM_MODULE="ibus"
+若使用其它輸入法的，就把 ibus 修改成自己的輸入法，例如：fcitx、scim、gcin...
+
+資料來源： https://blog.longwin.com.tw/2020/12/linux-docker-gui-chinese-input-enable-2020/
+
+
+
+
+圖形介面的管理工具
+====================
+sudo docker pull portainer/portainer
+sudo docker volume create portainer_data
+sudo docker run --name=portainer -d -p 9453:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer
+
+打開網址 http://host_ip:9453，第一次登入需要設定 admin 帳號的密碼及管理方式(選本地 Local)
+
+
+
+
+參考資料
+====================
+用 Docker 建立不同 Angular CLI 版本的開發環境： https://jonny-huang.github.io/docker/docker_01/
+
+

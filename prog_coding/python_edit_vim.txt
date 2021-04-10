@@ -124,3 +124,12 @@ Run python command in vim
 參考資料：
   http://python.jobbole.com/86538/?utm_source=blog.jobbole.com&utm_medium=relatedPosts
 
+
+
+
+備註
+====================
+flake8  # linter, config file: setup.cfg or .flake8 or tox.ini
+japf    # formatter, https://github.com/google/yapf
+
+
