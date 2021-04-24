@@ -2,7 +2,7 @@
 # vim:ts=2
 # program: Basic know about docker
 # made by: Engells
-# date: Apr 9, 2021
+# date: Apr 22, 2021
 # content: Just for memo
 
 
@@ -69,6 +69,19 @@ volume container, 以 host 目錄掛進 container，並以該 container 作為 v
   docker run -d --name dbshare -v /host/folder:/container/folder image_ref
   docker run -d --name db01 --volumes-from dbshare image_ref
   docker run -d --name db02 --volumes-from db01 image_ref
+
+
+
+
+組態
+====================
+Docker 的鏡像文件是安裝在 /var/lib/docker，變更該設定
+  Edit /etc/docker/daemon.json
+    {"data-root":"/home/qadev/.dockerlib"}
+  Soft link:
+    systemctl stop docker && ln -s /path/to/docke_images /var/lib/docker && sudo systemctl start docker
+  Edit /etc/default/docker or /etc/sysconfig/docker
+    OPTIONS=--graph="/path/to/docke_images" -H fd://#
 
 
 
