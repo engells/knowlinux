@@ -1,0 +1,82 @@
+# vim:ts=2
+# program: knowhow about Linux Mudules
+# made by: Engells
+# date: Jan 21, 2023
+# content: 
+
+
+
+modprobe commands
+====================
+modprobe <kernel module name>
+modprobe -r <kernel module name>
+lsmod | grep <kernel module name>
+
+
+modprobe options:
+----------
+-a或--all：載入全部的模組；
+-c或--show-conf：顯示所有模組的設置信息；
+-d或--debug：使用排錯模式；
+-l或--list：顯示可用的模組；
+-r或--remove：模組閑置不用時，即自動卸載模組；
+-t或--type：指定模組類型；
+-v或--verbose：執行時顯示詳細的信息；
+- V或--version：顯示版本信息；
+-help：顯示幫助。
+
+
+Reference data:
+----------
+Modprobe Command in Linux – A Beginner’s Guide :: https://www.linuxfordevices.com/tutorials/linux/modprobe-command
+Linux modprobe命令 自动处理可载入模块 :: https://www.dongchuanmin.com/linux/3038.html
+
+
+
+
+DKMS
+====================
+DKMS is a framework designed to allow individual kernel modules to be upgraded without changing the whole kernel. It is also very easy to rebuild modules as you upgrade kernels
+
+
+
+
+Dazuko
+====================
+Dazuko is a kernel module which provide a interface to let 3rd party software access files
+
+Ibstall Dazuko
+----------
+Download deb file: http://dazuko.dnsalias.org/wiki/index.php/Main_Page
+Install some tools:
+ sudo apt-get install module-assistant debhelper
+Install deb file:
+ sudo dpkg -i dazuko-source_2.2.0-1_all.deb
+Compile and install moudle:
+ sudo m-a a-i dazuko
+Load moudle:
+ sudo modprobe dazuko
+
+If you fail in step 5, that may be due to the moudle of capability. Try the following commans:
+ sudo modprobe -r capability
+ sudo modprobe dazuko
+ sudo modprobe capability
+
+
+In oreder to load dazuko when booting，add "dazuko" in /etc/modules 
+----------
+Creat a new file, /etc/modprobe.d/dazuko, which contain the following words:
+ install dazuko /sbin/modprobe -r capability; /sbin/modprobe --ignore-install dazuko;
+ /sbin/modprobe --ignore-install capability => pls don't break the line
+Reboot and run the command: lsmod | grep dazuko => see if dazuko is loaded
+Each time the kernel changed, we need do the above steps again.
+
+
+Reference data:
+----------
+https://help.ubuntu.com/community/DazukoTroubleshooting
+http://www.guatewireless.org/en/dazuko- ... -en-linea/
+http://blog.chinson.idv.tw/2006/04/ubuntu-dazuko.html
+http://ubuntuforums.org/archive/index.php/t-52385.html
+
+

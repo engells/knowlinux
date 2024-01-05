@@ -1,0 +1,243 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Monitor Apps on Raspberry Pi
+# made by: Engells
+# date: Feb 9, 2023
+# content: Just for memo
+
+
+
+使用 Raspberry Pi 架設 AP
+====================
+方法一
+----------
+概論
+ NetworkManager 設定 wifi hot spot
+ GUI Network icon => Advanced Options => Create Wireless Hotspot => Set the SSID,  WPA2, and password => reboot
+ GUI Network icon => Advanced Options => Edit Connections => Hotspot name => settings icon => General(t) | Connect automatically with priority
+編輯 /etc/NetworkManager/system-connections/ThauHsu1.nmconnection
+ [connection]
+ id=ThauHsu1
+ uuid=d4e886d9-b23d-4e23-95ab-457fcf48f59a
+ type=wifi
+ autoconnect=false
+ interface-name=wlan0
+ permissions=
+ timestamp=1672236229
+
+ [wifi]
+ hidden=true
+ mac-address-blacklist=
+ mode=ap
+ seen-bssids=B8:27:EB:EA:FC:7F;
+ ssid=ThauHsu1
+
+ [wifi-security]
+ key-mgmt=wpa-psk
+ psk=cvv6ciym1
+
+ [ipv4]
+ address1=172.26.3.1/24,172.25.3.1
+ dns-search=
+ method=shared
+
+ [ipv6]
+ addr-gen-mode=stable-privacy
+ dns-search=
+ method=shared
+
+ [proxy]
+
+設置防火牆 iptables
+ -A INPUT -s 172.26.3.0/24 -j ACCEPT
+ -A INPUT -d 192.168.1.122 -s 172.26.3.1 -j ACCEPT
+ -A INPUT -d 172.26.3.255 -s 172.26.3.1 -j ACCEPT
+ -A INPUT -d 172.26.3.1 -s 172.26.3.0/24 -j ACCEPT
+ -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+ -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+
+執行指令 nmcli connection up hotspot_name
+
+
+方法二
+----------
+概論
+ 有線網卡 192.168.1.x，uplink，連接 Internet
+ 無線網卡 192.168.15.1，downlink，供給其他設備網路
+ dhcpcd：設定 AP 主機的網路環境，另有 Network Manager 方式可設定網路，為 Debian 及 Ubuntu 預設使用。
+ hostapd：能使無線網卡工作在軟 AP（Access Point）模式，即無線路由器
+ dnsmasq：能夠同時提供 DHCP 和 DNS 服務
+
+安裝套件
+ sudo apt update && sudo apt upgrade && sudo apt install hostapd dnsmasq -y
+ sudo systemctl stop dnsmasq
+ sudo systemctl stop hostapd
+
+無線網卡 DHCP，範例會使用 192.168.15.0/24 的網段，這是樹莓派架設成 AP 後所提供的區網的網段
+ sudo vim /etc/dhcpcd.conf
+  interface wlan0
+  nohook wpa_supplicant
+  static ip_address=192.168.15.1/24
+  static routers=192.168.15.1
+  static domain_name_servers=192.168.1.1 8.8.8.8 8.8.4.4
+  denyinterfaces wlan0
+
+設定 Access Point 組態：/etc/hostapd/hostapd.conf 及 /etc/default/hostapd、/etc/init.d/hostapd
+ sudo vim /etc/hostapd/hostapd.conf
+  interface=wlan0
+  driver=nl80211
+  hw_mode=g # 2.4GHz band
+  channel=7
+  ieee80211n=1
+  wmm_enabled=0
+  macaddr_acl=0
+  ignore_broadcast_ssid=0 # Reguire clients to know network name
+  # Use WPA2
+  auth_algs=1
+  wpa=2
+  wpa_key_mgmt=WPA-PSK
+  wpa_pairwise=TKIP
+  rsn_pairwise=CCMP
+  # Name and passwd of the network
+  ssid=xxxx
+  wpa_passphrase=xxxxxx
+ sudo /usr/sbin/hostapd /etc/hostapd/hostapd.conf 
+
+ sudo vim /etc/default/hostapd
+  DAEMON_CONF="/etc/hostapd/hostapd.conf"
+ sudo vim /etc/init.d/hostapd
+  DAEMON_CONF=/etc/hostapd/hostapd.conf
+
+ sudo systemctl unmask hostapd && sudo systemctl enable hostapd && sudo systemctl start hostapd
+
+設定 DHCP 組態：/etc/dnsmasq.conf
+ sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.old && sudo vim /etc/dnsmasq.conf
+  interface=wlan0    # Use interface wlan0
+  bind-interfaces    # Bind to the interface
+  server=8.8.8.8     # Use Google DNS
+  domain-needed      # Don't forward short names 
+  bogus-priv         # Drop the non-routed address spaces.  
+  dhcp-range=192.168.15.21,192.168.15.250,24h
+
+ sudo systemctl start dnsmasq
+
+設定 IP 轉發
+ sudo vim /etc/sysctl.conf
+  net.ipv4.ip_forward=1
+
+ sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+ sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+ sudo iptables -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+ sudo iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+
+ sudo sh -c "iptables-save > /etc/iptables.ipv4.nat"
+
+ sudo vim /etc/rc.local
+  sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+  iptables-restore < /etc/iptables.ipv4.nat
+
+sudo reboot
+
+url
+ How to Turn a Raspberry Pi Into a Wi-Fi Access Point :: https://www.tomshardware.com/how-to/raspberry-pi-access-point
+ 使用 Raspberry Pi 架設自己的 AP :: https://dotblogs.com.tw/sideprogrammer/2019/02/17/raspberry-pi-set-ap
+ Sharing WiFi connection with NetworkManager :: https://feeding.cloud.geek.nz/posts/sharing-wifi-connection-with-network-manager-hotspot/
+
+
+
+
+Retroarch
+====================
+config retroarch 
+----------
+edit $HOME/snap/retroarch/1841/.config/retroarch.cfg or $HOME/.config/retroarch.cfg
+ core_updater_buildbot_url = "http://buildbot.libretro.com
+ core_updater_buildbot_assets_url = "http://buildbot.libretro.com/assets/"
+ core_updater_buildbot_cores_url = "http://buildbot.libretro.com/nightly/linux/armhf/latest/"
+
+
+install retroarch with snap
+----------
+sudo apt update && sudo apt install snapd && sudo reboot
+sudo snap install core
+sudo snap install retroarch
+sudo apt update && sudo apt install libnotify-bin notification-daemon dbus
+mkdir -p $XDG_DATA_HOME/dbus-1/services
+edit $XDG_DATA_HOME/dbus-1/services/org.freedesktop.Notifications.service
+ echo '
+ [D-BUS Service]
+ Name=org.freedesktop.Notifications
+ Exec=/usr/lib/notification-daemon/notification-daemon
+ ' > $XDG_DATA_HOME/dbus-1/services/org.freedesktop.Notifications.service
+
+
+
+
+FTP server
+====================
+install and config
+----------
+sudo apt update && sudo apt install vsfptd
+sudo vim /etc/vsftpd.conf
+ anonymous_enable=NO
+ local_enable=YES
+ write_enable=YES
+ chroot_local_user=YES # optional
+ pasv_min_port=30000   # optional, use use passive mode
+ pasv_max_port=31000
+
+
+securing transmissions with SSL/TLS # optional
+----------
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem or
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/vsftpd/cert/mydomain.key -out /etc/vsftpd/cert/mydomain.crt
+sudo vim /etc/vsftpd.conf
+ rsa_cert_file=/etc/ssl/private/vsftpd.pem or /etc/vsftpd/cert/mydomain.crt
+ rsa_private_key_file=/etc/ssl/private/vsftpd.pem or /etc/vsftpd/cert/mydomain.key
+ ssl_enable=YES
+sudo systemctl restart vsftpd
+
+
+refs
+----------
+How to Setup FTP Server with Vsftpd on Raspberry Pi :: https://linuxize.com/post/how-to-setup-ftp-server-with-vsftpd-on-raspberry-pi/
+
+
+
+
+RPi-Monitor 樹莓派的監控系統
+====================
+commands
+----------
+http://xxx.xxx.xxx.xxx:8888
+sudo /etc/init.d/rpimonitor update
+sudo systemctl restart rpimonitor
+sudo systemctl start rpimonitor
+sudo systemctl stop rpimonitor
+
+edit /etc/rpimonitor/data.conf
+  # include=/etc/rpimonitor/template/wlan.conf
+
+
+install
+----------
+sudo apt install dirmngr
+sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2C0D3C0F
+sudo wget http://goo.gl/vewCLL -O /etc/apt/sources.list.d/rpimonitor.list
+sudo apt update
+sudo apt install rpimonitor
+
+
+
+
+其他軟體
+====================
+RPi-Monitor ;; Pi-Dashboard ;; NetData
+vcgencmd measure_clock arm ; vcgencmd measure_volts ; vcgencmd measure_temp
+  使用 vcgencmd 指令查看 Raspberry Pi 的 CPU 溫度等資訊 - G.T.Wang :: https://blog.gtwang.org/iot/raspberry-pi-vcgencmd-hardware-information/
+htop ; speedometer ; s-tui
+  樹莓派監控 CPU 負載，溫度，內存和網路的工具 :: https://blog.csdn.net/xingqingly/article/details/104328570
+Volumio
+ufw
+
+

@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>MMedia</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body style="direction: ltr;">
+<br>
+
+<h1>MultiMedia</h1>
+
+<br>
+
+<h3>Gstreamer</h3>
+
+<hr>gstreamer0.10-ffmpeg,&nbsp;gstreamer0.10-plugins-ugly, to
+play mp3<br>
+
+gstreamer0.10-plugins-bad, to play m4a<br>
+
+<br>
+
+<h3>SMplayer</h3>
+
+<hr>mplayer -vf screenshot myvideo.rmvb，參數 -vf 為螢幕擷取濾鏡<br>
+
+&lt;S&gt;表示連續擷取，直到按下另一次&lt;S&gt;，&lt;s&gt;表示只擷取一次<br>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+convert -delay 100 shot* mypic.gif，參數
+-delay 100 表示一秒變換一幀<br>
+
+<br>
+
+<h3>Win32/64 Video Codec</h3>
+
+<hr>
+<ul>
+
+  <li>Add Medibuntu source:<br>
+    <p class="command">sudo wget
+http://www.medibuntu.org/sources.list.d/jaunty.list
+--output-document=/etc/apt/sources.list.d/medibuntu.list</p>
+  </li>
+  <li>Impoer Medibuntu key:<br>
+    <p class="command">sudo apt-get update
+&amp;&amp; sudo apt-get install
+medibuntu-keyring &amp;&amp; sudo apt-get update</p>
+  </li>
+  <li>Install codes:<br>
+    <p class="command">sudo apt-get install w64codecs
+&lt;= for 64 bits OS <br>
+sudo apt-get
+install w32codecs &lt;= for 32 bits OS </p>
+  </li>
+  <li>Install libdvdcss2, just optional
+    <p class="command">sudo apt-get install libdvdcss2</p>
+  </li>
+</ul>
+
+<br>
+
+<h3>Format Converting</h3>
+
+<hr>
+<ul>
+
+  <li>Short<br>
+    <ul>
+      <li>要壓cartoon,xvid有cartoon模式</li>
+      <li>要壓縮率+硬解有H.264</li>
+      <li>要開放格式有OGM,WebM</li>
+      <li>FFmpeg 最多只能壓 rv10/rv20 的 rm
+格式，RMVB的優勢在1000kpbs下很明顯，500kbps下明顯大勝，低流量下divx, xvid,
+h.264畫質呈現破碎偶爾停格，但是高流量rmvb就完全沒有優勢，同畫質下流量高，同檔案大小下畫質差。</li>
+      <li>yanzilme<br>
+DVD來源(720*480 23.97hz)<br>
+現在480*320給手機用，H.264只要500~600mb就可以<br>
+壓出120分鐘高品質的影像檔，來源是MPEG2 TS/H.264 1080P or 720P<br>
+H.264使用以下參數<br>
+VideoEnc=x264<br>
+AudioEnc=AAC<br>
+AudioHz=original<br>
+AudioBR=128<br>
+AACMpeg=4<br>
+AACObject=2:lc<br>
+AudioChannel=2<br>
+VideoSize=480:320<br>
+Videofps=original<br>
+crf=20<br>
+Aspect=default<br>
+VideoQuality=1<br>
+Xcmd=-sws 9<br>
+Xvc=level_idc=30:bframes=0:frameref=6:global_header:partitions=all:nocabac<br>
+Xvf=harddup<br>
+Xac=raw<br>
+Xof=mp4<br>
+level=30:cabac=0:ref=1:analyse=all:me=umh:no-fast-pskip=1:psy-rd=0,0:bframes=0:weightp=0:subq=6:8x8dct=0:trellis=0<br>
+        <br>
+http://www.mobile01.com/topicdetail.php?f=300&amp;t=862021&amp;p=1#9311356<br>
+http://myweb.scu.edu.tw/~98117057/1126.htm<br>
+      </li>
+      <li>網路黑貓<br>
+這種論壇文, 只能說充斥著刻版印象, 另一方面也缺乏數據統計。對codec 有興趣可以看看
+"Diary Of An x264 Developer"，另外也可以介紹幾本不錯的經典書籍。個人恰巧從事相關產業，從你印出的訊息, 建議把
+cabac 打開, 增加 ref 數，相信對於bitrate有很大的不同。<br>
+視訊壓縮標準, 通常僅制定decoder端，對於 encoder 並無規範, 因此bitrate高低與bistream的制定有關外,
+與encoder實作好壞, 也有相當程度的影響，常見的評比為 PSNR，除了一些特別的地方以Visual Quality來呈現(ex:
+deblocking)。<br>
+Format 的優缺比較其實是很嚴謹的工作，這些較常出現於codec 研究人員的著作</li>
+      <li>以整體產值而言，國際標準還是會是未來趨勢，也就是MPEG/ISO/ITU系統的視訊壓縮標準，包括
+MPEG-2（H.262）、H.263、MPEG-4 Part 2、MPEG-4 Part 10
+AVC（H.264）等，Divx、Xvid算是MPEG-4的衍生格式，QuickTime/Real
+Video是MPEG-4/H.264的旁支，音訊標準複雜一些，商用技術多來自Dolby、DTS者兩家，國際標準則以MP2/MP3與AAC系列為大
+宗。</li>
+      <li>mkv = 封裝 = 各種編碼的 avi + 字幕 + 多音軌</li>
+      <li>AVC H.264 + AAC LC 的 MP4<br>
+相機影片轉 mp4 我都用最原始的 ffmpeg 轉換。參數就自己調囉～<br>
+DVD 轉 mp4 的話，我用都 Handbrake 轉。超方便，還可以帶字幕一起轉<br>
+另外，強力推薦一個好軟體：AimOne MP4 Cutter &amp; Joiner。可以做無失真的 h.264
+檔案合併分割。因為無失真，不必轉檔，所以分割合併也超快。附註一下：http://www.temtrip.com 有快樂版的。<br>
+      </li>
+    </ul>
+  </li>
+  <li>A<br>
+handbrake &gt; mp4<br>
+mencoder &gt; avi<br>
+DVDShrink &gt; DVD 2 mkv<br>
+Easy RealMedia Producer<br>
+  </li>
+</ul>
+
+<br>
+
+<br>
+
+<br>
+
+</body></html>

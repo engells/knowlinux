@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Antivir</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body>
+<br>
+
+<h1>Antivir</h1>
+
+<br>
+
+<h3>Install Antivir on Ubuntu</h3>
+
+<hr>
+解壓後，終端中輸入：<br>
+
+CD 檔所在目錄（比如：CD /home/jkl/antivir-workstation-pers-2.1.12-19）<br>
+
+sudo ./install<br>
+
+根據提示完成安裝即可，下遍是大概：<br>
+
+<br>
+
+Do you agree to the license terms? [n] y<br>
+
+其中會要你Enter the path to your key file:<br>
+
+在剛才解壓的antivir包找到hbedv.key直接按住拖進來終端就可以了（須要去掉引號“”）。<br>
+
+<br>
+
+Would you like to install the internet update daemon? [n] y<br>
+
+<br>
+
+Would you like to create a link in /usr/sbin for avupdater ? [y] y<br>
+
+<br>
+
+Would you like the internet update daemon to start automatically? [y] y<br>
+
+<br>
+
+How should AvGuard be installed? [n] k
+&lt;&lt;&lt;---注意這裏是選“K”<br>
+
+<br>
+
+Would you like to create a link in /usr/sbin for avguard ? [y] y<br>
+
+<br>
+
+Would you like AvGuard to start automatically? [y] y<br>
+
+<br>
+
+Would you like to install the GUI (+ SMC support)? [y] y<br>
+
+<br>
+
+Would you like to configure the AntiVir updater now? [y] y<br>
+
+<br>
+
+Would you like email notification about updates? [n] y 這個可以根據個人喜好<br>
+
+<br>
+
+What email address will receive notifications? [] my菩提@菩提.com.my
+這個可以根據個人喜好<br>
+
+<br>
+
+Would you like the updater to log to a custom file? [y] y<br>
+
+<br>
+
+What will be the log file name with absolute path (it must begin with
+'/') ? [/var/log/avupdater.log]<br>
+
+<br>
+
+How often should AntiVir check for updates? [2] 2<br>
+
+<br>
+
+Does this machine use an HTTP proxy server? [n] n 有沒有用代理？<br>
+
+<br>
+
+Save configuration settings? [y] y<br>
+
+<br>
+
+Would you like to apply the new configuration? [y] y<br>
+
+到這裏結束。<br>
+
+然後，注意哦！默認下，您和 root 都不能使用 AntiVir。須在 系統 → 系統管理 → 使用者及群組 → 群組
+&gt;antivir → 屬性 → 群組成員加入 root和 您的用戶名<br>
+
+用法是：antivir [參數] [路徑[\*.副檔名]] [*.副檔名]<br>
+
+參數有：<br>
+
+--help .......... 顯示幫助文本 (縮寫: -h 或 -?)<br>
+
+--scan-mode=&lt;mode&gt;
+可供使用的掃描模式有“extlist(副檔名列表)”，“smart(智慧)”，“all(全部副檔名)”：<br>
+
+在extlist模式下，antivir根據檔的副檔名決定是否對其進行掃描，<br>
+
+在smart模式下，antivir根據檔的名字或者內容決定是否對其進行掃描，<br>
+
+在all模式下，antivir掃描所有的檔。<br>
+
+--allfiles ...... 等價於--scan-mode=all<br>
+
+--version ....... 顯示版本資訊<br>
+
+--info ..........
+顯示所有可以識別的模式。(譯注：這句話很籠統，觀察了該選項的輸出，發現所謂的可以識別的模式包括支援的壓縮包的格式、檔類型，可以識別的病毒等)<br>
+
+--update ........ update antivir<br>
+
+--update ........ 升級。(譯注：包括病毒庫和程式檔)<br>
+
+--check ......... used with --update to check for updates<br>
+
+--check ......... 和選項--update一同使用，用於檢查有無可用更新<br>
+
+--temp=&lt;dir&gt; .... 設定存放暫存檔案的目錄<br>
+
+--pid-dir=&lt;dir&gt; . 設定存放PID檔的目錄<br>
+
+--home-dir=&lt;dir&gt; 指定可執行檔、病毒庫檔和key檔的存放位置<br>
+
+-C &lt;filename&gt; ... 設定配置檔的名稱<br>
+
+-s .............. 掃描子目錄<br>
+
+--scan-in-archive 掃描壓縮檔<br>
+
+-z .............. 等價於--scan-in-archive (scan in archives, too)<br>
+
+--archive-max-size=N, --archive-max-recursion=N, --archive-max-ratio=N,
+--archive-max-count=N<br>
+
+設定反拒絕服務的閾值：避免掃描符合以下條件的壓縮包：禁止掃描超過指定大小，或者超過指定遞迴層級，或者超過指定壓縮率，或者壓縮包內含超過指定個數的
+檔。前3個選項的N如果取0，則意味著沒有限制。(譯注：病毒可以產生一個超級難解開的壓縮包，然後拋給病毒掃描器，借此消耗系統的記憶體或CPU，從而
+導致掃描器進程回應緩慢甚至崩潰，病毒得以脫身。這種超級難解開的壓縮包有一些共同特徵，它可能非常大，或者N層遞迴壓縮，或者壓縮比率非常高，或者壓縮
+包的某個壓縮層級裏含有異常多的檔。通過給掃描器設定一定的閾值，可以防止這種攻擊)<br>
+
+--scan-in-mbox .. 掃描郵件目錄(可能很耗時！)<br>
+
+--heur-macro .... 啟動巨集病毒啟發<br>
+
+--heur-nomacro .. 禁用巨集病毒啟發<br>
+
+--heur-level=N .. 設定啟發式級別，0為關閉，1-3=低啟發-高啟發<br>
+
+-nolnk .......... 不追蹤符號鏈結<br>
+
+-onefs .......... 跟蹤鏈結，但不跨越不同的檔系統<br>
+
+-noboot ......... 不檢查引導記錄<br>
+
+-nombr .......... 不檢查主引導記錄<br>
+
+-nobreak ........ 不理會Ctl-C和Ctrl-Break<br>
+
+-nodef ......... 不檢查指定的檔類型<br>
+
+-cf&lt;filename&gt; ... 啟動迴圈冗餘校驗檢查，並指定資料庫名<br>
+
+-cv ............. 計算整個檔長度的迴圈冗餘校驗值(默認只計算頭16k的內容)<br>
+
+-cn ............. 插入新檔案名到資料庫中<br>
+
+-cu ............. 重新計算迴圈冗餘校驗值，並更新資料庫<br>
+
+-v .............. 徹底掃描(較慢，並且可能有誤報)<br>
+
+-nopack ......... 不在檔包內掃描<br>
+
+-e [-del | -ren] 如果能修復，那麼修復感染檔<br>
+
+如果使用了[-del]選項，則無法修復的檔將被刪除<br>
+
+如果使用了[-ren]選項，則無法修復的檔將被重命名<br>
+
+-ren ............ 重命名感染檔<br>
+
+-del ............ 刪除感染檔<br>
+
+--moveto=&lt;dir&gt; .. 隔離感染文件<br>
+
+-dmdel .......... 刪除含有可疑巨集病毒的文檔<br>
+
+-dmdas .......... 如果文檔中有一個宏可疑，那麼刪除該文檔中所有的宏<br>
+
+-dmse ........... 如果發現巨集病毒，則設定退出碼為101<br>
+
+-r1 ............. 僅記錄感染和警報<br>
+
+-r2 ............. 並且記錄所有掃描過的路徑<br>
+
+-r3 ............. 並且記錄所有掃描過的檔<br>
+
+-r4 ............. 選擇詳細記錄模式<br>
+
+-rs ............. 選擇單行資訊模式<br>
+
+-rf&lt;filename&gt; ... 命名日誌檔<br>
+
+%d = 日, %m = 月, %y = 年 (日月年均為2位元數字)<br>
+
+-ra ............. 向已經存在的日誌檔追加新資料<br>
+
+-ro ............. 覆蓋已經存在的日誌檔<br>
+
+-q .............. 靜默模式<br>
+
+-lang[:|=]DE .... 使用德文介面<br>
+
+-lang[:|=]EN .... 使用英文介面<br>
+
+-once ........... 1天內只運行一次<br>
+
+-if&lt;dateiname&gt; .. 使用指定的ini檔<br>
+
+--with-&lt;type&gt; ... 同時檢測其他惡意軟體(不是病毒，但並非用戶想要的)<br>
+
+類型包括"dial(撥號程式)", "joke(玩笑程式)", "game(遊戲)",等<br>
+
+--with-alltypes代表所有惡意軟體類型<br>
+
+--without-&lt;type&gt;
+含義同--with-&lt;type&gt;選項，但作用相反----不檢查該類型的惡意軟體<br>
+
+--alltypes ...... 等價於--with-alltypes (此選項已作古)<br>
+
+--alert-urls=&lt;yes|no&gt; 為每個警報列印URL，以便獲得進一步的資訊<br>
+
+--warnings-as-alerts 如果發現一個感染檔，並已經發出警報，則以相應退出碼退出<br>
+
+--exclude=&lt;file&gt; 排除檔或目錄<br>
+
+--log-email=&lt;addr&gt; 同時以email形式發出掃描報告<br>
+
+@&lt;rspfile&gt; ...... 從&lt;rspfile&gt;文件中讀取參數<br>
+
+每個選項各占獨立一行<br>
+
+<br>
+
+退出碼列表：<br>
+
+0: 正常返回，無任何發現及錯誤。<br>
+
+1: 發現感染檔或引導記錄<br>
+
+2: 在記憶體中發現警報<br>
+
+3: 發現可疑文件<br>
+
+100: 僅顯示幫助文本(而未進行任何掃描)就退出了。(譯注：見於執行antivir --help後)<br>
+
+101: 在一個文檔檔中發現一個巨集病毒<br>
+
+102: 選項-once已啟動，今天已經運行過antivir了<br>
+
+200: 記憶體不足，程式異常終止<br>
+
+201: 未發現指定的回應文件<br>
+
+202: 在指定的回應檔中發現另一個@&lt;rsp&gt;選項<br>
+
+203: 無效選項<br>
+
+204: 無效目錄<br>
+
+205: 無法創建日誌檔<br>
+
+210: 找不到必須的dll檔<br>
+
+211: 自檢失敗，程式異常終止<br>
+
+212: 無法讀取antivir.vdf文件<br>
+
+213: 初始化時出現錯誤<br>
+
+214: 無法找到key文件<br>
+
+<br>
+
+<hr><br>
+
+<br>
+
+</body></html>

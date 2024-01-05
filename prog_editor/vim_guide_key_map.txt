@@ -1,0 +1,109 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Feb 22, 2021
+# content: Just for memo
+
+
+
+指令
+====================
+make augroup
+---------------
+語法：
+  :augroup {name}     " create a augroup
+  :augroup! {name}    " delete a augroup
+
+Examples
+  :augroup testgroup
+  :	autocmd!  <= 清除同名 autocmd group 所定義命令
+  :	autocmd BufWrite * :echom "Foo"
+  :	autocmd BufWrite * :echom "Bar"
+  :augroup END
+
+
+make mapping
+---------------
+語法： [mode_id][nore][map] key_definition actions1 actions2 *** :au[tocmd] [group] {event} {pattern} [nested] {cmd}
+  " mode_id: n for normal mode ...
+  "   map, for normal and visual | map! | nmap, normal mode | vmap, visual | imap, Insert | cmap, cmdline | omap, operator
+  " nore: no recursive mapping in each mode
+  " map: mean for mapping
+  " 特殊參數
+  "   <buffer>
+  "   <silent>
+  "   <special>
+  "   <script>
+  "   <expr>
+  "   <unique>
+
+
+Examples
+  :noremap <Up> <Nop> => disable key <Up> in normal and visual mode
+  :nnoremap <Down> <Nop>
+  :vnoremap <Left> <Nop>
+  :inoremap <Right> <Nop>
+  :nnoremap <leader>sv :source $MYVIMRC<cr>		" <leader>sv to reload .vimrc
+  :nnoremap <buffer> <leader>x dd
+
+
+cancel mapping
+---------------
+語法： [mode_id][map] key_definition
+
+Examples
+  :unmap <Up>
+  :nunmap <Down>
+  :vunmap <Left>
+  :iunmap <Right>
+
+
+other commands
+----------------
+:mapclear
+:h key-notation, to find ket definition
+:let mapleader = ",,"
+:let maplocalleader = "\\"
+:unmap {lhs}					" 取消普通模式下 lhs 的映射，其他模式不受影響
+
+
+
+
+示例
+====================
+let mapleader=";"               " 將「;」設為熱鍵的領(頭)鍵
+let g:mapleader="\<Space>"      " 將「空白鍵」設為熱鍵的領(頭)鍵
+nmap LB 0                       " 定義快速鍵到行首和行尾
+nmap LE $
+vnoremap <Leader>y "+y          " 設置熱鍵將選中文字區塊複製至系統剪貼板
+nmap <Leader>p "+p              " 設置熱鍵將系統剪貼板內容粘貼至 vim
+nmap <Leader>q :q<CR>           " 定義熱鍵關閉當前分割窗口
+nmap <Leader>w :w<CR>           " 定義熱鍵保存當前視窗內容
+nmap <Leader>WQ :wa<CR>:q<CR>   " 定義熱鍵保存所有視窗內容並退出 vim
+nmap <Leader>Q :qa!<CR>         " 不做任何保存，直接退出 vim
+nnoremap nw <C-W><C-W>          " 依次遍歷子視窗
+nnoremap <Leader>hw <C-W>h      " 跳轉至左方的窗口
+nnoremap <Leader>jw <C-W>j      " 跳轉至下方的子窗口
+nnoremap <Leader>kw <C-W>k      " 跳轉至上方的子窗口
+nnoremap <Leader>lw <C-W>l      " 跳轉至右方的窗口
+nmap <Leader>M %                " 定義熱鍵在結對符之間跳轉
+autocmd BufNewFile * :write		" 開新檔案時，立刻儲存
+autocmd BufNewFile *.txt :write	" 開 txt 類型新檔案時，立刻儲存
+autocmd BufWritePre *.html :normal gg=G    " 對 html 類型檔案存檔前，對檔案內容縮排
+autocmd BufNewFile,BufRead *.html setlocal nowrap
+autocmd FileType python nnoremap <buffer> <localleader>c I#<esc>    " Python文件（副檔名 .py）,將游標移至任一列，敲鍵盤<localleader>c 即可註釋該列
+autocmd FileType python :iabbrev <buffer> iff if:
+
+
+
+
+補充資料
+====================
+{rhs} 之前可能顯示一個特殊字元:
+  " * 表示它不可重映射； & 表示僅腳本的局部映射可以被重映射； @ 表示緩沖區的局部映射
+
+help documents
+	:help autocmd-events
+
+

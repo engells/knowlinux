@@ -1,0 +1,83 @@
+# vim:ts=4
+
+
+
+Sample I
+==============================
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{fontspec}	% 設定字體
+\usepackage{xeCJK}		% 使用 xeCJK，其他還有 CJK 或 xCJK
+
+\setmainfont{Times New Roman}	% 設定英文字型，不設的話就會使用預設的字型
+\setCJKmainfont{標楷體}			% 設定中英文的字型，字型的設定可以使用系統內的字型，而不用像以前一樣另外安裝
+
+\setlength{\parskip}{0.3cm}		% 設定段落之間的距離
+\linespread{1.5}\selectfont		% 設定行距
+
+\begin{document}
+內文
+\end{document}
+
+
+
+
+Sample II
+==============================
+
+--with exCJK ------------
+\documentclass{article}
+\usepackage{xltxtra}	% for \XeLaTeX Logo。 
+\usepackage{xeCJK}		% for chonese fonts 
+\setCJKmainfont{微软雅黑}	% set chinese font 
+
+\begin{document} 
+你好，\XeLaTeX ！ 
+\end{document} 
+
+--with XeTeX 胖果米---------
+\documentclass{article}
+
+\usepackage{fontspec}	% 加這個就可以設定字體
+\usepackage{xeCJK}		% 讓中英文字體分開設置
+
+\setCJKmainfont{標楷體}	% 設定中文為系統上的字型，而英文不去更動，使用原 TeX 字型
+
+\title{我是標題}
+\author{我是作者}
+\date{}					%不要日期
+
+\begin{document}
+\maketitle
+中文測試。中英文可以連打。
+English Test. 插入中文字，看看如何？ This is a simple template for a
+XeLaTeX document using the article class, with the fontspec package to
+easily select fonts.
+\end{document}
+
+
+--with XeTeX 2-----------
+\documentclass{article}
+
+\usepackage{fontspec}		% 加這個套件就可以設定字體
+
+\setromanfont{LiHei Pro}	% 儷黑Pro
+\newfontfamily{\K}{BiauKai}
+\setmonofont[Scale=0.8]{Courier New}	% 等寬字型
+
+\begin{document}
+在Mac下的XeTeX裡寫中文~{\K 標楷體}~儷黑體
+\end{document}
+
+
+--with CJKutf8-------------
+\documentclass{article}
+\usepackage{CJKutf8}
+
+\begin{document}
+\begin{CJK}{UTF8}{bsmi} ← 較落伍的寫法
+我可以用中文了!
+$\sum_{i=1}^{n} f(x)$
+\end{CJK}
+\end{document}
+

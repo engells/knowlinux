@@ -1,0 +1,19 @@
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about p2v
+# made by: Engells
+# date: Aug 10, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+virt-p2v
+====================
+ 1.製作 virt-p2v 的可開機隨身碟
+ 2.找一台機器作為 p2v 的中轉機器(此轉換機器執行 virt-p2v-server 服務)，轉化物理機傳輸過來的資料
+ 3.以隨身碟開機 p2v 的機器(要轉虛擬化的物理機)，通過網路將物理機的資料傳送給第二步的 virt-p2v-server 服務
+ 4.virt-p2v-server 服務接收到資料，轉換為相應的虛擬機器檔
+
+ http://fanli7.net/a/bianchengyuyan/PHP/20130907/420675.html
+ https://read01.com/zh-tw/8kjaMG.html
+ http://guwenwu285.iteye.com/blog/1633748
+ http://blog.csdn.net/tantexian/article/category/2833561

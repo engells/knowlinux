@@ -1,0 +1,43 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about snapd
+# made by: Engells
+# date: Feb 12, 2023
+# content: Just for memo
+
+
+Commands
+====================
+snap install <package_name>
+snap refresh
+snap remove <package_name>
+snap list
+snap -h
+
+
+
+Install packages
+====================
+sudo apt update && sudo apt install snapd && sudo reboot
+sudo snap install core
+sudo snap install retroarch
+RetroArch is the official reference frontend for the libretro API
+
+
+
+Install
+====================
+sudo apt update && sudo apt install snapd snapcraft gnome-software-plugin-snap
+sudo snap install core
+
+
+
+Files structure
+====================
+/snap/bin/<package_name>; /usr/bin/snap
+/snap/<package_name>/xx/bin/<command_name>; /snap/<package_name>/xx/meta/; /snap/<package_name>/xx/etc/; /snap/<package_name>/current
+/var/snap
+/var/lib/snapd/
+$HOME/snap/<package_name>; $HOME/snap/<package_name>/xx/.config
+
+

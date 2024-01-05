@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Antivir</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body>
+<br>
+
+<h1>Firewall</h1>
+
+<br>
+
+<h3>iptables</h3>
+
+<hr>將 iptables* 複製到 /opt/security/iptables 目錄下，並設定為可執行屬性<br>
+編輯/etc/init.d/rc.local檔案，在檔尾加入"bash /opt/security/iptables/iptables.rule"<br>
+<br>
+
+<h3>Firestarter</h3>
+
+<hr>
+Auto assign authoirty on Firestarter when booting Ubuntu: <br>
+
+<ul>
+
+  <li>Run command: sudo gedit /etc/sudoers </li>
+  <li>Add the following line into the file of /etc/sudoers
+&nbsp;<br>
+username ALL= NOPASSWD:/usr/sbin/firestarter =&gt;
+username dtands for your account </li>
+  <li>Add the follwing line at System &gt; Preferences
+&gt; Startup Applications <br>
+&nbsp; sudo firestarter --start-hidden</li>
+</ul>
+
+<br>
+
+<h3>Install ufw</h3>
+
+<hr>ubuntu有個內建防火牆前端叫做ufw，比較穩雖然功能較陽春 <br>
+
+<p class="command">sudo apt-get install gufw</p>
+
+<br>
+
+<br>
+
+<br>
+
+</body></html>

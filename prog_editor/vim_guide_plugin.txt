@@ -1,0 +1,73 @@
+#!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Feb 11, 2021
+# content: Just for memo
+
+
+
+vim 8.0
+===================
+套件目錄由  ~/.vim/plugs 改為 ~/.vim/pack/xxxx/start 或 ~/.vim/pack/xxxx/opt
+	示例安裝 NERDTree：git clone https://github.com/scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
+  安裝非自動啟用套件： 在 vim 內執行指令 :packadd nerdtree 套件位置在： ~/.vim/pack/xxxx/opt/package_name
+
+把整個 .vim 目錄做成一個 git 倉庫，然後執行： git submodule init 初始化 submodule
+想要添加套件，比如 ale ，只要執行： git submodule add https://github.com/w0rp/ale.git pack/xxxx/start/ale
+升級所有套件，執行： git submodule update --recursive --remote 或 git submodule foreach --recursive git pull origin master
+
+
+git submoudle
+----------
+add submodule
+	git submodule init
+	git submodule add https://github.com/vim-airline/vim-airline.git path/to/submodule
+	git add .gitmodules path/to/submodule
+	git commit
+
+update submodule
+----------
+	git submodule update --remote --merge or git submodule update --init --remote --recursive --merge
+	git commit
+	****
+	git submodule foreach git pull origin master
+	git commit -am "Updated plugins."
+
+remove submodule
+----------
+	git submodule deinit path/to/submodule
+	git rm path/to/submodule
+	rm -Rf .git/modules/path/to/submodule
+	git commit
+	****
+	git rm --cached path/to/submodule
+	rm -rf path/to/submodule
+	edit .gitmodules and .git/config
+	git add .gitmodules
+	git commit -m "Remove a submodule"
+	git submodule sync
+
+
+
+
+plugin & plugin-manager
+====================
+plugin-managr
+----------
+vim-plug
+  # 下載 https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim 至 ~/.vim/autoload，編輯 .vimrc 中加入下列內容：
+  # call plug#begin('~/.vim/plugs') Plug 'plug_name'... call plug#end() ，然後在 vim 中輸入 :PlugInstall 就會安裝。
+  # 實作中，將相關內容寫入 ~/.vim/confs/exrc_vim_plug 檔案
+  # 更新 plugin，在 vim 中輸入 :PlugUpdate 指令
+  # 更新 vim-plug 本身，在 vim 中輸入 :PlugUpgrade 指令
+	# 移除 plugin，把不需要的 plugin 刪除或註解掉，接著進入 Vim 輸入 :PlugClean 指令
+  # URL: https://github.com/junegunn/vim-plug
+
+Vundle
+  # 編輯 .vimrc 中加入右列內容：Plugin 'tpope/vim-fugitive'，然後在 vim 中打 :PluginInstall 就會安裝。
+
+Pathogen
+  # 把要加入的 plugin 的資料夾放在 bundle/ 底下就完工了！刪除也是，直接砍掉 bundle/ 底下對應資料夾就可以
+
+

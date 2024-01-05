@@ -1,0 +1,68 @@
+# vim:ts=4
+
+
+
+loopback 概說
+==============================
+loopback 可以視為一種特殊的 filesystem。kernel 必須支援才能使用，一般已編好的 kernel 都會支援，或列為 kernel module，只有很精簡的特殊情況才會不編入。
+
+最常見的應用就是把檔案視為 硬碟/光碟/軟碟 mount 進來，裡面要做啥都可以，但 umount 之後整個 filesystem 還是只有那一個檔案。
+
+好用例舉一：
+	把光碟的 iso 檔 mount 進來，不用把 iso 檔燒成光碟片，就可以知道裡面有些什麼東西
+
+好用例舉二：
+	配合 cryptoloop 以及 cryptsetup 把你的資料加密，就算是 FBI/CIA/KGB 也很難破解你的東西
+	Ubuntu 下需載入模組：modprobe /lib/modules/$(uname -r)/kernel/drivers/block/cryptoloop.ko	
+
+好用例舉三：
+	cloop 這是 loop 的變種，把 loop 用的檔案壓縮，使得檔案可以大幅縮小…。
+	cloop 最起初也是最有名的應用，就是 Knoppix live-cd，當然你也可以把 cloop 拿來作其它的用途。
+
+loop 有分階層，一般都只有用到 loop0 ～ loop7 ，但你也可以自訂讓 loop 支援更多層（一般使用 0 到 7 就夠了…） 
+
+
+
+
+losetup 指令
+==============================
+此指令是將硬碟或光碟等映像檔案映射成 /dev/loop[x] 的 loop 裝置，然後就可以把 /dev/loop[x] 掛載到 /path/to/mount。
+
+如果映像檔檔模擬實體硬碟，切出數個硬碟分割區，則必須使用 kpartx 指令來硬射出 /dev/mapper/loop[x]p[y]，以掛載分割區。
+
+
+
+
+掛載未分割的映像檔
+==============================
+
+建立映像檔
+	dd if=/dev/zero of=/path/to/name.img bs=1M count=100
+
+格式化映像檔
+	mkfs.ext4 /path/to/name.img
+
+掛載映像檔
+	mount -t ext4 -o loop /path/to/name.img /path/to/mount
+		# 相當於 losetup /dev/loop[x] /path/to/name.img && mount -t ext4 /path/to/name.img /path/to/mount
+
+卸載映像檔
+	umount /path/to/mount
+
+
+
+擴大映像檔
+==============================
+
+建立映像檔
+	dd if=/dev/zero of=/path/to/new.img bs=1M count=100
+
+合併映像檔
+	cat /path/to/new.img >> /path/to/old.img
+
+調整映像檔容量
+	resize2fs -F /path/to/old.img
+
+檢查映像檔的檔案系統
+	e2fsck -f /path/to/old.img
+

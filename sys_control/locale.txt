@@ -1,0 +1,126 @@
+##!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about locale
+# made by: Engells
+# date: Aug 29, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+語系設定
+====================
+指令
+----------
+export
+  查詢所有環境參數，包括 $LANG
+locale
+  查詢 locale 相關變數值
+locale -a
+  查詢已安裝語系，可對照 /usr/lib/locale/<locale-name>，Ubuntu 16.04 的已安裝語系似乎不在左列位置
+locale-gen zh_TW.UTF-8
+  新增繁體語系
+dpkg-reconfigure locales
+  設定 $LANG。man page 或其他文字通常是以 en 或 en_US 顯示。
+
+
+加入新語系摘要步驟
+----------
+在 Ubuntu 安裝新的語系
+  加入語系來源
+    touch /var/lib/locales/supported.d/locale
+    echo 'zh_TW.UTF-8 UTF-8' >> /var/lib/locales/supported.d/locale
+  安裝新的語系
+    locale-gen zh_TW.UTF-8 或 dpkg-reconfigure locales
+    # 以上的步驟可順利產生新的語系
+    # 套件 language-pack-zh-hant 為繁體中文，language-pack-zh-hans 為簡體中文，language-pack-gnome-zh-hant 及 language-pack-gnome-zh-hans 為 Gnome 環境對應套件
+
+在 Debian 安裝新的語系
+  安裝套件支援語系的設定
+    apt-get install locales
+  使用圖形化工具安裝新的語系
+    dpkg-reconfigure locales
+      # 此工具對應至 /etc/locale.gen(語言選擇列表步驟)，/etc/default/locale(設定預設語言步驟)
+  手動安裝新的語系
+    編輯 /etc/locale.gen 與 /etc/default/locale
+      把要產生的 locale 前面的 # 去掉
+    安裝新的語系
+      locale-gen
+    更新預設語系
+      update-locale
+    設定環境變數
+      export LANG=en_US.UTF-8
+      export LANGUAGE=
+      export LC_ALL=
+    重開機或重登入 X 環境
+
+
+語系相關設定檔
+----------
+Ubuntu 
+  /etc/default/locale => 系統語系設定，Ubuntu 的內容為 LANG="en_US.UTF-8"
+  /var/lib/locales/supported.d/* => locale-gen設定檔
+  /usr/lib/locale/<locale-name>/ => 已安裝之語系
+  /usr/share/i18n/SUPPORTED => 所有支援之語系
+
+其他 Distribution 使用檔案
+  /etc/local.gen → Debian，locale-gen設定檔
+  /etc/environment → Ubuntu中只設定 $PATH
+  /etc/sysconfig/i18n → Red Hat
+
+
+概說
+----------
+Locale 是軟體執行時的語言環境，其代碼包括語言(Language)、地域(Territory)和字元集(Codeset)。組合格式爲：語言_地域.字元集。
+繁體中文語系代碼為：zh_TW.UTF-8。系統預設的語系為 C 或是 POSIX。
+Locale 大多用在libc-based的應用程序上。
+Debian 系列 Linux，編譯安裝好的語系位於 /usr/lib/locale/
+語系相關變數值，包括：
+  LANG：預設語系，效力最低，如果有設其他變數，則其他變數優先使用。如果沒有安裝 locales，預設的 LANG 通常稱為 C 或 POSIX
+  LANGUAGE：只有少數程式會用到
+  LC_CTYPE：字元分類和處理，一般的輸入法只要設定這個就能用
+  LC_NUMERIC：處理非金錢相關的數字格式
+  LC_TIME：處理時間、日期等
+  LC_COLLATE：處理字元比較和排序
+  LC_MONETARY：處理金錢相關的格式和符號
+  LC_MESSAGES：處理顯示的格式，訊息想看中文要設定這個
+  LC_PAPER
+  LC_NAME
+  LC_ADDRESS
+  LC_TELEPHONE
+  LC_MEASUREMENT
+  LC_IDENTIFICATION
+  LC_ALL：最強效設定，除 $LANGUAGE 外取代以上所有的語系變數
+
+
+語系變數設定範例
+----------
+export LC_ALL=zh_TW.UTF-8
+export LANG=zh_TW.UTF-8
+export LC_CTYPE=zh_TW.UTF-8
+  在這裡設定 LANG 和 LC_CTYPE 都是沒意義的，因為LC_ALL 已經設定了
+
+export LANG=zh_TW.BIG5
+export LC_ALL=zh_TW.UTF-8
+  在這裡 LANG 無效
+
+export LANG=zh_TW.BIG5
+export LC_CTYPE=zh_TW.UTF-8
+export LC_MESSAGES=zh_TW.UTF-8
+  顯示輸入都是用 UTF-8, 其他的東西則是 big5
+
+export LANG=POSIX
+export LC_CTYPE=zh_TW
+  全部都是美式英文, 但可以輸入繁體中文
+
+export LC_MESSAGES=zh_TW
+  通常設定這個之後,軟體的介面和選單就會用中文(如果有支援的話)，例外是 openoffice, 還要設定LANGUAGE，代碼:
+
+export LANGUAGE=zh_TW
+
+
+參考資料：
+  http://moto.debian.org.tw/viewtopic.php?t=6213
+  https://sites.google.com/site/laohuangdediannaowo/csie/desktop/chinese
+
+

@@ -1,0 +1,405 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about lxc
+# made by: Engells
+# date: Jan 4, 2024
+# content: Just for memo
+
+
+
+常用指令
+====================
+啟動 Container
+	lxc-start -n name_of_machine -d
+	lxc-restart -n name_of_machine			# 重啟  Container
+	lxc-execute -n name_of_machine cmd	# 啟動 Container 並執行指令
+
+查詢 Container
+	lxc-ls -f											# 查詢 Container 名單
+	lxc-info -n name_of_machine		# 查詢 Container 詳細資料
+	
+登入 Conatiner
+	lxc-attach -n name_of_machine
+	lxc-console -n name_of_machine	# 終端機模式，Ctl+a q 退出 console
+	ssh -X user@ip_of_container			# SSH 模式登入可執行視窗時程
+
+停止 Container
+	lxc-stop -n name_of_machine
+
+複製 Container
+	lxc-copy -n old_machine_name -N new_machine_name
+
+暫停及恢復 Container
+	lxc-freeze -n name_of_machine
+	lxc-unfreeze -n name_of_machine
+
+刪除 Container
+	lxc-destroy -n name_of_machine
+
+查詢 lxc 版本
+	lxc-start --version
+
+下載範本建立 Container
+	lxc-create -t download -n name_of_machine -- -d ubuntu -r focal -a amd64
+  # lxc-create -t download -n xxxx -- --dist archlinux --release current --arch amd64
+
+管理 lxc servoce
+  systemctl start lxc ;; systemctl enable lxc ;; systemctl restart lxc
+
+
+
+
+Working environment
+====================
+user: admit
+passed: name_at_lxc_~year
+useradd -m -d /home/admit -s /bin/bash admit
+
+Build chinese environment
+	edit /var/lib/locales/supported.d/[en,zh-hant] => enable en_US.UTF-8 UTF-8 and zh_TW.UTF-8 UTF-8
+  edit /etc/locale.gen => enable en_US.UTF-8 UTF-8 and zh_TW.UTF-8 UTF-8
+	sudo apt install fontconfig localepurge language-pack-zh-hans
+	sudo locale-gen --purge		# sudo locale-gen zh_TW.UTF-8
+	sudo dpkg-reconfigure localepurge # optional
+  sudo apt install fonts-noto-cjk fonts-noto-cjk-extra fonts-noto-mono fonts-noto-color-emoji ;; fc-cache -f -v
+
+Package install
+	sudo apt install fontconfig xauth libcanberra-gtk-module libcanberra-gtk3-module dbus dbus-x11 firefox
+	sudo apt install gnupg 
+  wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmour -o /usr/share/keyrings/chrome-keyring.gpg
+  sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list' 
+  sudo apt update && sudo apt install google-chrome-stable
+
+Network
+	build thaubr0 in host, and link veth to thaubr0
+
+Physiacal hard disk partition
+	work in privileged mode
+
+Public directory and tmpfs
+  lxc.mount.entry = /zvir/share mnt/share none bind 0 0
+  lxc.mount.entry = /tmp/z_tmpfs mnt/tmpfs none bind 0 0
+  lxc.mount.entry = /tmp/z_cache_[lxc_container_name] home/admit/.cache none bind 0 0
+  lxc.mount.entry = /tmp/z_downloads home/admit/downloads none bind 0 0
+
+Backup container
+  tar -pcvf xxxx.tar xxxx/ && 7z a -mx=9 xxxx.tar.7z xxxx.tar # -p to keep same permission in container rootfs
+
+
+
+
+Containers share folders
+====================
+create folder /path/to/share in host
+chmod 777 /path/to/share in host
+create folder /path/to/mount in container
+edit /path/to/container/config
+	lxc.mount.entry = /home/virt/share mnt/share none bind 0 0
+		# /home/virt/share <= /path/to/share in host
+		# mnt/share <= /path/to/mount in container
+*****
+lxc.mount.entry = /dev/sde dev/sde none bind,optional,create=file 					# mount a device in container
+lxc.mount.entry = /dev/mapper/lvmfs-home-partition home ext4 defaults 0 2		# mount a filesystem in container
+
+
+
+
+X in container
+====================
+Method 1: ssh X forwarding
+----------
+apt install openssh-server
+	touch /path/to/home/.Xauthority
+	add "X11UseLocalhost no" to /etc/ssh/sshd_config
+ssh -v -X ubuntu@10.0.3.101
+	# run this command in host
+	# or ssh -v -X -C -o CompressionLevel=9 user_name@remote_computer_ip
+/usr/bin/firefox
+	# need packages: xauth dbus dbus-x11 libcanberra-gtk-module libcanberra-gtk3-module
+  # chromium: xauth dbus dbus-x11 x11-apps? mesa-utils? alas-utils?
+
+
+Method 2: xvfb + vnc server
+----------
+在容器執行 xvfb 及 vnc server
+  apt install xvbf
+    #安裝 xvfb(virtual framebuffer X server for X Version 11)
+  xvfb :9 -screen 9 1280x960x24 -listen tcp -ac +extension GLX +extension RENDER &
+    # :9 為輸出螢幕編號；-screen 1280x960x24 為螢幕大小及色彩；-listen tcp 監聽 tcp 連接；-ac 允許任何設備連接至 Xvfb 伺服器；
+    # +extension 參數加載 GLX 和 RENDER 模組，支持 OpenGL 和圖形渲染； & 表示背景執行
+  export DISPLAY=:9
+  apt install x11vnc
+  x11vnc -display :9 -forever -shared -rfbport 5900 -passwd 123456
+    # -display 參數指定為輸出螢幕編號，預設為 :0； -forever 參數表示連接中斷後 x11vnc 伺服器維持運作； -shared 參數允許多客戶端同時連接；
+    # -rfbport 參數指定 VNC 服務端口，預設為 5900； -passwd 參數設置密碼
+在主機以 vnc clent 連接
+  xxx.xxx.xxx.xxx:5900
+
+
+Ref:
+----------
+lxc容器內如何運行Firefox :: http://www.rendoumi.com/lxcrong-qi-nei-ru-he-yun-xing-firefox/
+github Roadmaster/google-chrome-lxc.sh :: https://gist.github.com/Roadmaster/0de007826485d0e5a9c856171a9a1e9c
+Docker容器应用可视化-VNC方式 :: https://blog.csdn.net/weixin_56291477/article/details/131856950
+
+
+
+
+Device passthrough
+====================
+GPU passthrough
+----------
+1.在 host 安裝 GPU 驅動程式
+2.將 host 使用者加入 video 及 render 群組
+  sudo usermod -aG video,render name_of_user
+3.在 host 設定 lxc container 運作環境
+  編輯 /etc/subgid，加入
+    name_of_user:video_group_id:1    # video_group_id = $(grep video /etc/group)
+    name_of_user:render_group_id:1   # video_group_id = $(grep render /etc/group)
+  編輯 /path/to/container/config，加入
+    #lxc.cgroup.relative = 1
+    lxc.cgroup2.devices.allow = c xxx:xxx rwm    # c xxx:xxx =$(ls -al /dev/dri | grep card)
+    lxc.cgroup2.devices.allow = c xxx:xxx rwm    # c xxx:xxx =$(ls -al /dev/dri | grep render)
+    lxc.mount.entry = /dev/dri/card0 dev/dri/card0 none bind,optional,create=file
+    lxc.mount.entry = /dev/dri/renderD128 dev/dri/renderD128 none bind,optional,create=file
+    lxc.idmap = g xxx xxx 1
+4.在 container 安裝 GPU 驅動程式
+  sudo pacman -S intel-media-driver linux-firmware-lts libva-utils or apt install i965-va-driver intel-media-va-driver vainfo
+  # ArchWiki Hardware video acceleration :: https://wiki.archlinux.org/title/Hardware_video_acceleration
+5.備註
+  在 /path/to/container/config 加入 hook
+    編輯 /path/to/container/config，加入
+      lxc.autodev = 1
+      lxc.hook.autodev = /path/to/container/mount_hook.sh
+    編輯 /path/to/container/mount_hook.sh
+      mkdir -p ${LXC_ROOTFS_MOUNT}/dev/dri
+      mknod -m 666 ${LXC_ROOTFS_MOUNT}/dev/dri/card0 c xxx xxx
+      mknod -m 666 ${LXC_ROOTFS_MOUNT}/dev/dri/renderD128 c xxx xxx
+      # mknod 指定在 container 無法執行
+
+
+Sound device passthrough
+----------
+1.在 host 安裝 sound 驅動程式，測試音效裝置
+  aplay -L && speaker-test -D <name> -c 2  # 實測裝置為 plughw:CARD=PCH,DEV=0
+2.將 host 使用者加入 audio 群組
+  sudo usermod -aG audio name_of_user
+3.在 host 設定 lxc container 運作環境
+  編輯 /etc/subgid，加入
+    name_of_user:audio_group_id:1    # video_group_id = $(grep audio /etc/group)
+  編輯 /path/to/container/config，加入
+    lxc.cgroup2.devices.allow = c 116:* rwm    # c xxx:xxx =$(ls -al /dev/snd)
+    lxc.mount.entry = /dev/snd dev/snd none bind,optional,create=dir
+    lxc.idmap = g xxx xxx 1
+4.在 container 安裝 sound 驅動程式
+  install alsa-utils && alsa-tools
+  aplay /usr/share/sounds/alsa/Front_Left.wav
+  edit /etc/pulse/default.pa  # 設置 host pulse 組態
+    load-module module-alsa-sink device=plughw:CARD=PCH,DEV=0
+
+NIC Passtrough
+----------
+1.在 host 建立 VF 網卡
+  sudo ip addr add 192.168.2.12/24 label wlp0s20f3:1 dev wlp0s20f3
+2.在 host 設定 lxc container 運作環境
+  編輯 /path/to/container/config，加入
+    lxc.net.0.type = phys
+    lxc.net.0.link = wlp0s20f3:1
+    lxc.net.0.name = wlp0s20f4
+    # lxc.net.0.ipv4.address = 192.168.1.12/24
+    # lxc.net.0.ipv4.gateway = 192.168.1.1
+    lxc.net.0.flags = up
+3.實測在 Unprivileged Mode 不支持 lxc.net.0.type = phys
+
+
+Ref:
+----------
+Proxmox中LXC容器中docker调用宿主机的显卡加速 :: https://ferrets.space/2022/03/17/proxmox...
+Setting up LXC with Intel GPU (Proxmox), keyboard, mouse and audio :: https://blog.konpat.me/dev/2019/03/11/setting-up-lxc-for-intel-gpu-proxmox.html
+LXC 直通顯示卡 :: https://wiki.freedomstu.com/books/proxmox-ve-%E8%99%9B%E6%93%AC%E7%B3%BB%E7%B5%B1%E8%A8%98%E9%8C%84/page/lxc-wRC
+超详细，多图，简单 Jellyfin on LXC， Docke， NAS挂载  (个人记录) :: https://post.smzdm.com/p/awzw32rm/
+LXC容器简明教程 :: https://blog.lt2n.com/2023/04/29/LXC%E5%AE%B9%E5%99%A8%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/
+LXC"直通"网卡 :: https://pvecli.xuan2host.com/lxc-network-bypass/
+Running (Almost) Anything in LXC: Sound :: https://xahteiwi.eu/resources/hints-and-kinks/lxc-sound/
+pulseaudio 一對一聲音串流超簡單 :: https://newtoypia.blogspot.com/2022/05/pulseaudio.html
+Pipewire audio in Fedora container :: https://stackoverflow.com/questions/68973199/pipewire-audio-in-fedora-container
+LXC容器如何以本地方式运行X Server(Xephyr) ::  https://www.yisu.com/zixun/9726.html
+台部落 LXC之.conf配置文件詳解 :: https://www.twblogs.net/a/5d0a68c3bd9eee1e5c8157be
+(old) LXC Audio / Sound :: https://discuss.linuxcontainers.org/t/lxc-audio-sound/8582
+
+
+
+
+NetWork Config
+====================
+edit /etc/default/lxc-net
+	LXC_BRIDGE="lxcbr0"
+	LXC_ADDR="172.25.3.1"
+	LXC_NETMASK="255.255.255.0"
+	LXC_NETWORK="172.25.3.0/24"
+	LXC_DHCP_RANGE="172.25.3.2,172.25.3.254"
+	LXC_DHCP_MAX="253"
+sudo systemctl restart lxc-net
+sed -i "/USE_LXC_BRIDGE/s/true/false/g" /etc/default/lxc-net    # disable auto-start lxcbr0
+
+
+edit /var/lib/lxc/name_of_machine/config or $HOME/.local/share/lxc/name_of_machine/config
+	lxc.network.link = lxcbr0
+
+
+Ubuntu container with static IP
+----------
+container file: /etc/netplan/10-lxc.yaml
+network:
+  version: 2
+  ethernets:
+    eth0:
+      addresses: [172.25.3.11/24]
+      gateway4: 172.25.3.1
+      dhcp4: no
+      dhcp6: no
+      optional: true
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+
+
+CentOS container with static IP
+----------
+container file: /etc/sysconfig/network-scripts/ifcfg-eth0
+	BOOTPROTO=static
+	IPADDR=172.25.3.101
+	NETMASK=255.255.255.0
+	GATEWAY=172.25.3.1
+	DNS1=172.25.3.1
+
+
+
+
+Unprivileged Mode
+====================
+config files matching
+  /etc/default/lxc       => keep the same
+  /etc/default/lxc-net   => keep the same
+	/etc/lxc/lxc.conf      => $HOME/.config/lxc/lxc.conf
+	/etc/lxc/default.conf  => $HOME/.config/lxc/default.conf
+	/var/lib/lxc           => $HOME/.local/share/lxc
+	/var/lib/lxcsnaps      => $HOME/.local/share/lxcsnaps
+	/var/cache/lxc         => $HOME/.cache/lxc
+
+
+guideline
+  edit/etc/lxc/lxc-usernet 
+  	name_of_user veth lxcbr0 2
+	  # 若使用 lxcbr0 以外的橋接器，則需同步修改 /etc/lxc/lxc-usernet 及 /path/to/lxc/config
+
+  grep 'name_of_user' /etc/sub?id
+  	/etc/subgid => name_of_user:100000:65536
+	  /etc/subuid => name_of_user:100000:65536
+	  # 對 user 開啟 host uid 權限，自 100000 起，共 65536 個 uid，該範圍 uid 供 container user_account 映射使用。不在範圍內的 host id 不得映射。gid 映射方式亦同。
+
+  mkdir -p $HOME/.config/lxc
+
+  cp /etc/lxc/default.conf $HOME/.config/lxc && edit $HOME/.config/lxc/default.conf
+	  lxc.idmap = u 0 100000 65536
+	  lxc.idmap = g 0 100000 65536
+
+  ln -s /home/lxcu $HOME/.local/share/lxc
+
+  chmod a+x $HOME/.local/share/lxc, each folder in the chain should be +x
+
+
+
+
+Memory and CPU Limit
+====================
+設定記憶體上限
+	sudo lxc-cgroup -n 虛擬機器名稱 memroy.limit_in_bytes 256M
+
+設定 CPU 使用上限
+	sudo lxc-cgroup -n 虛擬機器名稱 cpu.shares 512	數字最高為 1024，不帶數字參數就會顯示設定值
+	sudo lxc-cgroup -n ubuntu-lxc-vm cpuset.cpus 0,3	使用第 0、4顆 CPU
+
+以設定檔 /var/lib/lxc/虛擬機器名稱/config 設定記憶體及 CPU 上限
+	lxc-cgroup.memroy.limit_in_bytes = 256M
+	lxc-cgroup.cpu.shares = 512
+	lxc-cgroup.cpu.shares = 0,3
+
+
+
+
+搬移 container
+====================
+先在目的電腦上建新的同名 container
+	sudo lxc-create -t ubuntu -n name_of_machine
+
+停止來源電腦 Container
+	sudo lxc-stop -n name_of_machine
+
+以 rsync 指令，透過 ssh 傳送 Container 
+	sudo rsync -av --numberic-ids /path/to/name_of_machine -e ssh name_of_user@url_of_destination:/path/to/clone
+	# 要保留檔案的使用者 ID，一定要使用 rsync 的 --numberic-ids 選項來複製檔案
+	# name_of_user@url_of_destination: 如 xxx@192.168.nn.nn
+	# /path/to/clone: 如 /home/virt/lxdu/u1606u
+
+在目的電腦以複製過來的 container 資料夾覆蓋掉先前 lxc-create 建立的 container 資料夾
+	sudo rmdir /path/to/name_of_machine
+	sudo cp -rf /path/to/clone/. /path/to/name_of_machine
+
+
+
+
+Creat LXC Container
+====================
+sudo lxc-create -t ubuntu -n name_of_machine
+	用預設範本建立 Container	，預設的帳號和密碼都是「ubuntu」
+
+sudo lxc-create -t download -n name_of_machine -- -d ubuntu -r jammy -a amd64
+	用下載範本建立 Container，建立和操作 Container 時，都不需要用到 sudo 指令
+	# sudo lxc-create -n centos_lxc -t centos -- -R 7 -a x86_64
+
+
+
+
+Install Packages
+====================
+sudo apt install lxc bridge-utils uidmap systemd
+	# systemd uidmap 是 Unprivileged Mode 需要
+mkdir $HOME/.config/lxc $HOME/.local/share/lxc $HOME/.cache/lxc
+ls /usr/share/lxc/templates
+
+
+----
+lxc.mount.entry: /run/user/[UID]/pipewire-0 tmp/pipewire-0 none bind,optional,create=file
+export DISABLE_RTKIT=y
+export XDG_RUNTIME_DIR=/tmp
+export PIPEWIRE_RUNTIME_DIR=/tmp
+export PULSE_RUNTIME_DIR=/tmp
+export DISPLAY=:0.0
+lxc.mount.entry: tmpfs tmp tmpfs defaults
+lxc.mount.entry: /tmp/.X11-unix tmp/.X11-unix none bind,optional,create=dir
+lxc.mount.entry: /run/user/[UID]/pipewire-0 tmp/pipewire-0 none bind,optional,create=file => mp0: /run/user/[UID],mp=/srv/sockets
+
+----
+docker run -it -v /run/user/1000/pipewire-0:/tmp/pipewire-0 -e XDG_RUNTIME_DIR=/tmp --rm fedora /bin/sh
+yum install pipewire pipewire-alsa alsa-utils
+speaker-test 
+# you should hear a sound here ;; pw-cli ls
+
+----
+cp /usr/share/pipewire/pipewire-pulse.conf /etc/pipewire/
+vi /etc/pipewire/pipewire-pulse.conf
+...
+    {   name = libpipewire-module-protocol-pulse
+        args = {
+        # the addresses this server listens on
+            server.address = [
+                # type same as in /etc/pulse/*.
+                "unix:/tmp/pulse-socket"
+
+...
+systemctl --user restart pipewire-pulse
+ls -l /tmp/pulse-socket 
+srwxrwxrwx 1 me me 0 2021-09-27 20:25:53.158629941 /tmp/pulse-socket
+--bind=/tmp/pulse-socket --setenv="PULSE_SERVER=unix:/tmp/pulse-socket"
+
+

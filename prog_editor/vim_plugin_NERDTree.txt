@@ -1,0 +1,109 @@
+##/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about NERDTree
+# made by: Engells
+# date: Feb 16, 2021
+# content: Just for memo
+
+
+
+基本操作
+====================
+Operations in NERDTree window
+---------------
+?: 快速帮助文档
+o: 以新 buffer 開啟目錄或檔案，也可開啟書籤
+go: 以新 buffer 開啟檔案，滑鼠仍然留在 NERDTree
+t: 以新 Tab 開啟檔案或書籤
+T: 以新 Tab 開啟檔案或書籤，滑鼠留在NERDTree
+i: 以新 buffer 水平分割建立檔案的窗口 
+gi: 以新 buffer 水平分割建立檔案的窗口，滑鼠留在 NERDTree
+s: 以新 buffer 垂直分割建立檔案的窗口 
+gs: 和 gi，go类似
+x: 收起目前開啟的目錄
+X: 收起所有開啟的目錄
+e: 以檔案管理的方式開啟选中的目錄
+D: 删除書籤
+P: 大写，跳转到目前根路径
+p: 小写，跳转到滑鼠所在的上一级路径
+K: 跳转到第一个子路径
+J: 跳转到最后一个子路径
+<C-j>和<C-k>: 在同级目錄和檔案间移动，忽略子目錄和子檔案
+C: 将根路径设置为滑鼠所在的目錄
+u: 设置上级目錄为根路径
+U: 设置上级目錄为跟路径，但是维持原来目錄開啟的状态
+r: 更新滑鼠所在的目錄
+R: 更新目前根路径
+I: 顯示或者不顯示隐藏檔案
+f: 開啟和關閉檔案过滤器
+q: 關閉 NERDTree
+A: 全螢幕顯示 NERDTree，或者關閉全螢幕
+
+
+Commands
+---------------
+:NERDtree /path/to/be/top_root <= 設定在 NERDtree 視窗顯示的最上層目錄，預設是開啟 vim 的目錄
+
+
+URL:
+---------------
+https://www.jianshu.com/p/3066b3191cb1
+
+
+
+
+增加一些配置
+====================
+使用 NERDTree 过程中有些不太方便的地方就是打开的过个文件不共享 NERDTree，需要配合安装共享插件 vim-nerdtree-tabs
+
+" 关闭NERDTree快捷键
+map <leader>t :NERDTreeToggle<CR>
+" 显示行号
+let NERDTreeShowLineNumbers=1
+let NERDTreeAutoCenter=1
+" 是否显示隐藏文件
+let NERDTreeShowHidden=1
+" 设置宽度
+let NERDTreeWinSize=31
+" 在终端启动vim时，共享NERDTree
+let g:nerdtree_tabs_open_on_console_startup=1
+" 忽略一下文件的显示
+let NERDTreeIgnore=['\.pyc','\~$','\.swp']
+" 显示书签列表
+let NERDTreeShowBookmarks=1
+
+
+
+在 NERDTree 中显示 git 信息
+====================
+希望 git 信息直接在 NERDTree 中显示出来，和 Eclipse一样，修改的文件和增加的文件都给出相应的标注，这时需要安装的插件就是 nerdtree-git-plugin
+
+配置信息如下
+
+let g:NERDTreeIndicatorMapCustom = {
+    \ "Modified"  : "✹",
+    \ "Staged"    : "✚",
+    \ "Untracked" : "✭",
+    \ "Renamed"   : "➜",
+    \ "Unmerged"  : "═",
+    \ "Deleted"   : "✖",
+    \ "Dirty"     : "✗",
+    \ "Clean"     : "✔︎",
+    \ "Unknown"   : "?"
+    \ }
+
+NERDTree 配合使用这两个插件文件管理就很棒了，当然如果再加上ctrlp，那就无敌了。
+
+
+
+安裝與設定
+====================
+安裝
+	git clone https://github.com:scrooloose/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
+
+設定
+	vimrc
+		map <F4> :NERDTreeToggle<CR>
+		autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+
+

@@ -1,0 +1,138 @@
+# vim:ts=4
+# program:Using to note the knowledge about Apple OS
+# made by: Engells
+# date: Nov 20, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+# OSK Authentication Key: ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc
+
+
+
+MacVim
+====================
+brew install macvim
+edit ~/.bash_profile or ~/.zshrc
+  alias vi=vim
+  alias vim=mvim
+  alias mvim='/usr/local/bin/mvim -v'
+source ~/.bash_profile
+
+
+
+
+Mac快速鍵
+====================
+1. 新增一封郵件 (⌘ + Shift + I)
+2. 查單字 (⌘ + Control + D)，三指點兩下
+3. 畫面剪取功能 (⌘ + Shift + 4)
+4. 縮小所有視窗 (⌘ + Option + M)
+5. 呼喚常用程式 (⌘ + Shift + Tab)
+6. 關電目前瀏覽中的網頁 (⌘ + W)，Command + Q可以關掉應用程式，而關掉一個目前正在瀏覽的Safari網頁的方式就是command+W。
+7. 回到桌面 (⌘ + F3)
+8. 微調音量 (Option + Shift + F11 or F12)
+9. 刪除上一段文字 (Option + Delete)
+10. 回到最上方或最下方 (⌘ + Up or Down)，瀏覽長篇大論的時候很好用
+11. 直接搜尋 (⌘ + Up + L)
+12. 快速關機鍵 (Control + Option + ⌘ + 開機鍵)
+13. Finder快速開啟/關閉/找到工具 (⌘ + Shift + A, U, or D)
+
+
+
+MacBook 觸控板手勢
+====================
+兩按按一下/點一下：輔助按鈕（即所謂右鍵選單）
+兩指分開或靠攏：圖片、網頁放大或縮小
+用兩指點兩下：智慧型縮放
+用兩指旋轉：物件旋轉
+用兩指左右捲動或用兩指/三指滑動：瀏覽器或視窗前往上一頁/下一頁
+用兩指從觸控板邊緣滑動入：打開 Mac 版通知中心
+三指/四指向上推：Mission Control
+三指/四指向下推：同一軟件下選擇不同視窗（App Exposé）
+三指/四指向左右推：轉換到各大全螢幕視窗、其他虛擬桌面以及 Dashboard
+三指點按一下：查詢和資料偵測器
+姆指和其他手指分開：顯示桌面
+姆指和其他手指靠攏：顯示 LaunchPad
+
+
+
+免 BootCamp! 直接將 MAC 整台安裝 Windows
+====================
+Step1   放入 Window7 安裝光碟開機，按住 Alt(Option) 鍵不放，就會看到 Windows 安裝光碟。
+Step2   接著進到 Windows 安裝畫面後，在磁區的地方，將所有的磁區都全部給刪除掉。
+Step3   由於 iMac 的光碟機，有點老舊的，竟然會挑片，在安裝 Windows7 時，卻突然讀不到，最後則改裝 Winodws XP。
+Step4   直接快速格式化就行了。
+Step5   格式化完後，就會開始複製檔案。
+Step6   檔案複製完後，就會開始進行安裝。
+Step7   安裝完後，第一次啟動，並進行設定。
+Step8   接著放入，MAC 的安裝光碟，驅動程式在光碟中。
+Step9   這樣就搞定囉!
+Step10  重開機，按住 Alt(Option) 鍵後，就會看到，只剩一個 Windows 的磁區啦!
+
+
+
+產生 macOS 安裝 USB
+====================
+sudo /Applications/Install\ macOS\ High\ Sierra.app/Contents/Resources/createinstallmedia --volume /Volumes/Untitled --applicationpath /Applications/Install\ macOS\ High\ Sierra.app --nointeraction
+
+
+
+macOS 的重裝方式
+====================
+Apple 提供 3 種 macOS 的重裝方式：
+1. Command + R：重新安裝 Mac 目前的版本，而不升級到最高版本
+2. Option + Command + R：重新安裝並升級到與該 Mac 相容的最新版本
+3. Shift + Option + Command + R：重新安裝出廠時搭載的版本
+
+
+
+Refer Data
+====================
+kext utilities, kext wizard
+Tonymacx86、InsanelyMac
+FakeCPUID 改為 0x0506E3 | https://dacota.tw/blog/post/antec-cube-razer-with-macos-sierra-and-window10 | 雲爸
+XHCI Hand-off 設定為啟動、晶片組的 VT-d 選項關閉、、、、、、、
+進入 Clover Bootloader，按下 space 查看額外的開機選項，勾選 Verbose、Keep symbols on panic 跟 Don’t reboot on panic，還沒安裝 nvidia web driver 之前也會選取 Set Nvidia to VESA (nv_disable=1)，勾選完成之後選擇上面的 Boot macOS with selected options 來進行安裝
+黑蘋果的中的引導程式（ BootLoader ）：Chameleon、Clover
+
+
+
+快速下載 OS X 和 macOS 作業系統的安裝程式
+	http://blog.itist.tw/2018/01/download-install-osx-or-macos-app-by-mas-cli.html
+	http://blog.itist.tw/2017/03/how-to-use-homebrew-package-manager-for-macos.html
+====================
+Install Homebrew, https://brew.sh/index_zh-tw.html, default path is /usr/local
+----------
+Install
+	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+Maint
+	brew update, brew install pack_name
+	brew outdated, brew outdated pack_name
+	brew upgrade, brew upgrade pack_name
+	brew uninstall pack_name,
+	brew config, brew help, brew help info, brew search, 
+Uninstall
+	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"
+Trouble shoot
+	echo 'export PATH="/usr/local/sbin:SPATH"' >> ~/.bash_profile
+	brew prune, brew cleanup
+
+
+Install mas-cli
+----------
+brew install mas
+mas
+mas list
+mas outdated
+mas upgrade
+mas search "xxx"
+OSX and MacOS id
+    OS X 10.7 Lion：444303913
+    OS X 10.8 Mountain Lion：537386512
+    OS X 10.9 Mavericks：675248567
+    OS X 10.10 Yosemite：915041082
+    OS X 10.11 El Capitan：1018109117
+    macOS 10.12 Sierra：1127487414
+    macOS 10.13 High Sierra：1246284741
+
+
+
+

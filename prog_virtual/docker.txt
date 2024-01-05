@@ -1,0 +1,102 @@
+##/bin/bash
+# vim:ts=2
+# program: Basic know about docker
+# made by: Engells
+# date: Apr 22, 2021
+# content: Just for memo
+
+
+
+環境概況
+====================
+1. 安裝預設版本，apt install docker.io
+2. 開機時不啟動 docker，systemctl disable docker
+3. 需執行 docker 時再啟用，systemctl start docker
+4. 執行 usermod -aG docker ${USER}，啟用 unprivileged mode。可執行 docker inspect --format='{{.HostConfig.Privileged}}' container_ref 確認
+5. 使用 lxcbr0 橋接器
+
+
+
+
+Image 指令
+====================
+Image
+  docker image [build | history | import | inspect | load | ls | prune | pull | push | rm | save | tag]
+
+查詢 repository images
+	docker search image_name:image_tag
+
+查詢 local images
+	docker images == docker image ls
+
+下載 image
+	docker pull ubuntu:16.04
+
+刪除 image
+	docker rmi image_name:image_tag == docker image rm image_name:image_tag
+	docker rmi $(docker images -q -f "dangling=true")
+		-q：--quiet
+		-f：--filter
+		"dangling=true"：表示無標籤之 local image
+
+將 image 備份為檔案及回存至 local image pool
+	docker save -o xenial.tar ubuntu:16.04
+	docker load --input xenial.tar 或 docker load < xenial.tar
+
+修改 image 的 tag
+	docker tag == docker image tag
+
+登錄 Docker Repository
+	docker login
+
+其他
+  docker inspect image_name:image_tag == docker image inspect
+  docker history image_name:image_tag == docker image history
+  docker commit --author='' --message=''
+  docker import == docker image import
+  docker push
+
+
+
+
+Volume and volume container 指令
+====================
+Volume
+  docker volume [create | inspect | ls | prune | rm] volum_name
+    volume 預設位置 /var/lib/docker/volumes/volume_name/_data
+
+volume container, 以 host 目錄掛進 container，並以該 container 作為 volume，此為較早期用法
+  docker run -d --name dbshare -v /host/folder:/container/folder image_ref
+  docker run -d --name db01 --volumes-from dbshare image_ref
+  docker run -d --name db02 --volumes-from db01 image_ref
+
+
+
+
+組態
+====================
+Docker 的鏡像文件是安裝在 /var/lib/docker，變更該設定
+  Edit /etc/docker/daemon.json
+    {"data-root":"/home/qadev/.dockerlib"}
+  Soft link:
+    systemctl stop docker && ln -s /path/to/docke_images /var/lib/docker && sudo systemctl start docker
+  Edit /etc/default/docker or /etc/sysconfig/docker
+    OPTIONS=--graph="/path/to/docke_images" -H fd://#
+
+
+
+
+概述
+====================
+習慣上 Docker 的影像（image）名稱會以這樣的格式命名： username/repository:tag
+
+組態檔案： /etc/docker/daemon.json => { ... "data-root": "/new-path/docker" ... }
+         /etc/default/docker
+         /lib/systemd/system/docker.service
+
+安裝 docker，視當時環境決定。自 Ubuntu 20.04 Focal 之後，可以 podman 代用 docker
+
+備用指令
+  docker logs [container id or name]
+
+

@@ -1,0 +1,57 @@
+
+
+
+
+CloneZilla 帳號
+==============================
+account		password
+user		live
+root		no password
+
+
+
+
+安裝 CloneZilla 至 USB 碟
+==============================
+1.在 USB 碟切割一塊大於 200MB 的硬碟分區，可為邏輯分區，檔案系統可為 FAT、Ext2~4
+	fdisk /dev/sd[x]
+	mkfs.vfat /dev/sd[x][y]
+
+2.將 zip 檔解壓縮至硬碟分區，注意檔案結構應維持一致，至少保留 home、live(live-hd)、utils 等目錄以及COPYING檔案
+	mount -t vfat /dev/sd[x][y] /path/to/mount
+	unzip filename.zip -d /path/to/mount
+
+3.將 USB 碟設為可開機
+	cd /path/to/mount
+	sudo bash makeboot.sh / dev/sd[x][y]
+
+
+
+
+安裝 CloneZilla 至硬碟
+==============================
+1.在硬切割一塊大於 200MB 的硬碟分區，可為邏輯分區，檔案系統可為 FAT、Ext2~4
+	fdisk /dev/sd[x]
+	mkfs.vfat /dev/sd[x][y]
+
+2.將 zip 檔解壓縮至硬碟分區，注意檔案結構應維持一致，至少保留 home、live(live-hd)、utils 等目錄以及COPYING檔案
+	mount -t vfat /dev/sd[x][y] /path/to/mount
+	unzip filename.zip -d /path/to/mount
+	mv live live-hd
+
+3.將硬碟分區納入 Grub 開機清單
+	Grub 0.9x => /boot/grub/menu.lst => 硬碟及分區均從0編號
+	title Clonezilla live on harddrive
+	root (hdx,y)
+	kernel /live-hd/vmlinuz boot=live live-config noswap nolocales edd=on nomodeset ocs_live_run="ocs-live-general" ocs_live_extra_param="" ocs_live_keymap="" ocs_live_batch="no" ocs_lang="" vga=788 ip=frommedia nosplash live-media-path=/live-hd bootfrom=/dev/sda4 toram=filesystem.squashfs
+	initrd /live-hd/initrd.img
+	boot
+
+	Grub 1.9x => /etc/grub.d/40_custom => 硬碟從0編號，分區從1編號
+	menuentry "Clonezilla" {
+	set root=(hd0,4)
+	linux /live-hd/vmlinuz boot=live live-config noswap nolocales edd=on nomodeset ocs_live_run=\"ocs-live-general\" ocs_live_extra_param=\"\" ocs_live_keymap=\"\" ocs_live_batch=\"no\" ocs_lang=\"\" vga=788 ip=frommedia nosplash live-media-path=/live-hd bootfrom=/dev/sda4 toram=filesystem.squashfs
+	initrd /live-hd/initrd.img
+	}
+	注意，Grub 1.9x 的開機參數，為了要顯示雙引號「"」在/proc/cmdline中，雙引號「"」前面都要加上「\」
+

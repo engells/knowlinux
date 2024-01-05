@@ -1,0 +1,168 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about Python
+# made by: Engells
+# date: Jan 30, 2021
+# content: Just for memo
+
+
+
+vimrc
+====================
+function Py2()
+  let g:syntastic_python_python_exec = '/usr/local/bin/python2.7'
+endfunction
+
+function Py3()
+  let g:syntastic_python_python_exec = '/usr/local/bin/python3.6'
+endfunction
+
+call Py3()   " default to Py3 because I try to use it when possible
+
+let g:syntastic_python_checkers = ['python3'] <= ???
+
+autocmd BufRead *.py map <buffer> <F5> :w<CR>:!/usr/bin/env python % <CR>
+map <F5> :w<cr>:r!python3 %<cr>
+nnoremap <buffer> <F9> :exec '!python3' shellescape(@%, 1)<cr>
+
+
+
+
+虛擬環境
+====================
+venv
+---------------
+安裝 venv 模組：apt install python3-venv
+建立目錄供虛擬環境使用：mkdir dir_name && cd dir_name
+建立虛擬環境：pyvenv env_name; ls env_name or python3.6 -m venv /path/to/env_name
+啟用虛擬環境：source env_name/bin/activate，啟用後命令列出現類似提示文字 (env_name) user_name@ubuntu:~/dir_name$
+離開虛擬環境：deactivate
+
+參考資料：http://www.pandacademy.com/如何在Ubuntu 16.04上安装Python 3以及设置本地编程环境
+
+
+virtualenv
+---------------
+安裝套件：pip3 install virtualenv
+建立虛擬環境：virtualenv -p /path/to/python3 env_name
+啟用虛擬環境：cd env_name && source ./bin/activate or source path/to/env_name/bin/activate
+
+參考資料：http://pythonguidecn.readthedocs.io/zh/latest/dev/virtualenvs.html
+
+
+virtualenvwrapper
+---------------
+安裝套件：pip3 install virtualenvwrapper
+建立虛擬環境：
+  export WORKON_HOME=/pat/to/env_parent
+  source /usr/local/bin/virtualenvwrapper.sh
+  mkvirtualenv env_name => create a virtual environment in /pat/to/env_parent/env_name
+啟用虛擬環境：
+  workon env_name
+  mkproject env_name => mkvirtualenv env_name + workon env_name
+離開虛擬環境：
+  deactivate
+其他指令：
+  rmvirtualenv env_name
+  lsvirtualenv
+  cdvirtualenv
+  cdsitepackages
+  lssitepackages
+
+
+
+
+環境建置
+====================
+預設環境
+---------------
+1. 建立單獨的 LXC container 或 單獨的 Docker
+2. 建立 LXC container 基本環境
+	# 安裝套件：zip unzip p7zip-full git openssh-server
+    # 設定網路、SSH Server、git
+3. 在 LXC container 建立 python 基本環境，包括 pip 工具程式
+	# 安裝套件：python3 python3-dev python3-pip build-essential cmake exuberant-ctags libssl-dev libffi-dev sqlite3
+4. 在 LXC container 安裝 pipenv
+    # 安裝方式另參 python_env_pipenv.txt
+    # 建立主要專案目錄 $HOME/proj，各專案有專屬目錄如 $HOME/proj/crawl …
+5. 建立專案目錄，並以 pipenv 安裝專案所需 python 套件
+    # 若要安裝 jupyter 套件，在此階段安裝，安裝方式另參 python_edit_jupyter.txt
+6. 在 LXC container 安裝 Visual Studio Code
+    # 安裝方式另參 python_edit_vscode.txt
+    # 注意，Visual Studio Code 安裝在 container 主環境，而非  container python 虛擬環境
+7. 備註：Ubuntu 16.04 及 Debian 8 已預設安裝 python，以 python3 -V 查詢安裝版本
+
+
+其他建置方式
+----------------
+pyenv + pipenv
+    # install pyenv, with git
+    # install python x.x.x, with pyenv
+    # install pipenv, with pip3 provide by pyenv
+    # install packages, with pipenv
+
+pyenv + poetry
+
+pyenv + pip + virtualenv
+
+
+
+
+Windows
+---------------
+右鍵點擊 [本機] → [內容] → [進階系統設定] → [環境變數] 或是以系統管理員身分進入 CMD (Ctrl+Shift+Enter)：執行：rundll32 sysdm.cpl,EditEnvironmentVariables
+開啟環境變數視窗後，找到 [系統變數] → 雙擊 [path]，再將 Python 的路徑貼到系統變數的 path 裡面即可。
+	C:\Python36
+	C:\Users\(Your logged in User)\AppData\Local\Programs\Python\Python36
+
+參考資料：https://ithelp.ithome.com.tw/articles/10210071?sc=rss.qu
+
+
+
+
+conda
+====================
+Anaconda
+	https://www.anaconda.com/download/
+	cd /tmp && curl -O https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh
+	sha256sum Anaconda3-5.1.0-Linux-x86_64.sh
+	bash Anaconda3-5.1.0-Linux-x86_64.sh
+	source ~/.bashrc
+	conda list
+	conda search "^python$"		# check to see which versions of Python are available
+	conda create --name env_xxx python=3.7
+	conda activate env_xxx
+	conda deactivate
+	conda info --envs
+	conda install --name env_xxx numpy
+	conda remove --name my_env35 --all or conda env remove --name myenv
+	conda update conda
+	conda update anaconda
+	conda install anaconda-clean		# install anaconda-clean package
+	anaconda-clean --yes				# remove configuration files
+	rm -rf ~/anaconda3
+	nano ~/.bashrc
+
+Miniconda
+
+Berryconda
+
+
+
+
+概論
+====================
+撥開 Python, pip, site-packages 的藍色蜘蛛網
+---------------
+site-packages 是資料夾，每個 python 版本都有各自的 site-packages。每個 user 可以有自己的 site-packages ，在 home 目錄下的某個地方，如 $HOME/.local/lib/python[x].[y]。ipython 等 tool 裝了之後也有自己的 site-packages
+
+pip 是個 python script，也是個 python package。用 python 的 -m 參數跑 pip，會用 shell 所執行 python 版本的 sys.path 裡的 pip package。如果 python 指令的版本是 2.6，那就是跑 2.6 裡的 pip package。
+
+pip install 會有預設安裝的 dir，也會因為各種參數去改變，像是：--target, --user, --prefix, --root 等等。指令 pip --version (或是pip -V)會顯示目前這個 pip 是跑哪一個 site-packages 下的 pip package ，這個路徑就是 install 時會放的 dir。比較間接的方法，先用 pip list 列出所有已經安裝的 pkg，然後用 pip show package_name 就會寫 Location 在哪
+
+
+參考資料
+**********
+https://medium.com/@will.wang/%E6%92%A5%E9%96%8B-python-pip-site-packages-%E7%9A%84%E8%97%8D%E8%89%B2%E8%9C%98%E8%9B%9B%E7%B6%B2-90e398bb3785
+
+

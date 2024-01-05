@@ -1,0 +1,52 @@
+##!/bin/bash
+# vim:ts=4
+# program: Memo for python package request
+# made by: Engells
+# date: Feb 19, 2021
+# content: Just for memo
+
+
+
+Package: Requests
+====================
+import requests
+requests.get('URL', params=python.dict)
+requests.get('URL', headers=python.dict)
+requests.post('URL', data = {'key':'value'})
+requests.put('URL', data = {'key':'value'})
+requests.delete('URL')
+requests.head('URL')
+requests.options('URL')
+
+
+URL
+---------------
+requests 模組官網    https://2.python-requests.org/en/master/user/quickstart/
+requests 模組官網    https://2.python-requests.org/en/master/
+在 Python 中使用 requests 模組下載網頁上的資料    https://blog.gtwang.org/programming/python-requests-module-tutorial/
+
+
+
+
+Package: Beautiful Soup
+====================
+from bs4 import BeautifulSoup
+BeautifulSoup(html_doc_ref, 'parser_ref', [from_encoding='utf8]')
+  " soup = BeautifulSoup(html_doc, "html.parser", from_encoding='utf8')
+
+BeautifulSoup.find
+BeautifulSoup.find_all('a') # 查詢所有標籤為 a 的節點
+BeautifulSoup.find_all('a', href='/view/123.htm')
+BeautifulSoup.find_all('a', href=re.compile(r'/view/\d+\.htm'))
+BeautifulSoup.find_all('div', class_='abc', string='Python')
+  BeautifulSoup.find_all.node.name       # 詢到的節點的標籤名稱
+  BeautifulSoup.find_all.node['href']    # 獲取查詢到的節點的href 屬性
+  BeautifulSoup.find_all.node.get_text() # 獲取查詢到的節點的連結文字
+
+
+
+URL
+---------------
+Beautiful Soup語法基本使用    https://www.itread01.com/content/1549274594.html
+
+

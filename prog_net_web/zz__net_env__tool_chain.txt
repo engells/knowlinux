@@ -1,0 +1,58 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note knowhow about network environment
+# made by: Engells
+# date: Feb 16, 2023
+# content: Just for memo
+
+
+
+Network Manager
+====================
+nmcli device wifi list
+nmcli device wifi connect SSID_name password xxxx hidden yes 
+nmcli device disconnect ifname eth0
+nmcli connection show
+nmcli radio wifi [on|off]
+----
+nmcli con add type wifi con-name <connect name> ifname wlan0 ssid <ssid>
+nmcli con modify <connect name> wifi-sec.key-mgmt wpa-psk
+nmcli con modify <connect name> wifi-sec.psk <password>
+nmcli con mod <connect name> 802-11-wireless.hidden yes
+nmcli con up <connect name>
+ HOW TO CONNECT TO HIDDEN WIFI USING NMCLI :: https://blog.khmersite.net/2019/01/how-to-connect-to-hidden-wifi-using-nmcli/
+----
+nmcli con show
+nmcli con add type bridge ifname <bridge_name>
+nmcli con add type bridge-slave ifname <nic_name> master <bridge_name>
+nmcli con up <bridge_name>
+
+
+
+
+Network Environment
+====================
+Ubuntu with gnome
+ default: Netplan => Network Manager => ADSL => Internet
+ olders:  the same as Debian default
+
+Debian with gnome
+ default: /etc/network/interfaces => Network Manager => ADSL => Internet
+
+Raspberry OS
+ default: /etc/dhcpcd.conf => dhcpcd => ADSL => Internet
+ alter:   /etc/network/interfaces => Network Manager => ADSL => Internet
+
+Ubuntu server on Raspberry
+ default: Netplan => systemd-networkd => ADSL => Internet
+
+Arch Linux
+ /etc/netctl/conf_files => netctl => ADSL => Internet
+
+Others
+ /etc/network/interfaces => systemd-networkd => ADSL => Internet
+
+Ref:
+ 使用 systemd-networkd 設定網路組態 :: https://www.freedomwolf.cc/2019/10/network_by_systemd/
+
+

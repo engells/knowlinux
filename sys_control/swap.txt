@@ -1,0 +1,55 @@
+﻿# vim:ts=4
+
+
+
+直接利用 RAM 不使用 SWAP
+==============================
+SWAP 是把使用中的資料或程式一部份存放在硬碟上，但是硬碟的速度遠低於 RAM。要改變這個行為就要修改內核參數 vm.swappiness，預設值是 60，數字訂得越小就越不使用 SWAP。
+
+即時性修改： 
+	sudo sysctl -w vm.swappiness=0 → 預設值 60
+	sudo swapoff -a  → 釋放目前已用的 SWAP 到記憶體中
+	sudo swapon -a → 把  SWAP 開啟，這時候 vm.swappiness 已是 0，系統幾乎不會使用到 SWAP
+	# 檢查記憶體使用量，會發現用量變高了，代表 SWAP 已經移動到記憶體
+
+永久性修改： 
+	sudo gedit /etc/sysctl.conf，加入一行 
+	vm.swappiness=0
+	# 下次開機生效
+
+
+
+
+以分割區作為 SWAP
+==============================
+mkswap /dev/sda7
+	# 將 /dev/sda7 格式化為 SWAP
+
+swapon /dev/sda7
+	# 開始啟用在 /dev/sda7 的 SWAP
+
+swapon -s
+	# 列出啟用的 SWAP 情形
+
+swapoff /dev/sda7
+	# 終止使用在 /dev/sda7 的 SWAP
+
+
+
+
+以硬碟映像檔作為 SWAP
+==============================
+dd if=/dev/zero of=/mnt/swapfile bs=1024k count=1024
+	# 產生硬碟映像檔
+
+mkswap /mnt/swapfile
+	# 將硬碟映像檔格式化為 SWAP 格式
+
+swapon /mnt/swapfile
+	# 啟用硬碟映像檔作為 SWAP
+
+swapoff /dev/sdb7
+	# 終止使用在 /dev/sda7 的 SWAP
+
+
+

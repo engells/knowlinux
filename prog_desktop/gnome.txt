@@ -1,0 +1,57 @@
+# vim:ts=4
+
+
+
+Nautilus-scripts 環境變數
+==============================
+NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
+newline-delimited paths for selected files (only if local)
+ex:/home/user/
+
+NAUTILUS_SCRIPT_SELECTED_URIS
+newline-delimited URIs for selected files
+ex: file:///home/user/test.txt
+
+NAUTILUS_SCRIPT_CURRENT_URI
+URI for current location
+ex: file:///home/user/
+
+NAUTILUS_SCRIPT_WINDOW_GEOMETRY
+position and size of current window
+ex: not try?!
+
+
+
+
+桌面捷徑文件內容
+==============================
+﻿[Desktop Entry]
+Type=Application
+Name=Trash
+Name[zh_TW]=回收筒子
+Icon=user-trash
+Exec=pcmanfm2 trash:///
+
+
+
+
+sudo, gksudo
+==============================
+sudo, use user theme, for command line
+gksudo, use root theme, for gui program
+
+
+
+
+gsettings
+==============================
+設定佈景主題
+	gsettings set org.gnome.desktop.wm.preferences theme "AmbiancePlus"
+設定桌面背景圖片
+	gsettings set org.gnome.desktop.background picture-uri "url"
+功能鍵設至左側
+	gsettings set org.gnome.desktop.wm.preferences button-layout 'close,maximize,minimize,shade,stick,above:'
+功能鍵設至右側
+	gsettings set org.gnome.desktop.wm.preferences button-layout ':above,stick,shade,minimize,maximize,close'
+
+

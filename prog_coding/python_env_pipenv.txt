@@ -1,0 +1,156 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about PipEnv
+# made by: Engells
+# date: Jan 30, 2021
+# content: Just for memo
+
+
+
+常用指令
+====================
+pipenv --venv
+pipenv --clear
+pipenv lock && pipenv sync
+
+
+
+
+一般指令
+====================   
+cd /path/to/project && export PIPENV_VENV_IN_PROJECT=1 && pipenv --three
+  # 產生 Python 3 虛擬環境，或是使用 --python 3.6 參數指定 Python 版本為 3.6。
+  # --two 參數 可產生 Python 2 虛擬環境
+  # --deploy 佈署環境使用
+  # --system 使用系統的環境
+pipenv --rm
+  # 刪除虛擬環境
+pipenv --venv
+  # 檢視虛擬環境資訊，應在專案目錄中執行，預設為 $HOME/.local/share/virtualenvs/xxxx-yyyyyy  
+
+cd /path/to/virtual && pipenv shell
+  # 進入虛擬環境中，類似於 virtualenv 之 source venv/bin/activate
+  # 若未建置虛擬環境，則新建一個虛擬環境。
+exit
+  # 退出虛擬環境，相當於 deactive
+pipenv run python test.py
+  # 根據 virtualenv 執行相關 python 指令 （不進入虛擬環境中）
+
+pipenv install package_name
+  # 建立環境，可始用參數 --python=x.x.x 指定 python 版本，或 --two | --three | --python：指定安裝到虛擬環境的 Python 版號
+  # --skip-lock，略過 lock file，後續再執行 pipenv lock 產生 lock file
+  # --dev，同時安裝 Pipfile 中 develop 與 default 的套件，應用於開發環境。pipenv install package_name --dev --three
+  # 安裝指定版本之套件：pipenv install package_name==x.y.z or pipenv install package_name>=x.x.x
+  # 必要時設定語系：export LANG=en_US.UTF-8 && ~/.bashrc or ~/.zshrc
+pipenv uninstall package_name
+  # 移除套件
+  # --all，從虛擬環境中清除所有檔案，但不動 Pipfile
+  # --all-dev，從虛擬環境中移除所有開發包，並從Pipfile中移除
+pipenv update package_name
+  # 更新指定套件，即 lock 後再 syn
+pipenv update
+  # 更新所有的套件
+  # --keep-outdated，更新 Pipfile.lock 时，不删除已不需要的依赖，对于跨平台的 lock 文件非常有用
+  # --selective-upgrade，控制 pip 在安装套件时，只在必要时才升级次级依赖的版本
+  # --outdated，更新有新版更新的套件
+pipenv lock
+  # 建立 Pipfile.lock 檔案
+pipenv sync
+  # 安裝 Pipfile.lock 中所有的套件
+pipenv clear
+  # 移除沒列在 Pipfile.lock 中的套件
+pipenv --clear
+  # 清除 pip、 pipenv 的 cache
+
+pipenv check
+  # 根據 PEP 508 執行套件安全性檢查
+pipenv graph
+  # 印出套件的相依圖
+pipenv lock --requirements > requirements.txt
+  # 產生 requirements.txt 給特定平台如：AWS Elastic Beanstalk
+
+python3 -m pip install --upgrade --user pipenv
+  # 更新 pipenv，亦可用 pip3 install --user --upgrade pipenv 指令，在 pipenv 虛擬環境外執行。
+
+pipenv install --dev
+  # 依 Pipfile 與 Pipfile.lock 內容重建 Python 虛擬環境
+
+
+
+
+產生虛擬 python 環境
+====================
+Method 1 (default)
+---------------
+1. 建立專案目錄，並設置參數 PIPENV_VENV_IN_PROJECT 或 WORKON_HOME
+2. 執行指令： pipenv --three | --python 3.6 | --two
+
+
+Method 2
+---------------
+1. 建立專案目錄，並設置參數 PIPENV_VENV_IN_PROJECT 或 WORKON_HOME
+2. 未事先建好虛擬 python 環境時，執行指令：pipenv shell
+
+
+Method 3 (?)
+---------------
+1. 建立專案目錄，並設置參數 PIPENV_VENV_IN_PROJECT 或 WORKON_HOME
+2. 未事先建好虛擬 python 環境時，執行指令：pipenv install，注意不指定套件名稱
+
+
+
+
+環境組態
+====================
+pipenv 所產生虛擬 python 環境組態
+  預設後續套件安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/lib/python[x].[y]/site-packages/
+  指定後續套件安裝位置: /path/to/project/.venv/lib/python[x].[y]/site-packages，指定方式：
+    # export WORKON_HOME=~/.venvs，可指定虛擬環境後續套件安裝位置
+    # export PIPENV_VENV_IN_PROJECT=1，在目前目錄下建立 .venv 目錄以代替 $HOME/.local/share/virtualenvs/xxxx-yyyyyy/
+    # 自行建立 .venv 目錄，執行 pipenv run 或 pipenv shell pipenv，會有 PIPENV_VENV_IN_PROJECT=1 相同效果
+
+  預設執行檔安裝位置: $HOME/.local/share/virtualenvs/xxxx-yyyyyy/bin
+  預設執行檔安裝位置: /path/to/project/.venv/bin，指定方式與後續套件作法一樣
+
+  預設快取位置: $HOME/.cache
+  指定快取位置: /path/to/.cache
+    # export PIPENV_CACHE_DIR=/path/to/.cache
+
+
+實踐運作中，採執行 pipenv shell 進入虛擬 python 環境後，再執行 pipenv install package_name 安裝套件，確保套件安裝在虛擬 python 環境。然而，pipenv 原為 python 套件管理工具，並未限制只能安裝套件至虛擬 python 環境。需仔細區分兩者之區別。
+
+
+
+
+運作方式
+====================
+pipenv 自動把專案對映到指定的虛擬 python 環境。虛擬 python 環境採用專案目錄名稱加上專案目錄完整路徑的 hash 值做名稱。如果變更了專案的路徑會破壞了此預設對映，而無法找到原來的虛擬環境。若想避免往後路徑變更的問題，可在.bashrc加上 export PIPENV_VENV_IN_PROJECT=1，讓虛擬 python 環境建立在專案目錄中。
+
+
+
+
+安裝
+====================   
+pip3 install --user pipenv or pip3 install pipenv
+  # --user，在 $HOME 安裝 pipenv
+  # edit $HOME/.bashrc, 將 $HOME/.local/bin 加入 $PATH
+  # optional，edit $HOME/.bashrc, 加入 $(pipenv --completion)， 啟用 Shell Completion
+  # optional，edit $HOME/.bashrc, 加入 export PIPENV_VENV_IN_PROJECT=1，設置虛擬環境位置為 ./.venv
+  # optional，edit $HOME/.bashrc, export WORKON_HOME=/path/to/.venvs，設置虛擬環境位置為 /path/to/.venvs
+----(macOS)
+sudo mkdir /usr/local/Frameworks
+sudo chown $(whoami):admin /usr/local/Frameworks
+brew install pipenv
+sudo pipenv install --deploy --system
+
+
+
+
+參考資料
+====================  
+https://github.com/pypa/pipenv
+https://docs.pipenv.org/
+https://docs.pipenv.org/en/latest/
+https://www.jianshu.com/p/8c6ae288ba48 <= advanced guideline
+
+

@@ -1,0 +1,231 @@
+#!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Feb 20, 2021
+# content: Just for memo, 中括弧[]內文字表示可省略
+
+
+
+memo
+====================
+多重指令
+  命令列模式 command1 | command2
+  vimrc, if has("patch-7.4.710") | set listchars+=space:· | else | set listchars+=trail:· | endif
+
+command mode: <C-w> <C-u>
+
+try ... catch ... endtry
+
+set scrolloff=3
+set list | set nolist
+
+recording mode:  qa q @a 5@a
+
+
+
+
+Text object
+====================
+Syntax
+---------------
+[number]<command><prep>[text object or motion]
+  " number: 指作業次數
+  " command: 執行的具體命令， 最常見如刪除用 d, 修改用 c, 
+  " prep: 介係詞，用以標定範圍，如 to、in、at
+  " vtext object or motion: 指的是需要操作的文本對象，比如單詞、句子、段落等
+
+
+示例
+---------------
+vt, : visual until comma
+viw : visual inner word 
+vaw : aroubf word
+vi" : inner ""
+vit : inner tag
+v}  : visual to the end of paragraph
+v{  : visual to the prior paragraph
+
+
+
+
+基本操作
+====================
+游標移動
+---------------
+字元 h j k l ; <num><Space> ; <num>| ; f<alpha>
+字詞 w W e E b B
+行 0 ^ $ ; <CR> ; + - ; :<num>
+句子 ( )
+段落 { }
+區塊 [[ ]]
+螢幕 H M L ; <C-F> <C-B> <C-D> <C-U> ; <z-<CR>> <z-.> <z-->
+檔案 G 1G/gg
+
+
+編輯
+---------------
+插入 I i a A
+取代 cw c0 c^ c$ cc <num>cc C ; <num>s S ; r R +++ c => change
+刪除 dw d0 d^ d$ dd <num>dd D ; <num>x X 
+複製 yw y0 y^ y$ yy <num>yy
+貼上 p P ; [Ctrl]-R → 0	在下一行貼上複製或刪除的內容，適用於編輯模式及指令行
+選取 v V <C-v>
+
+
+搜尋與取代
+---------------
+向下搜尋 /搜尋字串 ; /\c搜尋字串 ; *(將游標移到字串上，直接按 "*" 也可以做向下搜尋) ; :set ic ; 	:set noic	搜尋時要分大小寫
+向上搜尋 ?搜尋字串 ; 	?\c搜尋字串 ;
+繼續下一個搜尋結果	n
+繼續上一個搜尋結果	N
+取代  :起始行,終止行s/搜尋字串/取代字串/gic	從第 n 行到第 n 行取代字串 (後面的 g: 整行全部 i: 不分大小寫 c: 詢問)
+取代  :1,$s/搜尋字串/取代字串/gic		全部取代字串 (後面的 g: 整行全部 i: 不分大小寫 c: 詢問)
+取代  :%s//搜尋字串/取代字串/g
+
+
+縮排
+---------------
+向右縮 >> <num>>> ; visual mode 選取整列後，按 >
+向左縮 << <num><< ; visual mode 選取整列後，按 <
+自動依照程式語言類型縮排 =
+
+
+
+
+緩衝區(A buffer is the in-memory text of a file.)
+====================
+檔案間緩衝區
+---------------
+:n :2n :N											<= 切換到下一個開啟的檔案
+:bn :bp :bf :bl :b[#] :b檔名		<= move to next | previous | first | last buffer
+<C+^>                         <= move to previous edited buffer
+:tab ba                       <= all buffers to each own tab
+:bd :bd [#]                   <= delete current buffer | delete buffer with id
+:files 或 :buffers 或 :ls			<= 會列出目前 buffer 中的所有檔案
+  " % 是目前編輯中的緩衝區
+  " # 代表前一次編輯的檔案
+  " + 代表已經更改的緩衝區
+  " - 代表非活動的緩衝區
+  " a 代表當前被啟用緩衝區
+  " h 代表隱藏的緩衝區
+  " = 代表只讀緩衝區
+
+
+檔案內容緩衝區
+---------------
+如刪除、yank、置換,給 Put 要用的 registers 緩衝區
+
+
+書籤緩衝區
+---------------
+m[a-z] `[a-z] '[a-z] `` ''
+m[A-Z]
+
+
+
+
+視窗操作(A window is a viewport on a buffer.)
+====================
+<C+w> n 即 :new。開一空的新視窗。
+<C+w> s 即 :sp(lit),橫向開一新視窗，且原檔分屬兩個視窗。
+<C+w> v 即 :vsp(lit),縱向開一新視窗，且原檔分屬兩個視窗。
+<C+w> f 開一新視窗，並編輯游標所在處之 word 為檔名的檔案。
+<C+w> q 即 :q 結束分割出來的視窗。
+<C+w> o 即 :only! 使游標所在之視窗，成為目前唯一顯示的視窗其它視窗會隱藏起來。
+<C+w> j 移至下視窗。
+<C+w> k 移至上視窗。記得 hjkl 的按鍵移動方式
+<C+w> t 移至左上視窗 top window
+<C+w> b 移至右上視窗 bottom window
+<C+w> b 移至下一個視窗 next window
+<C+w> num > 視窗向右擴張
+<C+w> num < 視窗向左縮減
+<C+w> num + 視窗縱向擴張
+<C+w> num - 視窗縱向縮減
+<C+w> Shift H 視窗往左移
+<C+w> Shift J 視窗往下移
+<C+w> Shift K 視窗往上移
+<C+w> Shift L 視窗往右移
+
+:new 開一空的新視窗
+:vnew 縱向分割視窗
+:sv <filename> 載入檔案＋縱向分割視窗
+:vs <filename> 載入檔案＋橫向分割視窗
+
+:res[ize]  num		現行視窗高度為 num 列
+:res[ize] +num		現行視窗高度調增 num 列
+:res[ize] -num		現行視窗高度調減 num 列
+
+:vert[ical] res[ize]  num		現行視窗寬度為 num 欄
+:vert[ical] res[ize] +num		現行視窗寬度調增 num 欄
+:vert[ical] res[ize] -num		現行視窗寬度調減 num 欄
+
+
+
+
+標籤頁(A tab page is a collection of windows.)
+====================
+:tabnew 開空白標籤頁，或是 gt:tabe
+:tabe filename 在新標籤頁打開一個檔案
+:tabc 關閉目前的標籤頁，等同 :q，全寫為 :tabclose。:tabc [N] 關閉指定編號的標籤頁
+:tabo 關閉其他標籤頁
+:tabn 下一個標籤頁，或是 gt, C-PageDown
+:tabp 上一個標籤頁，或是 gT, C-PageUp
+:[N]gt 移至編號 N 之 標籤頁
+:tabr 第一個標籤頁，或是 :tabfirst
+:tabl 最後一個標籤頁，或是 :tablast
+:tabs 列出所有標籤頁
+:tabm[N] 將目前的標籤頁移動到第 N 順位
+還可以 :set tabline 來定義 tab 顯示方式
+
+
+
+
+暫存器(registers)
+====================
+VIM 中有 9 类暫存器，暫存器的主要功能就是缓存操作过程中删除、複製、搜索等的文本内容，指令 :help registers 查看暫存器的详细帮助说明如下：
+
+無名（unnamed）暫存器 ""              	# 預設暫存器，yy 和 p 指令使用的是这个暫存器，只能在目前編輯檔案中複製貼上
+數字（numbered） "0 ～ "9            	# vim 用来保存最近複製、刪除等操作的内容，其中 0 暫存器保存的是最近一次的操作内容。
+行內刪除（small delete） "-           	# 快取行內刪除內容
+具名（named） "a ～ "z / "A ～ "Z    	# 用户存器，vim 不會使用
+唯讀暫存器 ": ". "% "#              	# 分別快取最近命令、最近插入文字、目前編輯檔案、目前交替檔名
+表示式（expression）暫存器 "=          	# 用於執行表示式命令
+選擇及拖拽（selection and drop）暫存器 "* "+ "~   	# 存取 GUI 選擇文字，可用於與外部應用互動，。"* 與作業系統緩衝區相關，"+ 與作業系統緩剪貼簿衝區相關
+黑洞（black hole）暫存器："_          	# 不快取操作內容（乾淨刪除）
+模式暫存器（last search pattern）："/  # 快取最近的搜尋模式
+
+在 script 內以 @" 代稱 ""
+
+
+相關指令
+---------------
+:reg
+:reg <register_id>
+
+
+
+剪貼簿
+---------------
+一勞永逸的方式
+　在 ~/.vimrc 裏面加上一行 set clipboard=unnamed，之後所有的複製貼上都會根據系統剪貼簿的內容更變
+　　set clipboard=unnamedplus，之後的複製貼上都會根據系統緩衝區內容更變
+　分開操作的方式
+　　透過 "+ 這個 prefix，原本複製整行指令是 yy，將複製整行進剪貼簿就是 "+yy
+
+　其他
+　　ubuntu 環境下需要 vim-gui-common 套件
+　　vim --version | grep clipboard				<= 查詢是否支援剪貼簿，若有支援會出現 "+某項目" 的訊息
+　　剪下 "+x，注意是依序按下「" + x」三個鍵
+　　複製 "+y
+　　貼上 "+p
+
+
+
+
+參考資料
+====================
+無外掛 Vim 程式設計技巧 | IT人    https://iter01.com/3362.html
+所需即所获：像 IDE 一样使用 vim    https://github.com/yangyangwithgnu/use_vim_as_ide
+
+

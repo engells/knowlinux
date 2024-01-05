@@ -1,0 +1,80 @@
+##!/bin/bash
+# vim:ts=2
+# program:Using to note the knowledge about Git
+# made by: Engells
+# date: Mar 10, 2019
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+日常指令
+====================
+git add .
+git commit -m 'Updating to Mar 10,2019'
+git commit
+git push origin master
+
+
+
+
+Github 專案組態
+====================
+專案
+	knowlinux: remote 代稱	git@github.com:engells/knowlinux 或 https://github.com/engells/knowlinux.git
+	setlinux: remote 代稱	git@github.com:engells/setlinux 或 https://github.com/engells/setlinux.git
+
+加入 remote 位置
+	knowlinux
+		git remote add origin git@github.com:engells/knowlinux 或
+		git remote add origin https://github.com/engells/knowlinux.git 或
+			# 會修改專案目錄組態檔 /path/to/git/.git/config
+	setlinux
+		git remote add origin git@github.com:engells/setlinux 或
+		git remote add origin https://github.com/engells/setlinux.git 或
+			# 會修改專案目錄組態檔 /path/to/git/.git/config
+
+
+
+
+SSH 模式使用 Github
+====================
+產生金鑰
+	mkdir -p ~/.ssh && chmod 700 ~/.ssh
+	ssh-keygen
+	# 產出的憑證檔在 ~/.ssh/
+	# id_rsa.pub：公開金鑰（public key），這是對外公開的金鑰，之後要放在遠端的 Linux 伺服器上作認證使用
+	# id_rsa：私密金鑰（private key），這是要保護好的金鑰，它等同於你的 Linux 密碼，放在自己的電腦中
+	# 執行過程會詢問是否建立 passphrase，可以不輸入，若有輸入 passphrase 的話，那麼在登入後，就需要輸入這一組 passphrase
+
+
+公鑰上傳到要用 SSH 登入的主機
+scp ~/.ssh/id_rsa.pub aabbcc@xxyyzz.com.tw:~/.ssh/nnn_key.pub
+	# aabbcc 是遠端主機的使用者
+	# xxyyzz.com 是遠端主機的位址
+	# ~/.ssh/nnn_key 是遠端主機要存放這個憑證的位置和檔名
+
+
+公鑰檔名變更為 authorized_keys
+	ssh aabbcc@xxyyzz.com.com "echo `cat ~/.ssh/nnn_key.pub` >> ~/.ssh/authorized_keys"
+	# 前二步驟替代指令 ssh-copy-id -i ~/.ssh/id_rsa.pub USER@HOST
+
+調整 authorized_keys 檔案的權限
+	chmod 600 ~/.ssh/authorized_keys
+
+
+停用伺服器上的 SSH 的密碼認證
+	sudo vim /etc/ssh/sshd_config
+	# PasswordAuthentication no
+	# PubkeyAuthentication yes
+	# ChallengeResponseAuthentication no
+
+重新啟動 SSH 服務
+	sudo service ssh restart
+
+
+開始 SSH 連線
+	ssh aabbcc@xxyyzz.com.tw
+	# 如有設定 passphrase，這時會出現輸入畫面，不然，就會直接登入了
+	# 設定 passphrase 只會在第一次登入時確認 passphrase，若認證正確，以後就免除此步驟
+
+

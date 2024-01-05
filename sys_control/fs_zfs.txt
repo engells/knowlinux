@@ -1,0 +1,333 @@
+##!/bin/bash
+# vim:ts=2
+# program: knowhow about ZFS
+# made by: Engells
+# date: Aug 7, 2023
+# content: 
+
+
+
+常用指令
+====================
+zpool import -d /dev/disk/by-id pool_name
+zpool import -d /dev/disk/by-id old_pool_name New_pool_name
+zpool export pool_name
+zpool scrub pool_name
+zpool status pool_name
+zpool clear -F pool_name
+zfs list pool_name/dataset_name
+zfs mount pool_name/dataset_name
+zfs umount pool_name/dataset_name
+
+
+
+
+安裝 Ubuntu 18.04 至 ZFS
+====================
+1. 分割硬碟，產生分割區：ESP(200M, ef00)、BIOS(2M, ef02)、ZFS(bf00)、EXT4(10~20G, 8300)
+2. 以隨身碟等開機，安裝 Ubuntu 18.04 至 EXT4 分割區，並安裝 zfsutils-linux、zfs-initramfs、zfs-dkms(?) 套件
+3. 以硬碟 EXT4 開機，在保留予 ZFS 之分割區建立 pool，並建立 dataset，例如 rpool/os/u1804，注意相關屬性設定，
+   如 rpool/os 設為不能掛載，rpool/os/u1804 設為非自動掛載等
+4. 以隨身碟等開機，安裝 zfsutils-linux，將 EXT4 分區所有資料複製至 rpool/os/u1804 之 dataset，可用指令 rsync -aXv
+5. 以硬碟 EXT4 開機，chroot 至 rpool/os/u1804，重新安裝並更新 grub，注意 /boot/efi、proc、sys、dev 等目錄必須先綁定至 rpool/os/u1804
+   chroot
+			for d in proc sys dev; do mount --rbind /$d /path/to/$d && mount --make-rslave /path/to/$d ; done
+   安裝 64 位元 grub:
+			apt purge grub-pc
+      apt install --yes grub-efi-amd64-signed shim-signed
+			grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-floppy /dev/sd[x]
+			ls /boot/grub/*/zfs.mod
+6. 以硬碟 ZFS 開機，建立 swap dataset，並更新 rpool/os/u1804/etc/fstab，此步驟非必要
+7. 參考 datasets
+		zfs create -o canmount=off -o mountpoint=none					pool_name/xxx
+		zfs create -o canmount=noauto -o mountpoint=/					pool_name/xxxx/ubuntu
+		zfs create -o setuid=off                              pool_name/home
+		zfs create -o mountpoint=/root                        pool_name/home/root
+		zfs create -o canmount=off -o setuid=off  -o exec=off pool_name/var
+		zfs create -o com.sun:auto-snapshot=false             pool_name/var/cache
+		zfs create -o acltype=posixacl -o xattr=sa            pool_name/var/log
+		zfs create                                            pool_name/var/spool
+		zfs create -o com.sun:auto-snapshot=false -o exec=on  pool_name/var/tmp
+		zfs create                                            pool_name/opt
+		zfs create                                            pool_name/srv
+		zfs create -o canmount=off                            pool_name/usr
+		zfs create                                            pool_name/usr/local
+		zfs create                                            pool_name/var/games
+		zfs create                                            pool_name/var/mail
+		zfs create -o com.sun:auto-snapshot=false \
+		           -o mountpoint=/var/lib/docker              pool_name/var/docker		# Docker
+		zfs create -o com.sun:auto-snapshot=false \
+		           -o mountpoint=/var/lib/nfs                 pool_name/var/nfs
+		zfs inherit exec pool_name/var	OR	zfs create -o exec=on pool_name/var/spool/postfix	 # Postfix
+		zfs create -o com.sun:auto-snapshot=false \
+		           -o setuid=off                              pool_name/tmp		# /tmp dataset
+		zfs create -o canmount=noauto -o mountpoint=/					pool_name/virt
+		chmod 1777 /mnt/tmp
+
+
+
+
+建立及管理資料儲存池(pool， volume management； in TrueNAS pool = ΣVDevs config in stripe mode = ΣDisks/Partitions config in RAID or single mode)
+====================
+zpool create pool_name DeviceNode
+  zpool create -o ashift=12 -O acltype=posixacl -O canmount=off -O compression=lz4 \
+               -O dnodesize=auto -O relatime=on -O xattr=sa -O mountpoint=/mnt/pools/xpl \
+               pool_name /dev/disk/by-id/ata-ST2000DM001-1CH164_Z1E44119-part4
+		# -o ashift=12 使用機械硬碟 AF(Advanced Format) 功能的 4K block size 以增加效能，對 SSD 硬碟，宜選 -o ashift=13，改用 8K block size
+	zpool create XXXX /dev/sda[#]
+		# 設備代號建議採用 UUID，即 /dev/disk/by-uuid/xxxxxx，可用 ls -lh /dev/disk/by-uuid 查詢分割區與 UUID 對應關係
+		# 凡建立了 pool，其 pool 對應的實體硬碟裝置內即產生可供 import 之 pool 設定檔。
+	zpool create -m /dir_name XXXX /dev/sda[#]
+		# 在 /dev/sda[#] 設備上建立 XXXX pool，並掛載在 /dir_name wd1t 目錄
+		# -R 參數指定掛載點及快取
+
+zpool create pool_name mirror /dev/sda2 /dev/sda3
+	# 建立 RAID1(1+1=1) Mirror 格式，同一資料同步寫入兩顆 HD，注意 mirror 參數
+	# 另有 raidz1(>= 3 HDD, RAID5)、raidz2(>= 3 HDD, RAID6)及 raidz3 (>= 8 HDD?)
+	# 部份資料將 raidz / raidz2 / raidz3 / mirror 稱為Data Vdevs(Virtual Devices)，此外還有 Cache Vdevs、Log Vdevs 等
+
+zpool create pool_name mirror /dev/sdc /dev/sdd mirror /dev/sde /dev/sdf
+	# 建立 RAID10，注意有二處 mirror 參數
+
+zpool create -f -o ashift pool_name /dev/sdb /dev/sdc
+	# 建立 Raid 0 需 1 顆或以上硬碟
+
+zpool create pool_name mirror /dev/sdb /dev/sdc mirror /dev/sdd /dev/sde log mirror /dev/sdf /dev/sdg cache /dev/sdh
+	# 建立混和式 pool，包括 data、log、cache 等 Vdevs types
+
+zpool add pool_name DeviceNode
+	# 將儲存裝置(vdev)加入 pool
+
+zpool remove pool_name DeviceNode
+	# 將儲存裝置移出 pool，可應用於移除 zpool cache
+
+zpool attach pool device new_device
+	# 以新裝置取代舊裝置，若舊裝置不屬於 RAID 1，則新舊裝置將組成 2-way RAID 1。若舊裝置已屬於某 2-way RAID 1，則新舊裝置將組成 3-way RAID 1
+
+zpool detach pool device
+	# 將裝置移出 pool
+
+zpool upgrade pool-name
+	# 更新 pool 資訊
+	# zpool upgrade -a 更新全數的 pool 資訊
+
+zpool list
+	# 列出已經建立的 pool
+	# zfs list -t all -o name,type,mountpoint,compress,exec,setuid,atime,relatime，以指定欄位列出已建立的 pool
+
+zpool status
+	# 列出已經建立的 pool 的狀態
+
+zpool offline pool_name /dev/sda2
+	# 讓 pool_name 這個 pool 的 /dev/sda2 硬碟暫時離線
+
+zpool online pool_name /dev/sda2
+	# 讓 pool_name 這個 pool 的 /dev/sda2 硬碟上線
+
+zpool export -f pool_name
+	# 卸除(umount) pool_name 這個 pool 參數 -f (Force) 為強制卸除
+
+zpool import pool_name
+	# 掛載(mount) pool_name 這個 pool
+	# zpool import -d /dev/disk/by-id -R /mnt pool_name，參數 -d 指定 pool 來源裝置目錄，參數 -R 指定 pool 掛載點及設定快取功能
+	# 參數 -o readonly=on，以唯讀方式匯入 pool
+
+zpool scrub pool_name
+	# 手動驗證或清潔 pool_name 這個 pool 中所有資料的完整性，取消指令為 zpool scrub -s pool_name
+
+zpool replace pool_name /dev/sda4 /dev/sda5
+	# 在 pool_name pool 中用新的 /dev/sda4 /dev/sda5 取代原本的 /dev/sda2 /dev/sda3 兩棵 HD
+
+zfs set compression=lz4 pool_name
+	# 啟動壓縮機制
+
+zpool destroy pool_name
+	# 刪除資料儲存池
+
+zpool iostat -v pool_name
+	# 可查看檔案寫到 pool 裡的位置
+
+zpool clear pool_name
+	# clears device errors in a pool
+
+zpool set bootfs=pool_name/dataset_name pool_name
+	# 範例 zpool set bootfs=zroot/ROOT/default zroot
+	# Set the bootfs property on the descendant root filesystem so the boot loader knows where to find the operating system.
+
+zpool set cachefile=/etc/zfs/zpool.cache pool_name
+	# 設定 pool_name 的快取檔案為 /etc/zfs/zpool.cache
+
+
+
+產生及管理 DataSet
+====================-
+zfs create -V 8G pool_name/dataset_name
+	# 在 pool_name 這個 pool 中建立「block」類型之 dataset，容量為 8G
+	# block Volume，視為儲存區塊裝置，檔案為：/dev/zvol/pool_name/dataset_name，zvol 為 zfs volume
+	# dataset: zfs 檔案系統內元件的通稱，包含複本(clone)、檔案系統、檔案系統快照等
+	# 參數 -p 可建立層級 DataSet，如 zfs create -p pool_name/a/b/c
+	# 參數 -o mountpoint=xxx 可同步指定掛載點 zfs create -o mountpoint=/path/to/mount pool_name/dataset_name
+	# 參數 set mountpoint=legacy，All legacy datasets must be listed in /etc/fstab or they will not be mounted at boot
+  # 範例 sudo zfs create -o compression=on -o canmount=noauto -o mountpoint=/path/to/mount pool_name/dataset_name
+
+zfs destroy pool_name/dataset_name
+	# 刪除 pool_name/dataset_name 目錄(磁區)
+
+zfs set compression=gzip pool_name/dataset_name
+	# 將 dataset_name # 目錄(磁區)設定成 gzip 壓縮格式，另有 gzip-1~9、lz4、lzjb、zle 等格式
+
+zfs set compression=off pool_name/dataset_name
+	# 解除 dataset_name # 解除目錄(磁區)設的壓縮格式
+
+zfs get compressratio pool_name
+	# 查詢壓縮比
+
+zfs set mountpoint=/path/to/mount pool_name/dataset_name
+	# 掛載點由設為 /path/to/mount，非預設之 /pool_name/dataset_name
+
+zfs mount pool_name/XXXX/YYYY
+	# 掛載 pool_name/XXXX/YYYY，依前項指令掛載點為 /path/to/target
+
+zfs mount
+	# 查看所有 ZFS 掛載的磁區
+
+zfs unmount -a
+	# 卸載所有 ZFS 掛載的磁區
+
+zfs rename pool_name/dataset_old_name pool_name/dataset_new_name
+	# 重新命名 dataset 名稱
+
+zfs get all pool_name/dataset_name
+	# 查看 pool_name/dataset_name 檔案目錄屬性
+
+zfs set quota=3g pool_name/dataset_name
+	# 設定檔案空間大小為 3G 但 pool_name 這個 pool 容量為 5.8G 如果 3G 滿了而 5.8 還未用完會 share 給 /pool_name/dataset_name 繼續使用
+
+zfs set reservation=3g pool_name/dataset_name
+	# 設定保留了 3G 給 pool_name/dataset_name，pool_namee 的剩餘查詢容量變成 2.8G(5.8-3.0)
+
+zfs set sharenfs=rw pool_name/dataset_name
+	# 設定分享權限可讀及寫，通常用在 NFS 分享上
+
+touch /pool_name/dataset_name/1234
+	# 建一個檔案到 compressed 目錄下
+
+md5 /pool_name/dataset_name
+	# 用 md5 去 hash snapshot 之前的目錄，會得到一個 hash 值：MD5 (/pool_name/dataset_name) = 7bffed2808dfba7915f89f8f42b09f83
+
+
+
+
+檔案系統快照
+====================-
+zfs snapshot pool_name/dataset_name@snapshot_name
+	# 建立檔案系統快照，快照儲存位置在 /pool_name/dataset_name/.zfs/snapshot/snapshot_name，md5 計算該目錄與 /pool_name/dataset_name，hash 值一致
+
+zfs destroy pool_name/dataset_name@snapshot_name
+	# 刪除快照
+
+zfs list -t snapshot
+	# 列出現有的檔案系統快照
+
+zfs rollback -r pool_name/dataset_name@snapshot_name
+	# 回溯檔案系統快照至 snapshot_name
+
+zfs send pool_name/dataset_name@snapshot_name | file_name
+	# 將檔案系統快照存為檔案
+
+
+
+在 zfs 硬碟上建立 swap (儲存池名稱 pool_name)
+====================
+Method 1:
+----------
+zfs create -V 4G -b $(getconf PAGESIZE) \
+	-o compression=zle \
+	-o logbias=throughput -o sync=always \
+	-o primarycache=metadata -o secondarycache=none \
+	-o com.sun:auto-snapshot=false pool_name/swap
+	# 產生 4G 的交換檔，，會產生 /dev/zvol/pool_name/swap 裝置檔案，後續指令為
+mkswap -f /dev/zvol/pool_name/swap
+echo /dev/zvol/pool_name/swap none swap defaults 0 0 >> /etc/fstab
+swapoff -av && swapon -av
+
+
+Method 2:
+----------
+zfs create -V 8G pool_name/swap
+zfs set checksum=off pool_name/swap
+zfs set dd:swap=on pool_name/swap # dd 是自行設定的名稱
+
+
+
+
+限量 zfs 使用記憶體
+====================
+cat /etc/modprobe.d/zfs.conf
+zfs_arc_max=1073741824
+
+echo "options zfs zfs_arc_max=4294967296" >> /etc/modprobe.d/zfs.conf		# 4294967296 為快取功能使用記憶體限制
+echo "4294967296" > /sys/module/zfs/parameters/zfs_arc_max	# 4294967296 為快取功能使用記憶體限制
+	# ZFS的第一層在記憶體的快取為 arc，第二層為 L2arc。，L2arc 是獨立的裝置，必須另外設定增加到 zpool 組態中，可以用比記憶體大很多的空間來快取資料。
+	# zpool 在組成和存取資料時的基本單位，vdev 可視為 zpool 內虛擬的硬碟裝置，所有的 zpool 都由 vdev 組成，vdev 本身再由單一硬碟、mirror 和 RAID-Z 等組態形成。
+
+
+
+
+ZFS cache and ZFS log
+====================
+Cache, well with SSD
+----------
+dd if=/dev/zero of=/path/to/cache_name.img bs=1M count=40960
+zpool add zpool cache /path/to/cache_name.img -f
+
+
+Log, well with SSD
+----------
+dd if=/dev/zero of=/path/to/log_name.img bs=1M count=40960
+zpool add zpool log /path/to/log_name.img -f
+
+
+
+
+Others
+====================
+Modify time sleep on booting
+----------
+/etc/default/zfs
+	ZFS_INITRD_POST_MODPROBE_SLEEP='0'
+update-initramfs -u
+update-grub
+
+Query the version of zfs packages
+----------
+dpkg --list | grep zfs
+
+
+
+
+Grub2
+====================
+menuentry "FreeBSD" --class freebsd --class bsd --class os {
+    insmod zfs
+    insmod bsd
+    search -s -l zroot
+    kfreebsd /@/boot/zfsloader
+    kfreebsd_loadenv /@/boot/device.hints
+}
+
+menuentry "Arch Linux" {
+    search -u UUID
+    linux /vmlinuz-linux zfs=zroot/ROOT/default rw
+    initrd /initramfs-linux.img
+}
+
+
+
+----
+
+把 /boot/grub/grub.cfg 的內容加上 rootdelay=20
+
+----
+
+

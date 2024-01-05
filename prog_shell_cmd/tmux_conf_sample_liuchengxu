@@ -1,0 +1,118 @@
+# https://github.com/liuchengxu/dotfiles/blob/master/tmux.conf#L1
+	
+# 設置終端類型為256色
+set -g default-terminal "screen-256color"
+
+# 開啟剪切板
+set -g set-clipboard on
+
+# 關閉窗口後重新編號
+set -g renumber-windows on
+
+# Index starts from 1
+set-option -g base-index 1
+
+# 事件視窗資訊，如有內容變動，進行提示
+setw -g monitor-activity on
+set -g visual-activity on
+# set -g status-utf8 on # 在狀態列開啟UTF-8
+set -g history-limit 102400 # scrollback buffer n lines
+set -g mode-keys vi # user vi mode
+set -g repeat-time 0
+
+# 支援滑鼠選擇視窗，調節視窗大小
+#setw -g mode-mouse on
+#set -g mouse-select-pane on
+#set -g mouse-resize-pane on
+#set -g mouse-select-window on
+
+# 設置重新連接不同視窗大小的tmux
+setw -g aggressive-resize on
+set -g default-shell /bin/zsh
+# invoke reattach-to-user-namespace every time a new window/pane opens
+set -g default-command "reattach-to-user-namespace -l zsh"
+
+# 重新綁定縱向和橫向切分window快速鍵。|，-，更直觀地表明瞭切割方向
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# 在不同面板間切換，改為vim風格
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# 快速選擇面板
+bind -r C-h select-window -t :-
+bind -r C-l select-window -t :+
+
+# 調整面板大小
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
+
+# 設置首碼鍵，預設為Ctrl+b
+# set -g prefix C-b
+
+# 釋放之前的Ctrl-b首碼快速鍵
+# unbind C-b
+
+#jtmux有一個延時以方便使用者按鍵組合，預設有點長。這裡設置為1秒鐘
+set -s escape-time 1
+
+# 設置動態載入tmux設定檔的快速鍵
+bind r source-file ~/.tmux.conf \; display "Configuration Reloaded"
+
+# 設置視窗標籤的前景及背景色
+setw -g window-status-fg colour72
+setw -g window-status-bg colour234
+setw -g window-status-attr dim
+
+# 設置當前視窗標籤的前景及背景色,所謂當前視窗標籤會顯示在狀態列中間
+setw -g window-status-current-fg colour22
+setw -g window-status-current-bg colour73
+# setw -g window-status-current-attr bright
+
+# 設置視窗分割的邊框顏色
+set -g pane-border-fg green
+set -g pane-border-bg black
+
+# 設置當前視窗分割的邊框顏色
+set -g pane-active-border-fg white
+set -g pane-active-border-bg yellow
+
+# 設置提示資訊的前景及背景色
+set -g message-fg colour250
+set -g message-bg colour232
+set -g message-attr bright
+#set -g set-titles-string '#T'
+
+################### 狀態列設置 ###############################
+
+# 以下色彩為mac環境下，Linux下可能需重新設置顏色
+# 設置狀態列前景色，背景色
+#set -g status-fg white
+#set -g status-bg black
+
+# 設置狀態列前景及背景色
+set -g status-bg colour236
+set -g status-fg colour68
+
+# 設置狀態列左部寬度 默認為10
+set -g status-left-length 35
+
+# 設置狀態列左部顯示內容。
+set -g status-left "#[fg=colour252,bold,bg=colour243]  S: #S #[fg=colour250,bg=colour239]  W: #I #[fg=yellow,bg=colour237]  #[fg=colour250,bg=colour237] P: #P#[default]"
+
+# 設置狀態列右部寬度
+set -g status-right-length 48
+
+# 設置狀態列右部內容，這裡設置為時間資訊
+set -g status-right "#[fg=colour251,bold,bg=colour237]  %Y-%b-%d #[fg=colour251,bold,bg=colour239]  %R #[fg=colour251,bold,bg=colour243]  #(ifconfig | grep 'inet.*netmask.*broadcast' | awk '{print $2}')"
+
+# 視窗資訊居中顯示
+set -g status-justify centre
+
+# 設置狀態列更新時間 每60秒更新一次，默認是15秒更新
+set -g status-interval 60

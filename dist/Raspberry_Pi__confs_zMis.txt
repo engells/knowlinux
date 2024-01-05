@@ -1,0 +1,109 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Raspberry Pi
+# made by: Engells
+# date: Feb 21, 2021
+# content: Just for memo
+
+
+
+中文設定
+====================
+sudo raspi-config
+	Internationalisation Options => Change Locale => zh_TW.UTF-8 UTF-8 => zh_TW.UTF-8 => 重新開機
+
+安裝中文輸入法
+	sudo apt-get install scim scim-tables-zh scim-chewing
+	 # 同時按下Ctrl及空白鍵，即可切換中文輸入法
+
+安裝中文字型
+	sudo apt-get install ttf-wqy-zenhei
+
+
+
+
+遠端桌面控制
+====================
+Raspbian 原生 VNC
+---------------
+sudo apt update && sudo apt install realvnc-vnc-server realvnc-vnc-viewer
+sudo raspi-config => interface Options >> VNC
+  sudo vncpasswd -service
+  sudo vim /root/.vnc/config.d/vncserver-x11 => add the following line at the end of the file: Authentication=VncAuth
+  sudo systemctl restart vncserver-x11-serviced
+  # 設置檔(參考) /root/.vnc/config.d/vncserver-x11
+  #   Authentication=VncAuth
+  #   ...
+  # 設定密碼： sudo vncpasswd -service
+  # 相關服務：  vncserver-x11-serviced.service
+  # 參考資料 :: https://www.raspberrypi.org/documentation/remote-access/vnc/
+  # 　　　　    https://help.realvnc.com/hc/en-us/articles/360002249917-VNC-Connect-and-Raspberry-Pi
+  # 　　　　    https://docs.linuxconsulting.mn.it/notes/remmina-vnc-raspberry
+自訂 VNC 解析度，在遠端桌面開啟終端器執行
+  cvt 1280 720
+  xrandr --newmode "1280x720_60.00"  74.50  1280 1344 1472 1664  720 723 728 748 -hsync +vsync
+  xrandr --addmode HDMI-1 "1280x720_60.00"
+  xrandr -s 1280x720_60.00
+
+
+
+
+XRDP
+---------------
+sudo apt install xrdp tightvncserver
+sudo systemctl enable xrdp
+
+
+使用 tight VNC
+---------------
+sudo apt install tightvncserver
+sudo tightvncserver
+	# 設定密碼 & 完全存取
+vncserver :1 
+	# 設定 VNC Server 連線位置為 1。也可為 2 或其他號碼
+
+sudo apt install tightvncserver	passwd:1234abcd
+	vncpasswd
+	vncserver -geometry 1024x768 :1
+	vncserver -list
+	vncserver -kill :9
+	vnc://192.168.1.121:5901
+	sudo systemctl stop vncserver-x11-serviced.service
+
+
+
+
+設定 SWAP
+====================
+cutomized swap size
+---------------
+edit /etc/dphys-swapfile
+	#CONF_SWAPSIZE=100
+	CONF_SWAPFACTOR=2
+	CONF_MAXSWAP=xxxx	# MiB
+
+sudo service dphys-swapfile restart && swapon -s
+
+
+auto swap size
+---------------
+edit /etc/dphys-swapfile
+	CONF_SWAPSIZE=xxxx	# MiB
+
+sudo service dphys-swapfile restart && swapon -s
+
+
+swap on USB
+---------------
+make a ext4 system on a usb sticker, as /dev/sda1
+blkid
+edit /etc/fstab, add /dev/sda
+	UUID=xxxx-xxxx...	/usbdisk	ext4	defaults	0	0
+sudo mkdir /usbdisk
+mount -a && df -h
+edit /etc/dphys-swapfile
+	CONF_SWAPFILE=/usbdisk/swap
+sudo service dphys-swapfile restart && swapon -s
+sudo swapoff /var/swap
+
+

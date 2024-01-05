@@ -1,0 +1,58 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about UFW(Uncomplicated Firewall)
+# made by: Engells
+# date: Dec 12, 2023
+# content: Just for memo
+
+
+edit /etc/default/ufw
+  DEFAULT_FORWARD_POLICY="ACCEPT"
+  # sudo ufw default allow FORWARD && sudo systemctl restart ufw
+edit /etc/ufw/sysctl.conf
+  net/ipv4/ip_forward=1
+
+
+啟用防火牆
+sudo ufw allow 22
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw enable
+sudo ufw status verbose
+
+
+允許或拒絕連線指定 port
+sudo ufw allow/deny <port-number>
+sudo ufw allow 80 ;; sudo ufw allow 80/tcp ;; sudo ufw allow 80/udp
+
+
+允許或拒絕特定 IP 連線指定 port
+sudo ufw allow/deny from <IP> to any port <port-number>
+sudo ufw allow from 159.66.109.6 to any port 80
+
+
+設定指定 subnet 可以允許或禁止連線指定 port
+sudo ufw allow/deny from <IP-with-mask> to any port <port-number>
+sudo ufw allow from 159.66.109.0/24 to any port 22
+
+
+設定指定網路介面 (Network Interface) 連線指定 port
+sudo ufw allow in on <network-interface-name> to any port <port-number>
+sudo ufw allow in on eth0 to any port 80
+
+
+刪除已經建立的規則
+sudo ufw status numbered
+sudo ufw delete <rule-number>
+
+
+sudo ufw status ;; sudo ufw status numbered ;; sudo ufw enable ;; sudo ufw disable ;;
+sudo ufw default allow ;; sudo ufw default deny ;; cat /etc/services | egrep '^ssh|^http'
+sudo ufw allow 80|80/tcp|80/udp
+
+
+UFW 防火牆設定軟體操作指南 :: https://xenby.com/b/258-%E6%95%99%E5%AD%B8-ufw-%E9%98%B2%E7%81%AB%E7%89%86%E8%A8%AD%E5%AE%9A%E8%BB%9F%E9%AB%94%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97
+Ubuntu Server 20.04.1 預設 UFW 防火牆 Firewall 設定規則詳解和教學 :: https://footmark.com.tw/news/linux/ubuntu/ubuntu-server-ufw/
+
+
+

@@ -1,0 +1,175 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about RetroPie on Raspberry Pi
+# made by: Engells
+# date: Mar 18, 2021
+# content: Just for memo
+
+
+
+環境概要
+====================
+account:	admit, pi
+passwd:		acctatpi~year5
+vncserver:	abcd1234
+ip4 addr:	192.168.1.121:62 / 192.168.1.122:62
+
+RetroPie = Raspbian + RetroArch + Emulation Station
+  RetroArch = Front-end for emulations
+  Emulation Station = GUI for RetroArch
+
+
+常用指令
+---------------
+執行模擬器前導程式
+  emulationstation
+
+設定 RetroPie
+  cd $HOME/RetroPie-Setup && sudo ./retropie_setup.sh
+
+設定搖桿
+  安裝驅動： retropie_setup.sh => driver => select xxxx ;; configuration / options => ... => pair ...
+  設置按鍵： emulationstation => CONFIGURE INPUT
+
+作業系統相關
+  安裝相關套件
+    neovim p7zip-full unrar-free omxplayer moc
+  停止不必要服務，有需要時手動啟用
+    sudo systemctl stop vncserver-x11-serviced.service xrdp smbd cups
+    sudo systemctl disable vncserver-x11-serviced.service xrdp smbd cups
+
+VNC 相關指令(realvnc-vnc-server)
+  檢視 port： sudo netstat -tlnp
+  啟動服務(參考 tigervnc-common)： vncserver -geometry 1440x810 -depth 24 || vncserver -localhost no -interface xxx.xxx.xxx.xxx
+  連線(參考 tigervnc-common)： xtigervncviewer -SecurityTypes VncAuth -passwd /home/admit/.vnc/passwd :4
+
+組態檔
+  /opt/retropie/configs/all/emulationstation/es_settings.cfg => <string name="AudioDevice" value="Master" />
+
+
+
+
+安裝概要
+====================
+1. 燒錄 RetroPie 作業系統，在 /path/to/sd_card/boot 目錄中增加 ssh 或 ssh.txt 空白檔以啟用 SSH
+2. 樹莓派接上有線網路開機，自桌機以 SSH 連入樹莓派。執行指令 apt upgrade 及 apt dist-upgrade 更新系統
+3. 設定無線網路，步驟同 Ubuntu Server
+4. 更新 RetroPie 設置程式
+  # RetroPie Setup => Update RetroPie-Setup script
+5. 安裝街機模擬器及 Kodi，注意 core 及 main 套件已預裝
+  # RetroPie Setup => Manage packages ＝> Manage optional pcakages >> fbalpha2012 | kodi
+6. 安裝 Pixel 或 i3 桌面
+  # RetroPie Setup => Configuration / tools => Raspbiantools >> Install Pixel Desktop Environment or
+  # sudo apt install raspberrypi-ui-mods xinit xserver-xorg
+  # sudo apt install --no-install-recommends lxde
+7. 設定以 Emulation Station 或 CML 界面開機
+  # RetroPie Setup => Configuration / tools => autostart >> Statr Emulation Station at boot or
+  # Raspi Setup => System Options => Boot /Auto Login >> Console Auto Login
+  # URL: https://retropie.org.uk/docs/FAQ/#where-did-the-desktop-go
+8. 安裝 VNC 及 RDP 服務
+  # sudo apt install tightvncserver xrdp && sudo adduser xrdp ssl-cert or
+  # Raspi Setup => Interface Options >> VHC, which will install realvnc-server*
+  # sudo systemctl disable vncserver-x11-serviced.service, the service is seted by realvnc-server
+9. 樹莓派關機，接上電視後重開機，設置手把後退出 Emulation Station。
+10.上傳遊戲使用檔案，可用 SCP 指令上傳。視情況停用樹莓派 smbd 及 cups 服務
+11.其他安裝
+  # sudo apt install kodi-pvr-iptvsimple :: https://retropie.org.uk/docs/KODI/
+
+
+
+自 Raspbian 安裝 RetroPie
+====================
+設定語系
+---------------
+locale ; sudo vim /etc/default/locale
+  # sudo locale-gen en_US.UTF-8 UTF-8; sudo update-locale en_US.UTF-8 UTF-8  
+  # sudo export LANG=en_US.UTF-8; sudo export LANGUAGE=en_US.UTF-8; sudo export LC_ALL=en_US.UTF-8
+  # sudo reboot
+
+
+安裝 RetroPie 
+---------------
+sudo apt install git lsb-release
+su - pi && git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git
+cd RetroPie-Setup && chmod +x retropie_setup.sh && sudo ./retropie_setup.sh
+  # choose complete install
+  # sudo rpi-update, if libbrcmEGL.so not found.
+
+
+設定 RetroPie
+---------------
+sudo ./retropie_setup.sh
+  #  tools => autostart => Start EmulationStation at Boot: Boots into EmulationStation
+sudo vim /etc/inittab
+  # 1:2345:respawn:/sbin/getty --autologin pi --noclear 38400 tty1
+
+
+開始遊戲
+---------------
+執行指令 emulationstation 初次執行會出設定搖桿畫面
+rom 的位置： $HOME/RetroPie/roms/emulator_name
+
+
+
+SSH to emulationstation
+---------------
+nohup emulationstation &
+chmod +x ~/ex.sh && vi es.sh
+  #!/bin/bash
+  export DISPLAY=:0  
+  nohup emulationstation &  
+
+
+Trouble shoot
+---------------
+VolumeControl::Init() - Failed to attach to default card 
+  vi /boot/config.txt (option, for no sound)
+    # dtparam=audio=on ;; hdmi_drive=2 ;; hdmi_force_hotplug=1 ;; hdmi_force_edid_audio=1
+
+VolumeControl::init() - Failed to find mixer elements
+  raspi-config => audio >> HDMI
+    sudo ./retropie_setup.sh => audio >> HDMI
+    RetroPie =>audio >> HDMI
+
+More shader
+  retropie_setup.sh => Configuration tools => 140 RetroArch => Online Updater => Update GLSL Shaders
+
+General shader
+  retropie_setup.sh => Configuration tools 804 configedit => libretro => default option
+  retropie => Configuration Editor => Video Smoothing False => True
+
+"controller not configured​"
+  sudo nano /opt/retropie/configs/all/retroarch.cfg  
+    # input_joypad_driver = "udev" => sdl
+
+
+URL
+---------------
+樹莓派的遊樂場 -- RetroPie :: http://homtang.com/retropie/
+
+
+
+
+模擬器核心
+====================
+NP2kai：Neko Project II Kai，PC-98 模擬器。
+PSP：PPSSPP核心，這個模擬器在手機上的表現就很不錯，PC端運行更加流暢。
+FC：FCEU核心，大名鼎鼎，效果拔群！ FC模擬器首先推薦這個核心。
+FC：NEStopia核心，模擬精度比FCEU高。目前完成度為wip，所以只推薦和FCEU做互補。
+MD：Genesis Plus GX核心，知名的MD模擬器，效果拔群！
+MD：picodrive核心，效率似乎不如Genesis Plus GX，可形成互補。
+SFC：SNES9x-Next核心，效果拔群！
+SFC：bsnes核心，號稱精度高，效率不如SNES9x。
+GB/C：Gambatte核心，地球上最好的GB/GBC模擬器，效果拔群！
+GBA：VBA-Next核心，大名頂頂，效果拔群！可以完美支持時鐘，玩口袋妖怪需要它。
+DS：知名的desmume核心，玩2D遊戲表現不錯。
+PS：與ePSXe齊名的PCSX-R核心，效果拔群！
+N64：Mupen64-Plus核心，任天堂64，N64模擬器總共就沒幾個，這個模擬器算是比較好的一款了。
+街機：MAME，地球最強街機模擬器，最新版本。
+Mednafen：這也是全能模擬器核心，模擬運行 GG、NGP/C、WS/C、PCE PC-FX、VB 等，其次還有 PS 模擬核心，模擬 FC，GBA 的效果也很不錯，所以推薦務必把這個核心裝上。
+
+
+URL
+  RetroArch v1.9.0 – 2020 新版教學！超強大的掌機 / 家機 / 街機遊戲全能模擬器 :: https://sumofents.net/retroarch/3/
+
+

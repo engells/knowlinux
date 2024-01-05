@@ -1,0 +1,171 @@
+# vim:ts=2
+# program: Using to memo common commands
+# made by: Engells
+# date: Dec 21, 2023
+# content: Just for memo.
+
+
+
+常用指令
+====================
+sudo grub-install --target=x86_64-efi --boot-directory=/boot --efi-directory=/boot/efi --bootloader-id=ubuntu --recheck --no-floppy /dev/sd[x]
+sudo update-grub ;; sudo grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-probe -t device /boot/grub    # show the device which /boot/grub is located
+sudo grub-probe -t fs_uuid /boot/grub   # show the fs id which /boot/grub is located
+sudo grub-mkdevicemap                   # create /boot/grub/device.map
+apt purge grub-pc
+apt install --yes grub-efi-amd64-signed shim-signed
+
+
+
+
+Grub2 chainload syslinux
+====================
+假設在隨身碟安裝 GRUB2 作為主要的啟動管理程式，並在不同隨身碟分割區各自裝上作業系統
+編輯 /etc/grub.d/40_custom
+menuentry "XXXXXX" {
+set root='(hd0,gpt2)' # 第一顆硬碟的第二分割區(/dev/sda2)
+chainloader +1
+}
+
+
+
+Boot on ISO file
+====================
+編輯 /etc/default/grub
+	GRUB_HIDDEN_TIMEOUT=10	# 開機選單停留 10 秒
+	或 GRUB_HIDDEN_TIMEOUT 和 GRUB_HIDDEN_TIMEOUT_QUIET 這二行前面加上 # 註解
+
+編輯 /etc/grub.d/40_customer，在最下方加入：
+	menuentry "Install Ubuntu 20.04 from sda5" {
+  	loopback loop (hd0,gpt5)/Focal.iso		# 第一顆硬碟的第五分割區(/dev/sda5)
+		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=/Focal.iso noeject nopromt
+		initrd (loop)/casper/initrd
+	}
+
+更新 GRUB2
+	sudo update-grub
+
+其他範例
+	menuentry 'Install EzGo' {
+		set root=(hd0,6)
+		set imgfile="/iso/ezgo.iso"
+		loopback loop $imgfile
+		linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=$imgfile file=/cdrom/preseed/ubuntu.seed persistent
+		initrd (loop)/casper/initrd.lz
+	}
+
+  menuentry "Install Ubuntu 20.04 from sda5" {
+    insmod gzio
+    insmod part_gpt
+    insmod btrfs
+    search --no-floppy --fs-uuid --set=root c5c90e32-e819-423e-ba9b-842da00f5b38
+    loopback loop /@/Focal.iso
+    linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=/@/Focal.iso noeject nopromt
+    initrd (loop)/casper/initrd
+}
+
+依據實際經驗，若 Grub2 無法順利讀到 iso 檔案內的 vmlinuz 及 initrd.lz，可將該兩個檔案複製到硬碟，即可順利開機。若 Grub2 無法偵測主系統以外的硬碟，可停用 BISO 的 Fast Boot。 Grub2 初始階段是自 UEFI 接手，故變數 $prefix 必須是 (hd[x],[y])/grub，也就是指向 grub 安裝目錄，此階段的變數 $root 是 (hd[x],[y])，亦即安裝有 grub 目錄的分割區
+
+手動模式：開機出現 Grub2 選單時按下 <c> ，進入命令模式，然號依序輸入下列指令
+	set root=(hd0,6)
+	ls /			# 核對是否有 iso 檔案，若無則表示 root 位置指定錯誤。可以 ls (hd[x],gpt[y])/ 指令查詢其他磁碟分區
+	loopback loop /iso/ezgo.iso
+	linux /boot/vmlinuz boot=casper iso-scan/filename=/iso/ezgo.iso
+	initrd /boot/initrd.lz
+
+另外要注意，安裝前先按「Alt + F2」進入終端機執行 umount -l /isodevice 指令，且安裝過程中不能格式化 iso 檔所在的硬碟分割區。
+
+Ref:
+  How to Boot ISO Files From GRUB2 Boot Loader :: https://www.linuxbabe.com/desktop-linux/boot-from-iso-files-using-grub2-boot-loader
+
+
+
+Grub2 安裝與修復
+====================
+方法一
+  grub-install --no-floppy --root-directory=/dev/sda1 /dev/sda
+	  # 若無 grub-install 指令 => apt install grub-install
+
+方法二
+  sudo grub --no-floppy	# enter grub shell
+  root (hd0,1)			# 安裝分割區為 /dev/sda1
+  setup (hd0)				# 寫入程式碼到第一顆硬碟的 MBR
+  quit
+
+方法三 以移動裝置開機，執行下列指令，可用於 chroot ZFS 環境
+  sudo -i 或 sudo su
+  mount /dev/sdaY /mnt/boot (optional) && mount /dev/sdaZ /mnt
+  mount --bind /dev /mnt/dev && mount --bind /proc /mnt/proc && mount --bind /sys /mnt/sys
+  chroot /mnt
+  grub-mkdevicemap (optional, but recommand)
+  update-grub
+  sudo grub-install /dev/sda
+  <Ctrl+D>
+  umount /mnt/dev && umount /mnt
+
+加入指定模組
+  grub-install --boot-directory=/tmp/BOOTpool/boot/ --modules="part_msdos ext2 zfs"
+
+因 root 分割區 uuid 改變而不能正常啟動，只能進入 grub rescue 模式的修復代碼
+  grub rescue> set root=(hdX,Y)
+  grub rescue> set prefix=(hdX,Y)/boot/grub
+  grub rescue> insmod /boot/grub/normal.mod
+  grub rescue> normal            # 這時就可以調出 /boot/grub/grub.cfg，修改相應 uuid，改到命令行下
+  grub> insmod /boot/grub/linux.mod
+  grub> set root=hd[X],gpt[Y]    # hd[X],gpt[Y] 是 grub 文件所在分割區 sda[x] 是 / 分割區。
+  grub> linux /boot/vmlinuz-*** root=/dev/sd**
+  grub> initrd /boot/initrg.img-****
+  進入系統
+
+
+
+Grub2 設定檔 /etc/default/grub
+====================
+GRUB_DISABLE_OS_PROBER=false           # 啟用偵測其他作業系統
+GRUB_DISABLE_LINUX_UUID=true           # 取消使用 UUID，不建議
+GRUB_DISABLE_RECOVERY=true             # 不產生 GRUB recovery 啟動項，不建議
+GRUB_TOP_LEVEL="/boot/vmlinuz-linux"   # 指定預設開機之內核
+
+Ref:
+  ArchWiki GRUB: https://wiki.archlinux.org/title/GRUB
+  鳥哥 第 13 堂課：服務管理與開機流程管理 :: https://linux.vbird.org/linux_basic_train/rockylinux9/unit13.php#13.2
+
+
+
+概說
+====================
+Grub2 是開機管理程式。會在 MBR、PBS 以及開機分割區的檔案系統中寫入程式碼。開機作業中，Grub2 從 BIOS 接手後，會出現開機選單讓使用者選擇開機方式，接著載入作業系統。
+
+Grub2 本身可視為微型作業系統，內建有命令列指令，可在開機選單出現後按 <C> 進入終端機模式。其實開機選單中各個項目展開後，正是內建指令的組合。開機選單出現後按 <E> 可編輯開機選項內容。內建指令詳 grub-2-shell-cmds.txt。
+
+grub2 對磁碟代號的語法，以第一顆硬碟第一分割區為例：
+  (hd0,1)         # 一般的預設語法，由 grub2 自動判斷分割格式
+  (hd0,msdos1)    # 此磁碟的分割為傳統的 MBR 模式
+  (hd0,gpt1)      # 此磁碟的分割為 GPT 模式
+  代號以小括號 ( ) 或單引號 ' ' 包起。硬碟以『搜尋順序』編號，第一個搜尋到的硬碟為 0 號，第二個為 1 號，以此類推；每顆硬碟的第一個 partition 代號為 1 ，依序類推。
+
+在 /etc/grub.d/ 目錄下，有一些數字開頭的 script 檔，這些 script 檔會在執行 grub-mkconfig 時依序的執行並加到 grub.cfg 中。前述檔案若未加入可執行權限，則 grub-mkconfig 不會執行該 script 檔。
+
+
+Grub Theme & Background
+Theme
+  安裝路徑
+    /usr/share/grub/themes/ 或 /boot/grub/themes/
+  安裝方式
+    1.自 https://www.gnome-look.org/browse?cat=109&ord=rating 選取主題下載，複製至前述路徑，如 /usr/share/grub/themes/theme_name
+    2.編輯 /etc/default/grub，加入 GRUB_THEME="/boot/grub/themes/theme_name/theme.txt"
+    3.更新 Grub： sudo grub-mkconfig -o /boot/grub/grub/cfg
+
+Background
+  安裝路徑
+    /boot/grub/backgrounds/ 或其他目錄
+  安裝方式
+    1.下載圖檔，複製至前述路徑，如 /boot/grub/backgrounds/photo_name
+    2.編輯 /etc/default/grub，加入 GRUB_BACKGROUND="/boot/grub/backgrounds/photo_name"
+    3.更新 Grub： sudo grub-mkconfig -o /boot/grub/grub/cfg
+
+Ref
+  grub 探索筆記 :: https://samwhelp.github.io/note-about-grub/
+
+

@@ -1,0 +1,133 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to memo knowhow about bash
+# made by: Engells
+# date: Feb 8, 2022
+# content: Just for memo
+
+
+
+color prompt:
+====================
+PS1='\033[01;32m\]\u@\h \033[01;34m\]\W\033[0m\]\$ '
+	# \033[01;32m\] 指定色彩，或指令 \033[文字樣式色碼;文字顏色色碼;背景顏色色碼m\]
+	# \033[0m\] 還原回原始色彩
+	# \u 使用者名稱
+	# \h 主機名稱 the hostname up to the first "."
+	# \W 工作目錄
+
+文字樣式色碼
+	ANSI code	Meaning
+	01			Normal Characters with highlight
+	00			Normal Characters without highlight
+	0			Normal Characters
+	1			Bold Characters
+	4			Underlined Characters
+	5			Blinking Characters
+	7			Reverse video Characters
+
+文字顏色色碼
+	Color 	Foreground	Background
+	Black 	30			40			<= 3<0~7> means foreground; 4<0~7> means background
+	Red 	31			41
+	Green 	32			42
+	Yellow 	33			43
+	Blue 	34			44
+	Purple 	35			45
+	Cyan 	36			46
+	White 	37			47
+
+功能參數
+	\a     an ASCII bell character (07)
+	\d     the  date  in  "Weekday  Month  Date" format (e.g., "Tue May 26")
+	\e     an ASCII escape character (033)
+	\h     the hostname up to the first `.'
+	\H     the hostname
+	\n     newline
+	\r     carriage return
+	\s     the name of the shell, the basename of $0 (the portion following the final slash)
+	\t     the current time in 24-hour HH:MM:SS format
+	\T     the current time in 12-hour HH:MM:SS format
+	\@     the current time in 12-hour am/pm format
+	\u     the username of the current user
+	\v     the version of bash (e.g., 2.00)
+	\V     the release of bash, version + patchlevel (e.g., 2.00.0)
+	\w     the current working directory
+	\W     the basename of the current  working  directory
+	\!     the history number of this command
+	\#     the command number of this command
+	\$     if the effective UID is 0, a #, otherwise a $
+	\nnn   the character corresponding to the octal number nnn, \033 means 'e'
+	\\     a backslash
+	\[     begin a sequence of non-printing characters, which could be used to embed a terminal control sequence into the prompt
+	\]     end a sequence of non-printing characters
+
+	
+    \d 顯示日期，格式： Weekday Month Date
+    \D{format} 會依照給定的 format 來顯示時間，這裡的格式是要 strftime(3) 可以判讀的格式。 -> 參考： strftime(3) — Linux manual page
+    \h 顯示簡短 hostname，顯示到第一個 . 之前。
+    \H 顯示完整 hostname。
+    \t 顯示時間，以 24 小時制顯示 HH:MM:SS 格式。 (如： 18:46:27 )
+    \T 顯示時間，以 12 小時制顯示 HH:MM:SS 格式。 (如： 06:46:27 )
+    \@ 顯示時間，以 12 小時制，並以 AM / PM 方式顯示 HH:MM 格式。 (如： 06:46 下午)
+    \A 顯示時間，以 24 小時制顯示 HH:MM 格式。 (如： 18:46 )
+    \u 顯示目前使用者的名字。
+    \w 顯示目前完整的工作路徑，如果在家目錄下，則以 ~ 顯示。
+    \W 顯示簡短工作路徑，也就是顯示目前所在的路徑的最後一層，如果在家目錄底下，一樣是以 ~ 顯示。
+    \e 是 ASCII 跳脫字元，後面我們要來設定顏色時會用到。
+
+
+參考資料
+　　自訂Linux 的Bash Shell 命令提示字串Prompt :: https://blog.gtwang.org/linux/how-to-make-a-fancy-and-useful-bash-prompt-in-linux-1/
+　　老師！我想知道！如果只使用原生的終端機要怎麼客製化 Prompt 呢 :: https://ithelp.ithome.com.tw/articles/10253953?sc=rss.qu
+
+
+
+
+some useful commands of bash
+====================
+dirname		/home/aaa/bbb/cc => /home/aaa/bbb
+basename	/home/aaa/bbb/cc => cc
+name
+cat /sys/class/net/eth0/carrier
+gstreamer-properties <= Setup gstreamer
+Stop Beep
+	# /etc/modprobe.d/blacklist.conf, add a like of "blacklist pcspkr"
+cat old_file.txt  | tr -d '\r' >  new_file.txt
+製作 MD5 檢查碼
+	# md5sum file.sio > file.iso.md5
+sudo gtkorphan
+
+rename 's/([[:alpha:]])-([[:digit:]])/$1-0$2/' *.jpg
+	# 將檔名 ...a-123.jpg 改為 ...a-0123.jpg，注意特殊符號以及保留名稱的表達方式名稱
+	# 	特殊符號	代表意義
+	# [:alnum:]	代表英文大小寫字元及數字，亦即 0-9, A-Z, a-z
+	# [:alpha:]	代表任何英文大小寫字元，亦即 A-Z, a-z
+	# [:blank:]	代表空白鍵與 [Tab] 按鍵兩者
+	# [:cntrl:]	代表鍵盤上面的控制按鍵，亦即包括 CR, LF, Tab, Del.. 等等
+	# [:digit:]	代表數字而已，亦即 0-9
+	# [:graph:]	除了空白字元 (空白鍵與 [Tab] 按鍵) 外的其他所有按鍵
+	# [:lower:]	代表小寫字元，亦即 a-z
+	# [:print:]	代表任何可以被列印出來的字元
+	# [:punct:]	代表標點符號 (punctuation symbol)，亦即：" ' ? ! ; : # $...
+	# [:upper:]	代表大寫字元，亦即 A-Z
+	# [:space:]	任何會產生空白的字元，包括空白鍵, [Tab], CR 等等
+	# [:xdigit:]	代表 16 進位的數字類型，因此包括： 0-9, A-F, a-f 的數
+
+kill -9 PID; 
+killall procedure_name
+    # -e, --exact：在程式名稱完全比對成功時，才中止程式。
+      如程式名稱超過 15 個字元，其餘的字元捨去，預設狀況下，所有符合前 15 個字元的程式都中止掉，
+      如加上 -e 參數的話，killall 指令就會跳過這種名稱過長的程式。
+    -I, --ignore-case：在比對程式名稱時，英文大小寫視為相同（ignore case）。
+    -i, --interactive：在中止程式之前，先以互動式的方式詢問。
+    -l, --list：列出所有的訊號（signal）名稱。
+    -r, --regexp：使用常規表示法（regular expression）指定程式名稱。
+    -s, --signal：指定送出的訊號（signal）。
+    -u, --user：只中止指定使用者所執行的程式。
+    -o, --older-than：指定程式的開始執行時間點，必須在此時間點之前。
+    -y, --younger-than：指定程式的開始執行時間點，必須在此時間點之後。
+pkill procedure_name
+    # 與 killall 指令類似，可以指定程式名稱，但所指定的名稱直接以常規表示法（regular expression）的方式比對，只要比對成功，就會中止該程式。
+
+

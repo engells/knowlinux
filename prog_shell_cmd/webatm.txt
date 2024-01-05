@@ -1,0 +1,77 @@
+# vim:ts=4
+
+
+Java
+==============================
+OpenJDK Runtime
+	sudo apt-get install openjdk-6-jre
+	sudo apt-get install icedtea6-plugin
+	sed -i '$a export _JAVA_OPTIONS="-Dfile.encoding=BIG5"' ~/.profile
+		# 修正 Java 的繁體中文亂碼，於更動作業下次登入生效
+
+
+
+
+WebATM
+==============================
+支援銀行：台新、玉山、第一
+
+
+安裝 pcscd 套件，確認已正常啟動
+-------------------------
+	sudo apt-get install pcscd pcsc-tools libccid libpcsc-perl
+		# libccid libpcsc-perl 似乎是備用
+
+
+安裝讀卡機驅動程式，確認讀卡機運作正常
+-------------------------
+安裝模式
+	解壓縮 64 bit 版本 EZUSB_Linux_x86_64_v1.5.3.zip 裡面的 EZUSB_Linux_x86_64_v1.5.3 資料夾
+	進到 driver_ezusb_v1.5.3 資料夾，裡面的 creadme.txt 就是中文的安裝說明，繼績進行以下步驟
+	將 check_env，install，driver_install 這三個檔案設為可執行屬性
+	在終端機依序執行指令：./check_env、sudo ./install、sudo ldconfig
+		ldconfig 係於每次開機能自動偵測讀卡機
+
+直接解壓縮 ezusb.so
+	建議解壓縮 ezusb.so 複製到『/usr/lib/pcsc/drivers/ezusb.so』，PC/SC Reader 的驅動程式預設放在該目錄
+	新增檔案『/etc/reader.conf.d/libezusb』，內容如下：
+		FRIENDLYNAME "CASTLES EZ100PU"
+		DEVICENAME /dev/null
+		LIBPATH /usr/lib/pcsc/drivers/ezusb.so
+		CHANNELID 0x000000
+	以 root 執行 update-reader.conf，自動更新到『/etc/reader.conf』
+	插入讀卡機之後，只需重跑 pcscd 即可下：/etc/init.d/pcscd restart
+
+
+提供 Linux 讀卡機驅動程式之PC／SC IC 讀卡機 或 CCID 相容的讀卡機
+-------------------------
+讀卡機用 ez100pu，可去玉山銀行 webatm 網頁，有安裝說明，還有檢測環境。https://netbank.esunbank.com.tw/WebATM/clinic/default.asp?ctype=b&cid=Micdoctor_ebanking&oid=webatmst_05。
+
+重點在於終端機執行 pcsc_scan 指令時，要出現偵測到機器的訊息。
+
+VirtualBox 的虛擬機器會先抓到 USB 的控制權，須先關閉 VirtualBox 的虛擬機器，也結束 VirtualBox 的主程式
+
+
+安裝瀏覽器服務元件
+-------------------------
+安裝第一銀行 Ubuntu 專用版 FCB-WebATM plugin 服務元件
+	sudo cp /path/to/libnpFCBATM.so /usr/lib/mozilla/plugins/libnpFCBATM.so
+	sudo cp /path/to/libnpFCBATM.so ~/.mozilla/plugins/libnpFCBATM.so
+		進入 Firefox，在網址列輸入 about:plugins，可發現 FCB-WebATM-plugin 擴充套件
+		https://eatm.firstbank.com.tw/lio1000s2#Linux
+
+安裝玉山銀行 libnpWebATM.so 服務元件
+	用壓縮管理員從玉山銀行的 xpi 檔案把 libnpWebATM.so 解壓縮後，複製到 /usr/lib/mozilla/plugins 
+		玉山銀行 xpi 檔案完整檔名：esb_xcsp_for_firefox-1.0.4.5-fx-Linux_x86-gcc3.xpi
+	或者修改安裝 xpi 檔內 install.rdf 指定的最大版本。<em:maxVersion>20.0.*</em:maxVersion>
+		實際作業是解壓縮 rdf 檔，以文字編輯器修改後，使用壓縮檔管理程式載回 xpi 檔。必要時載回前先自 xpi 檔刪除 rdf 檔案。 
+
+
+
+
+參考網址
+==============================
+http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=69438&forum=7&post_id=287204#forumpost287204
+http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=69438&viewmode=flat&order=ASC&type=&mode=0&start=0
+
+

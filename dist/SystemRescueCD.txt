@@ -1,0 +1,104 @@
+
+
+
+
+安裝 System Rescue CD 至硬碟
+==============================
+1.在 USB 碟切割一塊大於 400MB 的硬碟分區，可為邏輯分區，檔案系統可為 FAT、Ext2~4
+	fdisk /dev/sd[x]
+	mkfs.vfat /dev/sd[x][y]
+
+2.將 iso 檔內容複製至 FAT 分區，注意檔案結構應維持一致
+	mount -t iso9660 /dev/cdrom0 /path/to/source
+	mount /dev/sh[x] /path/to/target
+	cd /path/to/source && cp -av . /path/to/target
+
+3.在硬碟的 boot loader 開機清單中加入 Parted Magic，以 Grub 1.9x 為例
+	timeout 5
+	color light-gray/black light-blue/black
+
+	title SystemRescueCd std-32bit
+		kernel (hd0,1)/isolinux/rescuecd
+		initrd (hd0,1)/isolinux/initram.igz
+
+	title SystemRescueCd std-64bit
+		kernel (hd0,1)/isolinux/rescue64
+		initrd (hd0,1)/isolinux/initram.igz
+
+	title SystemRescueCd alt-32bit
+		kernel (hd0,1)/isolinux/altker32
+		initrd (hd0,1)/isolinux/initram.igz
+
+	title SystemRescueCd alt-64bit
+		kernel (hd0,1)/isolinux/altker64
+		initrd (hd0,1)/isolinux/initram.igz
+
+	title MemTest+
+		 kernel (hd0,1)/isolinux/memtestp
+		 initrd (hd0,1)/bootdisk/initrd.cgz
+
+	title NT Password Editor
+		 kernel (hd0,1)/ntpasswd/vmlinuz
+		 initrd (hd0,1)/ntpasswd/initrd.cgz
+
+	title Gag
+		 kernel (hd0,1)/isolinux/memdisk
+		 initrd (hd0,1)/bootdisk/gag.img
+
+	title MHDD
+		 kernel (hd0,1)/isolinux/memdisk
+		 initrd (hd0,1)/bootdisk/mhdd.img
+
+	title Hardware Detection Tool
+		 kernel (hd0,1)/isolinux/memdisk
+		 initrd (hd0,1)/bootdisk/hdt.img
+
+	title Aida
+		 kernel (hd0,1)/isolinux/memdisk
+		 initrd (hd0,1)/bootdisk/aida.img
+
+	title Ranish Partition Manager
+		 kernel (hd0,1)/isolinux/memdisk
+		 initrd (hd0,1)/bootdisk/ranish.img
+
+	title FreeDOS
+		 kernel (hd0,1)/isolinux/memdisk
+		 initrd (hd0,1)/bootdisk/freedos.img
+
+
+
+
+Tommy Wu's blog
+http://blog.teatime.com.tw/1/post/407
+==============================
+核心參數的調整：
+linux (loop)/isolinux/altker64 isoloop=systemrescuecd-x86-2.4.1.iso setkmap=us scandelay=1 docache dostartx forcevesa=1152x864x16 nonm nodhcp nameif=eth0!00:1b:21:10:ab:9f,eth1!00:0e:0c:35:e5:0e,eth2!00:24:1d:5e:64:1e eth0=192.168.0.11/24 eth1=220.130.11.143/24 eth2=192.168.128.11/17 gateway=220.130.11.254 dns=8.8.8.8 vncserver=1:12345678
+
+docache
+把整個 image 載入到記憶體中，這樣子可以對存在 iso 檔案的 partition 做修改
+
+dostartx
+開機後直接執行 X
+
+setkmap=us
+設定預設的鍵盤排列方式，一般應該都是用 US，如果沒設定會停下來詢問
+
+scandelay=1
+加上短暫的 delay 來偵測 iso 所放的位置，其實放硬碟中應該可以不用加上這個
+
+nonm
+不啟動 Network Manager
+
+nameif=eth0!00:1b:21:10:ab:9f,eth1!00:0e:0c:35:e5:0e
+有好幾張網卡，所以要確定所用的網卡是那一張，可以用 mac address 來指定
+
+eth0=192.168.0.11/24 eth1=220.130.11.143/24
+指定網卡的 IP
+
+gateway=220.130.11.254 dns=8.8.8.8
+指定 gateway 與 dns
+
+vncserver=1:12345678
+執行 vncserver 在 :1 上頭，密碼是 12345678 (記得改成你用的)
+
+

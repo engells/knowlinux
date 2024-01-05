@@ -1,0 +1,83 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about openbox
+# made by: Engells
+# date: Feb 26，2021
+# content: Just for memo
+
+
+
+Openbox 之自動啟動
+====================
+將 Openbox 作為單獨的視窗管理器使用，則只需要在 ~/.xinitrc 中添加 exec openbox-session，再執行 startx 即可啟動 Openbox
+
+edit $HOME/.config/openbox/autostart 裡寫入自動啟動之程式，在每行指令之最後加上 ＆ 則可以將獨占變成背景執行。
+
+edit /etc/X11/xinit/xinitrc，輸入(gcin輸入法)：
+  export LC_CTYPE=zh_TW.UTF-8
+  export GTK_IM_MODULE=gcin
+  export XMODIFIERS="@im=ibus"
+  ibus & 
+
+xrandr 
+
+
+
+
+配置 Openbox
+===================
+  cp /etc/xdg/openbox/{rc.xml, menu.xml, autostart, environment} ~/.config/openbox
+  cp /var/lib/openbox/debian-menu.xml ~/.config/openbox/debian-menu.xml
+  openbox --reconfigure  # run in X environment
+
+
+sudo apt install xcompmgr cairo-dock
+sudo vim ~/.config/openbox/autostart
+  xcompmgr＆
+  cairo-dock &
+openbox --reconfigure
+
+
+桌面設置
+  obconf &
+
+
+
+
+概述
+====================
+Openbox 的配置文件主要有，~/.config/openbox/rc.xml 和~ /.config/openbox/menu.xml。前者可以由 obconf 更改，後者可由 obmenu 更改。
+rc.xml 定義鍵盤快捷鍵, 主題, 虛擬桌面等。
+menu.xml 定義在桌面用鼠標擊鍵時顯示的菜單、程式啟動器和快捷方式。
+autostart 在 Openbox 啟動時讀取。包含了一些需要啟動的程式，通常用來定義許多環境變量、啟動面板/dock、設置壁紙或者執行其他啟動腳本等等。
+environment 在 Openbox-session 啟動時調用。包含了在 Openbox 上下文中定義的變量。任何對 Openbox 本身可見以及從選單啟動的程式需要的變量都放在這里。
+
+
+相關軟體
+---------------
+slim：輕量級圖形登錄管理器，可以替代gdm/kdm
+lxappearance: lxde的外觀設置工具，可同樣用於 openbox，設置主題，窗口字體等
+obconf：openbox的圖形化設置工具
+obmenu：openbox的圖形化選單編輯工具
+tint2：提供下面板
+tint2conf: tint2的圖形化設置工具
+wbar：提供一個dock
+wbarconf: wbar的圖形化設置工具
+feh：設置壁紙
+pcmanfm: 文件管理工具
+obmixer: 托盤區音量圖標
+nm-applet: 網絡連接管理器
+scrot：截屏工具
+menu menu-xdg：產生選單
+menumaker：讀取系統中安裝的所有程序並將它們添加到選單中，mmaker OpenBox3 -f -t rxvt。Ubuntu 無此套件
+
+
+
+
+參考資料
+====================
+5分鐘OpenBox配置指南 :: http://www.unixlinux.online/unixlinux/linuxjc/linuxjc/201702/38973.html
+Openbox個人配置 :: https://wittyfilter.github.io/blog/my-openbox-configuration
+Fluxbox
+
+

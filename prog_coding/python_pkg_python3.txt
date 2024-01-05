@@ -1,0 +1,88 @@
+##!/bin/bash
+# vim:ts=4
+# program: Memo for python internal commands
+# made by: Engells
+# date: Feb 15, 2021
+# content: Just for memo
+
+
+
+Basic
+====================
+Commands
+---------------
+print(項目1[,項目2, ...., sep="分隔字元", end="結束字元"])
+print("%s 贏的機率為 %8.2f%s " % ("string",number,"%"))
+    # %8.2f 表示小數點前 8 位數，小數點後 2 位數，數值型態為浮點。
+print("{}{}xxxxx{}".format("string or number","string or number","string or number"))
+
+input("string") 回傳使用者在螢幕輸入資訊
+type(variable_name) 查詢變數之資料類型
+int() 轉換為整數
+float() 轉換為浮點數
+str() 轉換為字串
+
+
+List
+---------------
+python_list = range(n,m,o)*<number>
+python_list[n:m:o]
+python_list.append()|.extend()|.insert()|.pop()|.remove()|.sort()|.reverse()
+len(), max(), min(), index(), count()
+
+
+Tuple(元組)：不能修改的List
+---------------
+優點：執行速度比list快，儲存在Tuple的資料比較安全。不同於list使用[]，tuple使用()
+python_tuple = ()
+list_to_tuple = tuple(python_list)
+tuple_to_list = list(python_tuple)
+
+
+Dict(字典)：key-map的形式
+---------------
+語法：{key1:value1 [,key2:value2,…]}
+del python_dict[key]：刪除python_dict 的元素 [key]
+python_dict.clear()：刪除 python_dict Dict 的所有元素
+del python_dict：刪除 python_dict Dict
+
+
+
+
+巢狀判斷式
+====================
+score = int(input("請「浪流連九程式匠自然產生的佛系碼農專區」有幾人參加?"))
+if(score>=3):
+    if(score==9):
+     print("沒錯!!剛好就是9人")
+    elif(score>=7):
+     print("已經非常接近了")
+    else:
+     print("不好意思，離正確答案還有一段距離")
+else:
+     print("沒有這麼少人喔")
+
+
+
+
+File operation
+====================
+python.os.system() | .mkdir() | rmdir() | .remove() | .getcwd() | .rename()
+python.os.isfile() | .isdir() | .join() | .exists() | .getsize() | .abspath()
+python.os.walk()
+
+open(filename, mode) # mode => r,w,X,a
+
+import csv ; csv.writer() ; csv.writer.writerow() ; csv.reader() ; csv.DictReader() ; csv.DictWriter()
+import xml.etree.ElementTree()
+import json ; json.dumps() ; json.loads()
+import yaml
+
+
+
+參考資料
+===============
+2017 iT 邦幫忙鐵人賽 R 語言使用者的 Python 學習筆記 系列    https://ithelp.ithome.com.tw/users/20103511/ironman/1077?page=1
+2018 iT 邦幫忙鐵人賽 使用Python進行資料分析 系列    https://ithelp.ithome.com.tw/users/20107514/ironman/1399
+2019 iT 邦幫忙鐵人賽 python 入門到分析股市 系列     https://ithelp.ithome.com.tw/users/20111390/ironman/1791
+

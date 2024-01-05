@@ -1,0 +1,60 @@
+# vim:ts=4
+
+
+sed 概說
+==============================
+
+語法
+-------------------------
+sed 參數 動作 資料來源	
+	# 參數可省略，動作必須以 '' 兩個單引號括住。動作區其實可以分作三個部份，
+	#	第一個部份界定範圍，可以兩個界標加上逗號表示特定範圍，如2,5、/AAA/,/BBB/
+	#	第二個部份為動作模式，此部份包括必要引數，如a、i、c、s等模式，
+	#	第三個部份為附加模式，如在s模式下以p結尾表示只做一次動作，g表示全域動作
+
+
+釋例
+-------------------------
+sed '2,5d' dadafile
+	# 將第二至五列刪除
+
+sed '3a one line ... \
+	two line ...' dadafile
+	# 在第三列資料下方增加資料，加入之資料有二列，第一列為one line ...，第二列為 two line ...
+
+sed '3i above line' dadafile
+	# 在第三列資料上方增加資料，加入之資料為 above line
+
+sed '2,5c NO 2-5 number' dadafile
+	# 將第二至五列刪除後，在第六列上方插入 NO 2-5 number字串
+
+sed -n '2,5p' dadafile
+	# 顯示第二至五列資料
+
+sed 's/aa/bb/p' datafile
+	# 將第一個出現的 aa 字串以 bb 字串取代
+
+sed 's/aa/bb/g' dadafile
+	# 將所有出現的 aa 字串以 bb 字串取代
+
+sed 's/\(aa\)/\1bb/p' datafile
+	# 將第一個出現的 aa 字串保留，並加上 bb 字串，結果成為 aabb 字串
+
+sed '2,5s/#.*$/--/g' datafile
+	# 將第二至五列中，把 # 符號開頭的資料以 -- 取代
+
+sed '/AAA/s/aa/bb/g' datafile
+	# 將含有 AAA 的資料列中 aa 字串以 bb 字串取代
+
+sed '/AAA/,/BBB/s/aa/bb/g' datafile
+	# 將含有 AAA 至 BBB 的資料列中 aa 字串以 bb 字串取代
+
+sed G dadafile
+	# 在每一行後面增加一空行
+
+sed 'G;G' dadafile
+	# 在每一行後面增加兩行空行
+
+sed '/^$/d;G' dadafile
+	# 刪除所有空行並在每一行後面增加一空行
+

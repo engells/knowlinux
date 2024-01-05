@@ -1,0 +1,163 @@
+
+
+如何美化xfce
+url: http://hi.baidu.com/2012lost/item/258db5dee6b1541fd68ed054
+    http://cosmolax.wordpress.com/2006/05/30/xubuntu-%E5%81%BDmac-osx-%E5%B0%8F%E7%BF%92%E4%BD%9C/
+
+==============================
+
+編輯選單 (xfce4-menueditor)
+-------------------------
+對著 "Applications" 按右鍵選 "編輯選單"
+
+
+視窗按鈕位置
+-------------------------
+《Applications》 > 《Settings》 > 《Setting Editor》 > 《xfwm4》> 《general》 > 《button_layout》 > 【CHMS|O】
+
+
+面板設定
+-------------------------
+《Applications》 > 《Settings》 > 《Panel》
+
+
+調整時區及日期顯示
+-------------------------
+《Applications》 > 《Settings》 > 《Orage preference》
+
+
+設定預設之瀏覽器、郵件、檔案總管及終端機程式：
+-------------------------
+《Applications》 > 《Settings》 > 《Prefered Applications》
+
+
+佈景主題
+-------------------------
+1.1 Window Manager，通常稱作窗口管理器，處理視窗的位置、大小、視窗邊框的樣式、管理視窗的操作及一些使用者和視窗的互動方式(放大﹍)
+1.2 新增窗口管理器式樣，來源：http://www.xfce-look.org/ 下載風格 (Xfce themes)，如 Humanoid-OSX-xfce
+1.3 範例：將 Humanoid-OSX-xfce.tar.bz2 解壓縮至 /usr/share/themes/ 或 ~/.themes/
+    確認目錄結構類似 /usr/share/themes/<theme_name>/xfwm4/
+1.4 在《Applications》 > 《Settings》 > 《Window Manager》 > 《Style》 設定
+
+
+2.1 新增主題(GTK+ 界面)，可以使用 GTK 1.x GTK 2.x 的 Themes
+2.2 來源：http://www.xfce-look.org 或 http://www.gnome-look.org/
+2.3 範例：將 mac-osx-controls.tar.gz / mac-osx-bundle.tar.gz 解壓縮至 /usr/share/themes/ 或 ~/.themes/
+    確認有 /usr/share/themes/<theme_name>/gtk-2.0/gtkrc 檔案
+2.4 在《Applications》 > 《Settings》 > 《Appearance》 > 《Style》 設定
+
+3.1 新增圖標，可以使用 GTK 1.x GTK 2.x 的 Icons
+3.2 來源：http://www.xfce-look.org 或 http://www.gnome-look.org/
+3.3 範例：將 Gnome_MacOS-X_Icon_Theme_20040730.tar.gz 解壓縮至 /usr/share/icons/ 或 ~/.icons/
+    確認目錄結構類似 /usr/share/icons/<theme_name>/cursors
+3.4 在《Applications》 > 《Settings》 > 《Appearance》 > 《Icons》 設定
+
+4.1 新增遊標，可以使用 GTK 1.x GTK 2.x 的 cursors
+4.2 來源：http://www.xfce-look.org
+4.3 範例：將 Mac-OSX-Cursor-Panther-1.1.tar.gz 解壓縮至 /usr/share/icons/ 或 ~/.icons
+    確認目錄結構類似 /usr/share/icons/<theme_name>/cursors
+4.4 重新登入 X
+4.5 在《Applications》 > 《Settings》 > 《Mouse》 > 《Theme》 設定
+
+
+字型
+-------------------------
+1.1 把字型複制到 /usr/share/fonts/truetype/ or ~/.fonts 下
+1.2 sudo fc-cache -f -v
+1.3 需重新登入後才能使用新裝的字型 (更換字型一開始會比較慢一點)
+
+
+X 桌面啟動畫面
+-------------------------
+1.1 來源：http://www.xfce-look.org/
+1.2 有三種 splash engines，分別是 mice、simple 及 balou。simple 跟 balou 可以更換 theme 而 mice 不行。
+1.3 範例：balou 的方式是放到 ~/.themes/ 下，如 ~/.themes/gotlinux/balou and ~/.themes/thundercats/balou
+1.4 《Applications》 > 《Settings》 > 《Session and Startup》 > 《Splash》 設定
+
+
+伴隨 X 同步啟動程式
+-------------------------
+1.1 在《Applications》 > 《Settings》 > 《Session and Startup》 > 《Application Startup》設定
+1.2 將 .desktop 檔案放到 ~/.config/autostart/
+
+2.1在《Applications》 > 《Settings》 > 《Session and Startup》 > 《Advanced》設定是否啟用 Gnome 及 KDE 服務
+
+
+NetworkManager
+-------------------------
+1.1 安裝 network-manager network-manager-gnome
+1.2 執行程序 "nm-applet"
+
+
+
+wget http://files.avast.com/files/linux/avast4workstation_1.3.0-2_i386.deb
+sudo apt-get install ia32-libs
+sudo dpkg --force-architecture -i avast4workstation_1.3.0-2_i386.deb
+ldd /usr/lib/avast4workstation/bin/avastgui <= 動態函式庫解析 ldd
+ldd /usr/lib/avast4workstation/bin/avast
+
+http://files.avast.com/files/linux/avast4workstation_1.3.0-2_i386.deb
+
+
+
+
+
+XFCE 4.8 with Ubuntu 12.04
+==============================
+
+Ubuntu 12.04 XFCE4.8 的版本，設置基本沒有變化。最近4.10已經發布，也有了對應的ppa，請自行查找。XFCE的可定制性非常高，下面僅介紹幾個小技巧。在 Ubuntu 上安裝 XFCE，並不是 Xubuntu 直接安裝，所以可能部分問題在 Xubuntu 中並不存在。
+
+Ubuntu安裝XFCE
+-------------------------
+sudo apt-get install xfce4
+sudo apt-get install xubuntu-desktop
+第一個命令僅安裝必須的組件，第二個安裝附帶的很多軟件比如Abiword等，請自行選擇。
+推薦安裝synapse，xfce自帶的程序查找工具功能不如這個多。
+
+
+字體調整
+-------------------------
+安裝完畢後字體會比較小，在筆記本上可能還算適合，在台式機上則完全不行。建議都要調大字體，保護眼睛。
+在設置管理器的窗口管理器-標題字體、外觀-字體中調整。
+
+
+屏保沖突
+-------------------------
+如果設置屏保的時候提示有gnome屏保沖突，卸載 gnome-screensaver 即可。
+
+
+聲音調整快捷鍵
+-------------------------
+在鍵盤-應用程序快捷鍵中設置。其中調整聲音用的是：
+-ctrl+up：聲音增加，amixer -c 0 set Master 5dB+
+-ctrl+down：聲音減小，amixer -c 0 set Master 5dB-
+參考了Archwiki。
+
+
+時間指示器的格式
+-------------------------
+12.04使用「時間」組件顯示時間，以前用的是「時鍾」組件。我覺得還是「時鍾」好用，可以顯示成指針表盤的樣子，而且定制性比較高。修改顯示參數可以參考man date，我采用的是 %F %a %R 。
+
+
+解決thunar第一次啟動太慢的問題
+-------------------------
+這是由於thunar第一次啟動要檢測「網絡」，禁用此功能即可。
+sudo vim /usr/share/gvfs/mounts/network.mount
+AutoMount=true 這一句改為 AutoMount=false
+
+
+可選美化圖標
+-------------------------
+ppa:tiheum/equinox
+sudo apt-get install faenza-icon-theme
+很漂亮的圖標主題。
+
+
+禁用scrollbar
+-------------------------
+Unity 的 scrollbar 組件和 XFCE 搭配並不和諧，還是禁用比較好：
+gsettings set org.gnome.desktop.interface ubuntu-overlay-scrollbars false
+
+
+ref url:
+http://www.snowhawkyrf.name/2012/05/ubuntu-1204xfce48.html

@@ -1,0 +1,208 @@
+
+
+
+揭開Wayland的面紗（一）：X Window的前生今世
+http://www.ibentu.org/2010/11/06/introduce-to-wayland-01.html
+發表於 2010-11-06 由 TualatriX
+
+今天大家可能在「Wow! Ubuntu」或其他地方看到了這篇文章：Ubuntu 決定未來將啟用 Wayland X-Server。
+
+Wayland是什麼呢？它是X Window？還是要取代X Window？它的優勢在哪裏？Linux桌面/移動會因此有什麼變化？在本篇中，我將回顧曆史，展望未來，通過簡易的文字，來先回顧一下X Window，從而繼續解答Wayland。
+
+注：在下對X Window的理解僅限於表面，文章中會有不少技術、曆史方面的錯誤，若有大俠指出，不勝感激！
+
+古老的X Window和現代的桌面技術
+
+X Window在1984年由MIT研發，它的設計哲學之一是：提供機制，而非策略。舉個最簡單的例子吧：X Window提供了生成窗口（Window）的方法，但它沒規定窗口要怎麼呈現（map）或擺放（place），這個策略是由外部程序——窗口管理器 （Window Manager）所決定的。另外一個X Window的主要特點便是：Server/Client網絡模型。不論是本地、遠程的應用程序，都統一通過Server/Client模型來運作，比如：讓遠程的應用程序跑在本地上。
+
+X Window在推出之後快速演化，在1987年時候，其核心協議已經是第11版本了，簡稱：x11。這個版本已經將「提供機制，而非策略」這個哲學貫徹地 非常徹底，以致於核心協議基本穩定，不需要特別大的改動。於是乎，你看到了，現在是2010年，整整23年了，X Window依然是X11。
+
+你可能會詫異，23年了，X Window的核心都沒有特別大的變化，它能適應現代桌面的快速發展嗎？這就要再次提到X Window的設計優勢了，X Window在核心層之外提供一個擴展層，開發者可以開發相應擴展，來實現自己的擴展協議，比方說：
+
+標准的Window都是矩形的，我如何用它來畫一個圓形的窗口？X Window協議並未提供，但是通過「shape」這個擴展，X Window可以實現不規則的窗體
+
+所以啊，這23年，X Window除了繼續完善核心協議、驅動以外，很大程度上，都是擴展使它保持「與時俱進」，比如說：
+
+要多頭顯示支持，這個是由「Xinerama」擴展實現的；
+要有多媒體視頻回放的支持，這個是由「X Video」擴展實現的;
+OpenGL的3D支持，則是通過「GL」擴展來實現的；
+Compiz那樣的合成桌面特效是怎麼弄的？沒錯，還需要一個新的擴展，它便是：「Composite」；
+甚至Keyboard的支持，都是通過「X Keyboard Extension」（也就是「XKB」）的！
+X Window的核心，基本上就是在處理Server/Client、驅動之類的，而外部的那些支持，基本上全是通過「擴展」進行的。這沒什麼不好，X Window的結構設計精良，盡管是擴展，但它們沒有任何效能上的問題。通過擴展方便地實現了一些對新技術、新事物的支持，而且方便維護，這再好不過了。
+
+所以你看到了盡管23年過去了，基於X Window的GNOME、KDE，還能保持與同期Windows、Mac OS X競爭甚至某些方面更好，你就不得不佩服這些前輩在最初設計時定下的設計哲學是多麼正確了。
+
+雖然擴展的眾多沒有給X Window造成什麼問題，也跟X Window的設計哲學相符，但是其Server/Client的網絡構架，卻一直倍受質疑，這便是：
+
+X Window的效率問題
+
+經常聽到有人說，X Window的Server/Client結構嚴重影響效率，導致Linux桌面的效應速度一直不如Windows、Mac OS X。事實是不是這樣呢？讓我們還是透過原理來說話吧。
+
+這張，便是當前X Window系統的架構圖，稍微解釋一下：
+
+X Client：圖形應用程序，如Firefox、Pidgin等；
+X Server：你看不見的控制中心；
+Compositor：合成桌面系統，如Compiz；
+Kernel/KMS/evdev：這便是Linux Kernel，後面會提到KMS技術了，其中還有一項evdev，是管理輸入設備的。
+X Architecture
+
+通過這些箭頭，你已經可以明白一些X Window的工作機制了，不過還從一個應用場景來解釋一下，想像一下，當你點擊了Firefox（X Client）的「刷新」按鈕，將會發生以下事情：
+
+你用鼠標點擊了Firefox的「刷新」按鈕，這時內核收到了鼠標發來的事件，並將其通過evdev輸入驅動發送至了X Server。這時內核實際上做了很多事情，包括將不同品牌的鼠標發出的不同信號轉換成了標准的「evdev」輸入信息。
+這時X Server可以判斷哪個Window該收到這個消息，並將某座標按下按鈕的消息發往X Client——Firefox。但事實上X Server並不知道它得到的窗口信息是不是正確！為什麼呢？因為當前的Linux桌面早已經不是10年前的那樣了，現在是「Composite」即合成 桌面的時代，合成桌面的一個特點便是：Compositor（如Compiz）管理窗口的一切，X Server只能知道屏幕的某個點收到了鼠標消息，卻不知道這個點下面到底有沒有窗口——誰知道Compiz是不是正在搞一個漂亮的、緩慢的動畫，把窗口 收縮起來了呢？
+假設應用場景沒這麼複雜，Firefox順利地收到了消息，這時Firefox要決定該如何做：按鈕要有按下的效果。於是Firefox再發送請求給X Server，說：「麻煩畫一下按鈕按下的效果。」
+當X Server收到消息後，它就准備開始做具體的繪圖工作了：首先它告訴顯卡驅動，要畫怎麼樣一個效果，然後它也計算了被改變的那塊區域，同時告訴Compiz那塊區域需要重新合成一下。
+Compiz收到消息後，它將從緩沖裏取得顯卡渲染出的圖形並重新合成至整個屏幕——當然，Compiz的「合成」動作，也屬於「渲染（render）」，也是需要請求X Server，我要畫這塊，然後X Server回複：你可以畫了。
+整個過程可能已經明了了，請求和渲染的動作，從X Client->X Server，再從X Server->Compositor，而且是雙向的，確實是比較耗時的，但是，事實還不是如此。介於X Window已有的機制，盡管Compiz已經掌管了全部最終桌面呈現的效果，但X Server在收到Compiz的「渲染」請求時，還會做一些「本職工作」，如：窗口的重疊判斷、被覆蓋窗口的剪載計算等等（不然它怎麼知道鼠標按下的坐 標下，是Firefox的窗口呢）——這些都是無意義的重複工作，而且Compiz不會理會這些，Compiz依然會在自己的全屏幕「畫布」上，畫著自己 的動畫效果……
+從這個過程，基本可以得出結論：
+
+X Client <-> X Server <-> Compositor，這三者請求渲染的過程，不是很高效；
+X Server，Compositor，這兩者做了很多不必要的重複工作和正文切換。
+當然，這裏我沒有直接說明這種模式有沒有給X Window造成效率問題，因為我們還少一個對照組。再看對照組之前，再來看看X Server的另一個趨勢：
+
+從「什麼都做」到「做得越來越少」的X Window
+
+X Window剛出現那會，主要提供一個在操作系統內核上的抽象層，來實現一個圖形環境。所謂圖形環境，最主要的便是：圖形＋文字。當時的X Window便提供「繪圖」和「渲染文字」的機制。圖形桌面上的圖案和文字，都通過X Window合成並繪制出來。
+
+一個典型的例子，如果你要用X來畫點，就要在你的程序中通過「XDrawPoint」來進行，X Server收到消息後，便會畫出相應的點。
+
+現在，稍微接觸過圖形開發的人都知道了，在X Window下，一般都通過GTK+和Qt來進行了。更深一層的是，通過Cairo（Qt不是）來繪制圖形。Cairo是什麼？它是一個繪圖＋渲染引擎，著名的瀏覽器Firefox，便是使用Cairo來渲染網頁和文字的。
+
+Cairo是一個全能的、跨平台的矢量繪圖庫，它不是簡單的包裝一下各個平台的繪圖庫而已，盡管它最初是基於X Window開發出來的繪圖庫。現在Cairo支持各種不同的後端，來向其輸出圖形，比如X、Windows的GDI、Mac OS X的Quartz，還有各種文件格式：PNG、PDF，當然還有SVG。可以說，Cairo是一個很徹底的、全能的繪圖庫，現在無論繪制什麼圖形，都不會考慮到用XLib了。
+
+在Cairo之上，還有文字排版庫：Pango，同樣很明顯的，處理文字排版，都不會用XFont之類的東西了，而是直接用Pango畫。當然Pango也是跨平台的。
+
+盡管在Linux平台下，Cairo、Pango的發揮依然是基於X Window的，但X Window充其量僅僅是一個「backend」而已，並不是少它不行。同理，跨平台的GTK+、Ｑt也只是視X為其中所支持的後端之一，假如哪天X真的 不在了，更換一個新後端，當前的GNOME、KDE也能完整的跑起來。
+
+再提另外一個比較典型的關於「X曾經做的，但現已不做」的例子，便是「模式設置（mode-setting）」，說通俗點，就是「分辨率的設置」，但後面會說明不僅僅如此。
+
+大家都知道，Linux只是一個內核，它只有控制台，通過Shell來進行交互，而控制台默認是80×24（單位：字符）的，要進入分辨率1024×768或更高的圖形模式，就需要X進行一次「模式設置」，設置正確的分辨率等等。
+
+盡管後來Linux也支持了各種用戶層（user-space）的模式設置，讓終端也支持標准的分辨率，但是X的模式設置與此是不相幹的，所以一兩 年前，在Linux的啟動過程中，從終端進入圖形界面時，屏幕會「閃」一下，這時便在進行「模式設置」——這裏就一定要用「模式設置」這個術語了，因為即 使終端是1024的，進入X圖形也是1024的，模式的變更還是要進行。
+
+後來呢，嗯，2009年初期，KMS（內核模式設置）終於出現了！！！很少關心桌面圖形的Linux內核，在當時引入了「內核級」的模式設置，也就是說，在內核載入完畢、顯示驅動初始化後很短的時間內，即設置好標准的分辨率和色深，通過在X層做相應的更改，從此X的初始化就可以省去「模式設置」這一 過程了！也就是從Fedora 10開始，Linux的啟動非常平滑、漂亮，沒有任何閃爍了。現在的Ubuntu 10.10也一樣，KMS的應用已經相當成熟。
+
+X從此又少了一樣圖形任務……「X淚奔～你們都不要我了。」
+
+可以說，這20多年來，X從「什麼都做」已經到了「做的越來越少」。絕大多數的開發者開發圖形應用程序，已經可以完全無視X的存在了，X現在更像是一個中間人的角色。那麼，X這個中間人會不會有一天，完全被其他事物所取代呢？
+
+沒錯！它便是下篇要介紹的：Wayland！
+
+
+
+
+揭開Wayland的面紗（二）：Wayland應運而生
+http://www.ibentu.org/2010/11/06/introduce-to-wayland-02.html
+發表於 2010-11-06 由 TualatriX
+
+
+話說在上篇（揭開Wayland的面紗（一）：X Window的前生今世）中我介紹了一些X Window的曆史及發展，還沒有提到Wayland本身，不少人已經等不及了。不過，介紹這些是有必要的，畢竟要知道X Window的一些知識，才能明白為什麼會有Wayland這個東西。
+
+在本篇正式開始介紹Wayland之前，讓我們先回到2008年11月4日，也就是整整兩年前，我當時在中文領域第一時間報道了「Wayland」的新聞：Wayland：Linux的新X Server，在其後的一個月，又寫了：Wayland最新動態。
+
+當時這兩篇文章主要是翻譯Phoronix的新聞，自己也沒有親自把玩過Wayland，再加上Wayland項目還處於比較初期的階段，對其的理 解有限。如今經過整整兩年的開發，包括Linux內核在圖形方面的不斷的改進、GTK+圖形庫的不斷進化，Wayland已經漸漸成熟，接近可用狀態。
+
+那麼，回到上篇開頭最初的那個問題：
+
+Wayland究竟是什麼？
+
+如果在兩年前，按照那篇《Wayland：Linux的新X Server》的理解，它是一個新的「X Server」，在於改善當前X Server的不足，從而取代它。現在，我們已經可以用更標准的語言來定義Wayland了，那就是：A Simple Display Server。
+
+沒錯，Wayland是一個簡單的「顯示服務器」（Display Server），與X Window屬於同一級的事物，而不是僅僅作為X Window下X Server的替代（注：X Window下分X Server和X Client）。也就是說，Wayland不僅僅是要完全取代X Window，而且它將顛覆Linux桌面上X Client/X Server的概念，以後將沒有所謂的「X Client」了，而是「Wayland Client」。
+
+更確切的說，Wayland只是一個協議（Protocol），就像X Window當前的協議——X11一樣，它只定義了如何與內核通訊、如何與Client通訊，具體的策略，依然是交給開發者自己。所以Wayland依然是貫徹「提供機制，而非策略」的Unix程序。
+
+「什麼？Wayland還是Server/Client模式？」可以這麼理解，但實際上與X Window的Server/Client有著本質的區別。
+
+讓我們用一張類似前文所示的圖表來重新演示一下，在Wayland的框架下，窗口事件的響應是如何進行的。
+
+在Wayland的架構圖中，最顯著的一些特點是：
+
+它複用了所有Linux內核的圖形、輸入輸出技術：KMS、evdev，因此已支持的驅動可以直接拿來用；
+Wayland沒有傳統的Server/Client的模式，取而代之的是：Compositor/Client，這不僅僅是換一個名稱而已，後面會講到具體區別；
+Wayland Architecture
+
+還記得前文中「點擊Firefox的刷新按鈕」這個應用場景吧？在Wayland裏，所有的流程是這樣的：
+
+內核收到了鼠標發出的信息，經過處理後轉發到了Wayland Compositor，就像之前發往X Server一樣。
+Compositor收到消息後，立馬能知道哪個窗口該收到這個消息，因為它就是總控制中心，它掌握窗口的層級關系、動畫效果，因此它知道該坐標產生的鼠標點擊信息應該發送給誰，就這樣，Compositor將鼠標的點擊信息發送給了Firefox。
+Firefox收到了消息，這時如果是在X Window下的話，Firefox會向X Server請求繪制按鈕被按下的效果。然而在Wayland裏，Firefox可以自行進行繪制而不需要再請求Compositor的許可！這就是傳說 中的：直接渲染機制（Direct Render）！Wayland不管Client的繪制工作，整個過程變得十分簡單而且高效！當Firefox自行完成了按鈕狀態的繪制後，它只需要通知 Compositor，某塊區域已經被更新了。
+Compositor收到Firefox發來的信息的，再重新合成那塊更新的那塊區域，將最終桌面效果呈現給用戶。這個過程主要是跟內核、顯卡驅動打交道了。
+整個流程是不是很自然、很簡單？
+
+所以結論出來了：
+
+Wayland的「直接渲染架構」徹底結束了傳統X Window在渲染圖形時需要不停的向Server請求、確認再繪制這個繁瑣的過程，理論上響應速度有了「爆發式」增長；
+Wayland從根本上消除了「Server+Compositor」的重複勞動，僅有且只需要有一個「Compositor」合成器而已。
+Compostior，就是Wayland上的「X Server」，但是它更純粹，它不像X Server一樣，像個大家長，什麼都要管。Compositor只做該做的事情，把上面的過程簡化成任務便是：
+
+基於Wayland協議，處理evdev的信息；
+通知Client（即應用程序）對相關事件做出反應（至於應用程序想怎麼反應，Compositor不需要過問）；
+收到Client的狀態更新，重新合成圖形或管理新的圖形布局。
+你意識到了，Wayland Compositor的角色，就像是「X Server」＋「Window Manager」，但它只做份內的事情而已。我想你已經可以想像Wayland構架是如何簡單而且高效了，它一舉解決了「X Window」發展這麼多年來積累的、通過「擴展」去解決的那些問題。
+
+看似很美好，那麼Wayland現在的可用性如何？大家都知道，GTK+、Qt，現在都是基於X的，它們能順利地移植至基於Wayland嗎？當然可以！
+
+逐漸成熟的Wayland周邊應用
+
+還記得前面那篇文章中，我說過的這句話吧：「盡管在Linux平台下，Cairo、Pango的發揮依然是基於X Window的，但X Window充其量僅僅是一個「backend」而已，並不是少它不行。同理，跨平台的GTK+、Ｑt也只是視X為其中所支持的後端之一，假如哪天X真的 不在了，更換一個新後端，當前的GNOME、KDE也能完整的跑起來。」
+
+你已經想到了，GTK＋、Qt，只需要簡單的處理一下後端，便可以跑在Wayland上了。比如：
+
+在當前的GTK+3.0開發分支中，有一個開發分支是「rendering-cleanup」。「清理渲染」？這是做什麼的？聯想一下那個連Client「怎麼渲染」都要管的X Server吧。
+
+對了！GTK+3.0已經徹底移除了所有圖形渲染、繪圖方面跟X相關的部分了，現在它是一個100％基於Cairo繪制的圖形工具庫了（之前GTK+2.x時在2.8開始逐漸轉向用Cairo繪制，但一直不徹底）。
+
+這意味著兩點：
+
+GTK+的一直以來評價不怎麼樣的跨平台性，在3.0將有顯著的突破；
+GTK+的Wayland後端，已經在路上了！
+見GTK+跑在Wayland上，截圖引自：Kristian Shows Off GTK+ 3.0 On Wayland
+
+Wayland and GTK+
+
+當然，Qt也有了，限於篇福，這裏就不介紹了。
+
+另外一個已經在主開發分支便支持Wayland的東西便是：Clutter。這是一個基於OpenGL的動畫框架，我以前介紹過很多次的GNOME Shell、Moblin， 都是基於Clutter的。在Clutter當前1.5.x的開發分支，Wayland作為其中一個「backend」，已經得到了 「experimental」的支持。所以說，GNOME 3.0、MeeGo Netbook很可能會成為第一個應用Wayland的桌面環境。
+
+那麼，看來Wayland真的觸手可及了囉？可以這麼說，但是還差一點。
+
+Wayland技術實現及工作重點
+
+Wayland的核心協議已經實現的差不多了，它充分利用了Linux內核的KMS、GEM、DRM等技術，另外，它默認是支持3D加速的，也就是通過OpenGL ES進行圖形的合成——光是這一點，X Window又要淚奔了。
+
+使用OpenGL ES這個子集而非OpenGL，這意味著什麼？想想有多少項目是用OpenGL ES的：Android、iOS、WebOS、WebGL……幾乎所有主流的的移動操作系統、瀏覽器3D的實現，都選用了精簡、高效的OpenGL ES。
+
+我不知道當前Android的Display Server、Input/Output是如何實現的，總之跟iOS相比，在觸控的響應上是有差距的。未來，對OpenGL ES有著良好支持的Wayland，不知道會不會給這些基於Linux內核的移動操作系統發力呢？我想是非常有可能的！
+
+這時問題就來了，因為Wayland所使用的，都是當前Linux下最新潮的圖形技術。所以理所當然的，在驅動這一層面會有一些廠商跟不上。
+
+拿nVIDIA開刷吧，KMS技術都出來一年多了，Intel的全部顯卡和AMD部分顯卡已經獲得支持了，可nVIDIA壓根就沒有興趣搞這個，以 致於開源社區利用反向工程，通過「Nouveau」項目讓nVIDIA支持了KMS，當然比較遺憾的是，性能跟官方閉源的驅動是差了相當的距離。
+
+所以說，基於Wayland的Linux桌面/移動要真正得到應用，驅動這一關是一定要解決的。不過正所謂潮流不可檔，nVIDIA遲早會支持這項技術的。
+
+等到驅動完全不成問題了，Wayland還需要一個全功能的「Compositor」，這個角色，就由Clutter/Mutter、 Compiz、KWin等當前主流的窗口管理器來扮演的，相信只要通過簡單的修改，這些合成窗口管理器很快地就能轉變成一個全能的「Wayland Compositor」！
+
+把玩Wayland及展望未來
+
+講了這麼多技術、曆史和業界，大家肯定枯燥了，究竟現在有沒有可以跑的「Wayland Compositor」可以玩玩呢？當然！
+
+現在，只要你從官方取得源碼，然後根據教程進 行編譯，就能跑起一個簡單實現的「Wayland Compositor」。由於Wayland協議的靈活性，Wayland Compositor也可以擁有自己的後端：比如直接在DRM上跑Wayland（不需要X），或者在X Window上跑起一個Wayland Compositor（相當於在X Window上用Xephyr再跑一個X Window）。
+
+當前我在Ubuntu 10.10的圖形環境下，就跑起了默認的這個簡易的Wayland Compositor，幾點說明：
+
+支持透明、陰影和簡單的窗口管理；
+所有的圖形繪制，都是通過Cairo-gl（Cairo的OpenGL後端）進行；
+Wayland Terminal
+
+這是又一個例子，我編譯了Clutter的Wayland後端，成功地跑起了一個Clutter的Demo：即同中Ubuntu Tweak的3D Logo。
+
+Wayland and Clutter
+
+除了這個Wayland Compositor本身是跑在X Window之上，其本身合成效果、處理窗口布局等等，都完全沒有用到X，而且整個代碼非常簡潔。未來的Linux圖形，就會像是這樣一個結構簡單又高效的樣子。
+
+相信看完我這些介紹，大家對Wayland是個什麼角色，已經比較清楚了吧？
+
+簡單的說，它就是一個去除X Window中不必要的設計、充分利用現代Linux內核圖形技術的一個顯示機制，它的出現是自然而然的，它的使命不是為了消滅X Window，而是將Linux的圖形技術發揮至更高的一個境界。傳統的X Window（即經典X應用、Gtk 1.x/2.x等舊應用），也會在相當長一段時間內得到繼續支持，通過Wayland Client的形式跑在Wayland Compositor上，直到最終升級、取代或被淘汰。
+
+2011年後期或2012年，我們將能看到Wayland正式著陸，期待吧！

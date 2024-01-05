@@ -1,0 +1,77 @@
+FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+MAINTAINER Tyan <tyan.liu.git@gmail.com>
+
+# Install basic dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        wget \
+        libopencv-dev \
+        libsnappy-dev \
+        python-dev \
+        python-pip \
+        tzdata \
+        vim
+
+# Install anaconda for python 3.6
+RUN wget --quiet https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh -O ~/anaconda.sh && \
+    /bin/bash ~/anaconda.sh -b -p /opt/conda && \
+    rm ~/anaconda.sh && \
+    echo "export PATH=/opt/conda/bin:$PATH" >> ~/.bashrc
+
+# Set timezone
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# Set locale
+ENV LANG C.UTF-8 LC_ALL=C.UTF-8
+
+# Initialize workspace
+RUN mkdir /workspace
+WORKDIR /workspace
+
+
+====================
+
+FROM python:3.6.8
+
+ENV PIP_INDEX_URL https://mirrors.aliyun.com/pypi/simple/
+RUN pip3 install pipenv --no-cache-dir
+
+RUN set -ex && mkdir /app
+WORKDIR /app
+
+COPY Pipfile Pipfile
+COPY Pipfile.lock Pipfile.lock
+RUN set -ex && pipenv install --deploy --system
+
+COPY . /app
+EXPOSE 8888
+CMD ["python3", "main.py"]
+
+
+----------
+
+Base Image Dockerfile
+
+FROM python:3.6.8
+
+ENV PIP_INDEX_URL https://mirrors.aliyun.com/pypi/simple/
+RUN pip3 install pipenv --no-cache-dir
+
+RUN set -ex && mkdir /app
+WORKDIR /app
+
+ONBUILD COPY Pipfile Pipfile
+ONBUILD COPY Pipfile.lock Pipfile.lock
+ONBUILD RUN set -ex && pipenv install --deploy --system
+复制代码
+
+----
+
+FROM tomczhen/python-pipenv-base:3.6.8
+
+COPY . /app
+EXPOSE 8888
+CMD ["python3", "main.py"]
+

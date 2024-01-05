@@ -1,0 +1,141 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about vim configure
+# made by: Engells
+# date: Apr 1, 2019
+# content: Just for memo, 中括弧[]內文字表示可省略
+
+
+
+
+"---- Basic Setup ----
+set nocompatible
+set t_Co=256
+colo[scheme] lucid
+set fileencodings=utf-8,utf-16,big5,gb2312,gbk,gb18030,euc-jp,euc-kr,latin1
+set encoding=utf-8
+
+filetype on         " 自動偵測檔案類型
+filetype plugin on  " 依據所偵測到的檔案類型載入插件
+filetype indent on  " 依據所偵測到的檔案類型決定縮排風格
+
+
+"---- Cursor location ----
+set cursorline | nocursorline
+highlight CursorLine cterm=none ctermbg=DarkMagenta ctermfg=White
+highlight CursorLineNr cterm=bold ctermfg=Green ctermbg=Black
+
+set cursorcolumn | nocursorcolumn
+highlight CursorColumn cterm=none ctermbg=DarkMagenta ctermfg=White	" cterm => color terminal, term and gui
+
+set ruler
+set number | nonumber
+highlight  LineNr cterm=bold ctermfg=Grey ctermbg=Black
+
+
+"---- Editing Style ----
+set cindent | autoindent | smartindent | nocindent
+    "「autoindent」是最基本的縮牌方式，會在建立出新的一行時，自動對齊上一行的縮排。
+    "「smartindent」是在「autoindent」的基礎上，針對「{」(左大括號)後所產生的新行，再多往內縮排一次，若新行的開頭是「}」(右大括號)，則會取消往內縮多排一次的動作。
+    "「cindent」是在「smartindent」的基礎上，加入簡單的C/C++、Java等程式語法結構的判斷，如果「{」是發生在註解之內，就不會進行縮排，
+    "　　並且也不是根據新行的上一行來決定新行的縮排，而是會根據新行所在的程式區塊(block)來決定，另外也會根據其他符號進行縮排。
+
+set expandtab | noexpandtab
+set tabstop=4	 							    " the width of "\t"
+set softtabstop=4							    " the width of "tab" of keyboard
+set shiftwidth=4 							    " indent widtj
+set smarttab | nosmarttab						" apply the definition of $shiftwidth
+
+let g:indent_guides_enable_on_vim_startup=1 	" 啟動縮排輔助指示，「g:」表示全域設定
+let g:indent_guides_start_level=2				" 從第二層縮排開始輔助指示
+let g:indent_guides_guide_size=1				" 縮排輔助指示色塊寬度
+nmap <silent> <Leader>i <Plug>IndentGuidesToggle	" 快速鍵 i 開/關縮排輔助指示
+
+" 啟用程式碼語法高亮，允許使用自訂的程式碼語法高亮顏色配置，自動換行，禁止斷字
+syntax enable 
+syntax on | off
+set wrap  | set nowrap
+set linebreak
+
+
+"set foldmethod=indent  " 依據縮排摺疊
+set foldmethod=syntax   " 依據語法摺疊
+set nofoldenable
+
+
+
+"---- Search Mode ----
+set ignorecase | noignorecase									" 搜尋時忽略大小寫 
+set smartcase | nosmartcase										" 啟用智慧搜尋 
+set incsearch | noincsearch										" 輸入部分字串就開始搜尋
+set hlsearch | nohlsearch										" 高亮顯示搜尋結果
+highlight Search cterm=reverse ctermbg=none ctermfg=none		" 以反白方式顯示搜尋結果
+highlight Search term=reverse ctermbg=4 ctermfg=7				" 設定搜尋到的字串顏色
+
+
+"---- Mouse ----
+set mouse=														" 關閉滑鼠控制功能
+set mouse=a, mouse=nv											" 只在 Normal 以及 Visual 模式使用滑鼠
+
+
+
+"---- Miscellaneous ----
+set showcmd | noshowcmd											" 顯示暫存指令 
+set showmode | noshowmode										" 顯示 vim 的模式 
+set autowrite | noautowrite 
+set wildmenu													" 輸入 vim 指令時自動補全
+set binary
+set eol
+autocmd BufWritePost $MYVIMRC source $MYVIMRC					" 設定檔變更立即生效
+au[tocmd] [group] {event} {pat} [++once] [++nested] {cmd1 cmd2 ...}
+
+set confirm	| noconfirm											" 啟用確認詢問功能
+set backspace=indent,eol,start									" 可刪除縮排、換行字元
+set history=500													" 記住 500 列指令
+
+
+"---- Memo ----
+set swapfile | noswapfile										" 啟用 swap
+set directory													" 設定 swap 檔案所在目錄
+set updatetime=23000											" 每隔 23 秒自動更新
+set updatecount=4000											" swap 檔案內容達 4000 字元後存入實體硬碟
+set scrollbind 													" 讓視窗內容同步移動，可簡寫為：set scb
+highlight Comment ctermfg=cyan									" 設定註解的顏色
+
+
+
+
+概述
+====================
+基礎語法
+---------------
+:se[t] {option}[={value}]
+    " 常見成對選項，可以設置多個 {option} 參數。例如 :set ai nosi sw=3 ts=3，如果其中一個參數有錯，給出錯誤信息，其後的參數也不再處理。
+
+:se[t] {option}+={value}
+    " 把 {value} 加到數值選項里，或者附加到字元串選項之後。
+    " 如果選項是逗號分隔的列表，除非原來的值為空，會加上一個逗號。
+    " 如果選項是標志位的列表，刪除多餘的標志位。如果加入已經存在的標志位，選項值不變。
+
+:se[t] {option}-={value}
+:se[t] {option}^={value}
+
+
+:set and :let
+---------------
+:set is for setting options, :let for assigning a value to a variable. 
+It happens that the value for an option is linked to the name of the option prepended by a & (the &option-name construct then behaves very similar to “ordinary” variables). So, the following are equivalent:
+:set tw=40
+:let &tw=40
+But, for example, assigning 50 to the global variable foo (:let g:foo=50) cannot be achieved with a :set command (because g:foo is a variable and not an option).
+Some options are boolean like. When setting these, no value is needed (as in :set noic and the opposite :set ic).
+
+vim 的函數內以「&參數名稱」引用參數，如「&mouse」取用滑鼠控制參數
+
+
+參考資料
+---------------
+https://yianwillis.github.io/vimcdoc/doc/options.html
+https://magiclen.org/vimrc/
+
+

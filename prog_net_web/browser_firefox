@@ -1,0 +1,52 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about Firefox
+# made by: Engells
+# date: June, 2021
+# content: Just for memo
+
+
+
+使用套件
+====================
+NotScripts: 禁止執行 scripts
+uBlock Origin： 禁止廣告
+Privacy Badger: 禁止追蹤
+HTTPS Everywhere: 強制使用 HTTPS 協定
+Stylus: 搭配 Darker Google
+Dark Reader: 將網頁轉為黑色背景
+ImTranslator：翻譯套件
+Vimium: 用鍵盤取代滑鼠瀏覽網頁支援 Chrome、Firefox 瀏覽器
+Tampermonkey: 插入腳本到特定網站
+video DoenloadHelper：
+--FVD: 下載 Flash Video
+Temp Mail: 臨時郵件地址產生器
+
+
+
+
+To Read Novels With FireFox and Stylish
+==============================
+
+To add a enrty in Stylish as below:
+-------------------------
+@namespace url(http://www.w3.org/1999/xhtml);
+@-moz-document url-prefix(file:///)
+{
+
+body {
+  font-family:'STHeiti TC', 'Monaco';
+  color:#000000 !important;
+  background-color:#808080 !important;
+  line-height:175%;
+}
+}
+
+
+
+
+設定檔
+==============================
+/.mozilla/firefox/t5w3u0oy.default/chrome/uuserContent.css	?
+
+

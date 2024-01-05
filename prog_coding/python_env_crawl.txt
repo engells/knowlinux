@@ -1,0 +1,135 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to memo knowhow about python
+# made by: Engells
+# date: Jun 1, 2022
+# content: Just for memo
+
+
+
+建置專案環境
+====================
+python 環境
+----------
+pyenv
+pip3
+pipenv
+
+
+Python 套件
+----------
+requests         (網頁擷取)
+lxml             (HTML 及 XML 解析)
+beautifulsoup4   (網頁解析)
+selenium         (自動化工具) <= apt install chromium-chromedriver
+scrapy           (網路爬蟲)
+numpy            (陣列計算)
+pandas           (數據處理)
+scipy            (科學計算, optional, needs numpy as dependency, need apt package of libatlas-base-dev gfortran)
+matplotlib       (2D 繪圖, needs pillow as dependency which need apt package libjpeg8-dev)
+seaborn          (2D 繪圖)
+bokeh            (動態繪圖)
+flit
+scikit-learn     (機器學習)
+ipython          (Python Shell)
+
+
+系統套件
+----------
+python3 python3-dev python3-pip zip unzip p7zip-full git build-essential cmake exuberant-ctags libssl-dev libffi-dev sqlite3
+# exuberant-ctags 可由較新之 universal-ctags 取代，後者由 github 下載後編譯
+# raspberry pi: libatlas-base-dev gfortran libjpeg8-dev libxml2-dev libxslt1-dev zip unzip
+# libtiff5-dev libjasper-dev libpng12-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev tcl8.6-dev tk8.6-dev ?? <= not install at last
+
+
+
+安裝台股技術分析套件 TA-Lib (successful in lxc, need python3-dev)
+----------
+wget https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+tar -xvf ta-lib-0.4.0-src.tar.gz
+cd ta-lib
+./configure --prefix=/usr -build=arm
+make or sudo make
+sudo make install
+cp /usr/lib/libta* /path/to/virtual/lib/python[x].[y]/site-packages/
+poetry add ta-lib or pipenv install ta-lib or sudo pip3 install ta-lib
+
+
+安裝台股行情擷取套件 twstock 
+----------(work)
+pipenv install lxml flit
+git clone https://github.com/mlouielu/twstock && cd twstock
+flit install
+
+----(ref only)
+pip3 install analytics                      (相依套件)，套件衝突 python-dateutil==1.5
+sudo apt-get install python3-lxml           (相依套件)，python-lxm
+pip3 install twstock
+
+
+安裝台銀外匯行情擷取套件 twder
+----------(work)
+pipenv install twder
+
+----(ref only)
+sudo apt-get install libxml2-dev libxslt-dev    (相依套件)
+wget  https://files.pythonhosted.org/packages/d9/f6/c8c8683aa1c3599d0168bb9476d94af43f0248c0be86b53e2c796614a120/twder-0.1.4.tar.gz     (下載原始碼)
+tar -xvf twder-0.1.4.tar.gz                      (解壓縮)
+cd twder-0.1.4                                   (切換目錄)
+sudo python3 setup.py install                    (安裝)  
+
+
+
+
+tutorial
+====================
+pydoc3 -p 9999        # open a local help center
+
+
+
+
+build-in function
+====================
+type()
+int()
+float()
+list()
+tuple()
+str()
+range(start [, end, sep]) range(3,8,2) => create a list 
+
+print(項目1 [, 項目2, ...., sep="分隔字元", end="結束字元", file=sys.stdout])
+    print(100, 200, 300, sep="&", end="--")
+    print("%s 贏的機率為 %8.2f%s " % ("兄弟象",99.9,"%")) #(8代表固定輸出8個字元(含小數點))
+
+input()
+
+list_obj.len() .min() .max() .index() .count() .append .extend(list) .insert() .pop() .remove() .reverse() .sort()
+dict_obj.clear() .items .keys .values || del dict_obj || del dict_obj[key]
+file_obj.read .readline .write .close
+isnull():檢查空值，回傳布林值    notnull():檢查不是空值，回傳布林值    dropna():刪除空值    fillna():填入空值
+
+
+os套件
+os.system() 	執行系統command
+os.mkdir(E) 	建立E目錄，如果E目錄已存在會發生錯誤
+os.rmdir(E) 	移除E目錄
+os.remove(E) 	移除E檔案，如果E是目錄就會出錯
+os.getcwd() 	取得目前所在路徑
+rename(src, dst)   將 src 改名為 dst
+os.pathisfile(E)          E檔案是否存在
+os.pathisdir(E)           E目錄是否存在
+os.pathjoin(src, dst)     拼接目錄，只有拼接，不會建立目錄
+os.pathexists             判斷文件或目錄是否存在
+os.pathgetsize   取得文件大小
+os.pathabspath   獲得檔案的絕對路徑
+os.walk          取得目錄下所有檔案和目錄
+
+
+
+
+參考資料
+====================
+樹莓派安裝 twstock 套件 :: https://yhhuang1966.blogspot.com/search?updated-max=2019-04-08T22:40:00%2B08:00&max-results=7&start=7&by-date=false
+
+

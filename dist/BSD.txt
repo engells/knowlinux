@@ -1,0 +1,49 @@
+暫時忘記Windows和Linux吧，不太出名的BSD也許才是你所需要的。 
+
+如果提到Web或者閱讀一本計算機雜誌就不可能不涉及到Linux，它是由Linus Torvalds和其他人共同開發的偉大的操作系統。但是儘管Linux佔據了最重要的位置，ISP和系統管理員們也經常選擇BSD裡的一種作為操作系統，BSD是一類建立在代碼共享基礎上的操作系統，在過去的20多年裡，美國的頂尖學院都一直在對它進行研究。 
+
+BSD究竟是什麼呢？如果你在尋找一個非Windows操作系統，又為什麼應該考慮使用它們呢？ 學術淵源BSD是Berkeley Software Distribution的縮寫，這是一個由加州大學伯克利分校開發的軟件集合。最初BSD只是作為AT&amp;T的Unix早期版本的附加軟件包出現，後來它就逐漸地發展為一個完整的，高度複雜的具有Unix風格的操作系統——它第一個集成了網絡功能。 
+
+通過追求完美主義的學術機構的努力以及經過挑剔的幾代學生的測試，BSD也許是最健壯、最安全和最值得信賴的操作系統。對以BSD為基礎的操作系統來說運行幾年無需維護或重啟是很平常的事情。由於BSD是在代碼公開的環境下發展起來的，因而它對所有的顧客（包括那些想把它植入商業產品的軟件開發商）都是完全免費的。來自BSD的網絡代碼幾乎是所有現代操作系統的中心部分，包括Linux、OS/2以及Windows 95以來幾乎每個Windows版本。 
+
+秘密武器 
+如果BSD真是那麼優秀，為什麼他們沒有像Linux那樣成為市場的領先者呢？這其中最重要的原因就是文化。許多Linux開發商把他們自己看作軟件革命者。但是學術團體（BSD真正扎根的地方）的成員們更注重於結果而不是讓這個產品出名。BSD在系統管理員和ISP用戶中也有一批忠實的追隨者，但是這些人通常更喜歡把他們的BSD作為秘密武器，而不是到處宣揚他們正在使用這種操作系統。 
+
+結果，沒有多少人認識到BSD的各個版本或為像Yahoo!一樣的大型網站的基礎，而且還對IBM InterJet和Maxtor的網絡存儲服務器這些高可靠性的嵌入式系統提供了有利的支持。BSD的一個變種NetBSD被認為是全世界最輕便的操作系統，它可以在不同的CPU（種類超過64個）和幾百種不同品牌和型號的計算機上運行。 
+
+現在，共有5個流行的BSD操作系統，其中的三個——FreeBSD（www.freebsd.org），NetBSD （www.netbsd.org）和OpenBSD（www.openbsd.org）——得到了BSD的授權，操作系統和源代碼都是免費的，任何人都可以用於任何目的。其餘的兩個BSD/OS和Mac OS X是商業產品，它們以開放的BSD代碼為基礎，具有特殊的優勢和與眾不同的技術。在本文中，我們將討論免費的版本。至於對BSD/OS和Mac OS X以及建立在Linux General Public License基礎上的BSD授權的優勢的討論，參見我們站點上的其它文章「More about BSD」。 
+
+
+BSD家族大觀 --1.FreeBSD 
+
+FreeBSD是從386BSD的基礎上發展起來的，而386BSD是由伯克利的計算機科學家Bill Jolitz 開發的針對Intel 80386芯片的一種BSD版本。因為這個原因，FreeBSD在32位體系的x86機器上總是運行得最好。在免費的BSD中，它與PC兼容機配合得最好，而且支持的PC兼容的外部設備的數量也最多。儘管FreeBSD也可以運行在Alpha處理器上，向其他體系結構的移植也在進行當中，但是你更應該把它看作是主要針對x86系統的操作系統。 
+
+在免費的BSD中，FreeBSD是名聲最大的，它具有最強大的開發隊伍，收到的反饋信件也最多，還擁有最多數量的用戶。它還可能是所有免費操作系統中最容易安裝的——尤其當你想通過Internet而不是購買光盤進行安裝的話。 
+
+Linux的發行商經常把他們的拷貝弄得很難通過Internet安裝。畢竟，他們的業務決定於光盤的銷售。而FreeBSD就不是這樣了：它的所有要求就是兩張軟盤（在FreeBSD Web站點上用工具和映射文件很容易創建）和速度適宜的網絡連接。從第一張軟盤開始啟動，然後插入第二張。安裝程序會幫助你選擇配置選項，從網上下載整個系統並把所有的東西正確地安裝好。而那些想要光盤的人也可以從Wind River Systems的FreeBSD Mall(www.freebsdmall.com) 那兒或者從Cheap Bytes (www.cheapbytes.com)那裡得到。你也可以在FreeBSD Web站點上用一個ISO映射文件製作光盤。 
+
+FreeBSD另外一個強大之處在於它有廣泛的應用軟件支持——超過5800種免費程序都可以供你立即下載並添加在FreeBSD的系統上（www.freebsd.org/ports/index.html）。事實上，所有你需要用來建立一個工作站或者一個商業服務器的軟件都已經隨FreeBSD安裝或者可以隨後自行添加進系統裡。 
+
+此外，像OpenBSD和NetBSD一樣，FreeBSD事實上能夠運行所有針對Linux、SCO Unix或者Intel版本的Solaris 的程序。同Linux一樣，FreeBSD使用X Window系統以及所有針對那個協議開發的的桌面和圖形用戶界面，包括KDE、GNOME和為這兩者所寫的程序。 
+
+最後，FreeBSD對新用戶來說具有最多的參考資料。FreeBSD Handbook（www. freebsd.org/handbook） 為新的顧客提供了極好的使用說明。許多出版公司都推出了針對初級和高級用戶所寫的指導書。 
+
+簡而言之，FreeBSD對Linux來說是一個強大的挑戰者，它也許能提供出眾的穩定性，安裝的簡易性和方便。 
+
+BSD家族大觀 --2.OpenBSD
+
+OpenBSD是另外一個免費BSD的派生物，被稱為世界上最安全的操作系統。OpenBSD的主頁（www. openbsd.org）報告說OpenBSD「在默認安裝情況下四年內沒有一個小的安全漏洞」，它的意思是說（其實任何人都知道）在過去的四年內發佈的OpenBSD版本沒有一個被來自Internet的襲擊攻破。（當然，你也可以使得任何操作系統——包括OpenBSD——變得易受攻擊，如果你沒有正確配置服務器或者運行那些導致入侵者進入的不安全軟件。） OpenBSD也完全集成了密碼安全軟件以保證數據安全。 
+
+OpenBSD並不是集成Unix組件功能最多的代表，它也不是運行最快的。但是在這些領域裡，它也不是太差的。這個操作系統很小，但效率很高，它能在老的只有16MB內存的486機器上運行得很好——要知道這樣一個硬件配置是不能運行Windows 2000的。其它的操作系統都沒有任何一個享有OpenBSD在安全問題上創造的高可靠性紀錄。一些遠程根目錄問題一般每個月都會發生在Microsoft的操作系統上，比如說Windows 2000。而最近發行的許多Linux已經成為Ramen蠕蟲一類病毒的攻擊對象。 
+
+像FreeBSD和NetBSD一樣，OpenBSD也有很多應用軟件支持，它包含了許多免費軟件包（www.openbsd.org/ports.html）的定製版本。它的軟件庫沒有FreeBSD中的那麼大，但是包含了大多數你想給Unix服務器或者工作站安裝的工具。OpenBSD的x86版本也能夠運行針對FreeBSD、Linux和Solaris創建的程序。OpenBSD支持10種計算機體系結構——比FreeBSD還多，但是沒有NetBSD多。從OpenBSD自身或者Cheap Bytes那兒就可以得到OpenBSD光盤。然而，你卻得不到ISO映射文件，因為開發組更願意通過出售CD的方式作為對他們努力的支持。你可以通過網絡來安裝操作系統，只不過安裝者的用戶界面沒有FreeBSD那麼美觀而已。 在這三種免費BSD中，OpenBSD的開發成員最少並且對Unix新手 
+來說是最難學的。但是如果你確實需要一個牢靠的網絡防火牆或者服務器的話，OpenBSD正是合適的選擇。
+
+BSD家族大觀 --3. NetBSD 
+
+NetBSD 
+NetBSD也是免費BSD的一種，它是基於BSD的最輕便的操作系統。目前能夠在46種之多的不同硬件構架上運行（他們正在努力使之能夠適應更多的構架），從原始的基於68K的Macintosh或者Amiga一直到AMD還沒有發表的x86-64 Hammer結構，NetBSD都能夠很好地運行。 
+
+這種便攜性使得NetBSD成為嵌入式系統（在其它設備中運行的，看不見的計算機）的最佳選擇。因為編寫從一個平台到另一個平台的代碼最容易暴露缺陷（否則的話是不會引人注意的），而來自NetBSD的代碼卻是少有的健壯；OpenBSD（最初是針對NetBSD對像設計的）和FreeBSD在過去都曾借鑒過它。NetBSD也是許多獨立類型硬件的操作系統的選擇，包括老的Sun工作站。 
+
+像FreeBSD和OpenBSD一樣，NetBSD有一個巨大的應用軟件庫（比FreeBSD少而比OpenBSD多），並且能夠運行針對Linux和其它版本Unix編譯的商業程序。從Wasabi Systems（www.wasabisystems.com），Cheap Bytes和其它一些NetBSD Web站點列出來的資源那兒我們可以得到NetBSD光盤。你可以下載ISO光盤映射文件，也可以通過FTP進行安裝。

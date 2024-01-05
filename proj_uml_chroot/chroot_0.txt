@@ -1,0 +1,79 @@
+# vim:ts=8
+
+
+
+進入設定好的 chroot 環境
+==============================
+
+讓 chroot 環境的 GUI 軟體可使用 Host 系統的 X，非必要步驟
+  xauth extract /tmp/display $DISPLAY
+  sudo mount --bind	/tmp		/path/to/chroot/tmp
+
+在 Host 系統以 mount --bind 將 Host 系統的目錄掛載至 chroot 環境。若使用 schroot 建置 chroot 環境，不需本步驟。
+  sudo mount --bind	/proc		/path/to/chroot/proc
+  sudo mount --bind	/sys		/path/to/chroot/sys
+  sudo mount --bind	/dev		/path/to/chroot/dev
+  sudo mount --bind	/dev/pts	/path/to/chroot/dev/pts
+  sudo mount --bind	/dev/input	/path/to/chroot/dev/input
+
+進入 chroot 環境
+  sudo chroot /path/to/chroot 或
+  sudo chroot /path/to/chroot env -i HOME=/root TERM=$TERM /bin/bash
+    # 環境變數為：清空(env -i) + HOME=/root + TERM=xterm + bash shell=/bin/bash
+
+在 chroot 環境執行下列指令，使用 Host 系統的 X，非必要步驟
+  xauth merge /tmp/display
+    # 由 /tmp/display 取回 xauth 資訊，需搭配 xbase-clients 套件。若傳回錯誤訊息：xauth: unable to generate an authority file name，請檢查是否有設定 $HOME 環境變數。
+  export DISPLAY=:0
+    # 指定 chroot 環境裡的 $DISPLAY 變數即可。其中的 :0 表示是 Host 系統中第 1 個啟動的 X Server：
+
+
+
+
+執行在 chroot 環境之 32 位元程式
+==============================
+
+以 schroot 執行
+  schroot -c chroot_name program_name，例如：schroot -c precise firefox
+
+以 chroot 執行
+  chroot /var/chroot firefox -DISPLAY=:0.0
+
+
+
+
+在 chroot 環境安裝及使用 X (非 Host 系統的 X)
+==============================
+
+進入 chroot 環境
+  先使用 debootstrap 或 debootstrap + schroot 建立 chroot 環境後進入
+
+在 chroot 環境安裝下列套件
+  xbase-clients、xfonts-base、xnest 及 icewm 套件
+
+在 chroot 環境執行 xinit 指令
+  xinit /etc/X11/Xsession -- /usr/bin/Xnest :1 -ac
+
+
+
+
+建立及配置 chroot 環境
+==============================
+
+自網路下載檔案建立
+  sudo debootstrap --varient=minibase --arch amd64 precise /path/to/dir http://free.nchc.org.tw/ubuntu/
+
+或以 iso 映像檔建立
+  sudo mount -o loop sarge-i386-netinst.iso /mnt
+  mkdir /path/to/chroot
+  /usr/bin/env -i HOME=/root TERM=$TERM PATH=/bin:/usr/bin:/sbin:/usr/sbin /usr/sbin/debootstrap --arch i386 sarge chroot/ file:///mnt/debian/
+
+修改 chroot 目錄中的以下檔案：
+  /etc/passwd → root:x:0:0:root:/root:/bin/bash
+  /root/.bashrc		(optional)
+  /root/.bash_login	(optional)
+  /root/.bash_logout	(optional)
+  /root/.vimrc		(optional)
+  /etc/apt/sources.list	(optional)
+
+

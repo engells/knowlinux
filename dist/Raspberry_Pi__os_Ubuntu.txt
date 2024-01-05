@@ -1,0 +1,111 @@
+##!/bin/bash
+# vim:ts=4
+# program: Guide to configurate Ubuntu Server 20.04 on Raspberry Pi 4B 8G
+# made by: Engells
+# date: Feb 24, 2021
+# content: Only memo the special operation for Ubuntu Server 20.04, reference the file of Raspberry_Pi for general operation.
+
+
+
+安裝概要
+====================
+1. 移除 snap、clound-init
+2. 新增用戶，設定 /etc/ssh /sshd.conf
+3. 作業系統更新，重開機
+4. 設定無線網路
+5. 安裝桌面，包括 X-window、openbox | i3、slim(display manage)
+6. 其他，包括時區、感應器、中文環境等
+7. 最佳化桌面
+   GitHub - wimpysworld/desktopify :: https://github.com/wimpysworld/desktopify
+
+
+
+
+Docker
+====================
+安裝
+  sudo apt update
+​  sudo apt install apt-transport-https ca-certificates curl gnupg2 lsb-release software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt update
+  apt-cache policy docker-ce
+  ​sudo apt install docker-ce
+  sudo apt install docker-compose (optional)
+
+啟用
+  sudo systemctl enable docker
+  sudo systemctl start docker
+
+設置權限
+  sudo groupadd docker
+  sudo usermod -aG docker ${USER}
+
+測試
+  log out and log back
+  docker run arm64v8/hello-world
+    # 32 位元平台適用之 image 為 arm32v7/hello-world
+
+參考資料
+  Installing Docker in Raspberry Pi 4 :: https://brjapon.medium.com/setting-up-ubuntu-20-04-arm-64-under-raspberry-pi-4-970654d12696
+  Docker — 從入門到實踐
+    https://github.com/yeasy/docker_practice/blob/master/SUMMARY.md ;; https://yeasy.gitbook.io/docker_practice/install/raspberry-pi
+
+
+
+
+其他設置
+====================
+移除 snap
+  sudo systemctl stop snapd
+  sudo apt purge snapd
+  rm -rvf ~/snap
+  sudo rm -rvf /snap /var/snap /var/lib/snap /var/cache/snap /usr/lib/snap
+  sudo vim /etc/apt/preferences.d/no-snap.pref
+    Package: snapd
+    Pin: release a=*
+    Pin-Priority: -10
+
+移除 clound-init
+  sudo apt purge cloud-init
+  sudo rm -Rf /etc/cloud
+
+安裝 GUI
+  sudo apt install --no-install-recommends --no-install-suggests xserver-xorg-core
+  sudo apt install --no-install-recommends --no-install-suggests openbox
+  sudo apt-get install xinit x11-xserver-utils
+  sudo apt-get install slim
+
+切換 Lubuntu GUI 與 CLI
+  方法一  sudo systemctl disable display-manager && sudo ln -s -f /dev/null /etc/systemd/system/display-manager.service
+  方法二  sudo vim /etc/X11/default-display-manager    # 檔案內容若為 false 則為 CLS，若為 /usr/sbin/{gdm3, slim} 則為 GUI
+  ？？　  sudo ln -s -f /lib/systemd/system/mdm.service /etc/systemd/system/display-manager.service
+
+自動登入
+  方法一
+    sudo vim /lib/systemd/system/getty@tty.service
+    sudo ln -s /lib/systemd/system/getty@tty.service /etc/systemd/system/multi-user.target.wants/
+
+  方法二
+    sudo mkdir /etc/systemd/system/getty@tty1.service.d
+    sudo vim /etc/systemd/system/getty@tty1.service.d/override.conf
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --noissue --autologin user_name %I $TERM
+      Type=idle
+
+  Ubuntu Desktop 18.04 有相關檔案 /etc/systemd/system/getty.target.wants/getty@tty1.service
+
+設置時區
+  sudo tzselect
+
+查詢 CPU 溫度
+  sudo apt install libraspberrypi-bin
+  sudo vcgencmd measure_temp or cat /sys/class/thermal/thermal_zone0/temp
+  sudo vcgencmd version
+
+中文環境支援
+  sudo apt install language-pack-zh-hant language-pack-zh-hans ibus ibus-chewing
+  sudo vim /etc/fonts/fonts.conf
+
+

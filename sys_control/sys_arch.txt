@@ -1,0 +1,106 @@
+##!/bin/bash
+# vim:ts=2
+# program: knowhow about System Architecture
+# made by: Engells
+# date: Feb 21, 2021
+# content: 
+
+
+
+查看CPU型號、核心數量、頻率和溫度
+====================
+1. 查看 CPU 型號與其他資訊，指令如下
+  cat /proc/cpuinfo
+  lscpu
+
+2. 每秒自動取得目前的 CPU 頻率，指令如下
+  watch -n 1 "cat /proc/cpuinfo | grep MHz"
+  watch -n 1 "lscpu"
+
+3. 查看 CPU 的溫度，使用 lm-sensors 套件
+  sudo apt-get install lm-sensors
+  yes | sudo sensors-detect
+  sensors or watch sensors
+
+4. 查看 CPU 的溫度，使用 psensor 套件
+  sudo apt install psensor
+  psensor
+
+5. 查看 CPU 的溫度，使用 Hardinfo 套件
+  sudo apt install hardinfo
+  hardinfo
+
+6. 查看 CPU 的溫度，讀取系統檔
+  cat /sys/class/thermal/thermal_zone0/temp
+
+
+參考資料
+---------------
+Linux系統下如何查看CPU型號、核心數量、頻率和溫度？    https://magiclen.org/linux-view-cpu/
+如何在Ubuntu Linux上获取CPU温度    https://zhuanlan.zhihu.com/p/143123436
+
+
+
+
+HS: /, /usr, /var
+====================
+/boot：開機使用檔案
+/dev：裝置
+/etc：程式組態
+
+/bin：執行檔，單人維護模式，開機及環境維護
+/sbin：執行檔，系統管理員維護，開機及系統維護
+/lib：函式庫
+
+/usr/bin：執行檔，絕大多數使用者使用，與開機無關
+/usr/sbin：執行檔，與系統運作無關
+/usr/lib
+
+/usr/src：軟體原始碼
+/usr/local：系統管理員自行安裝之軟體，非distribution預設提供
+/opt
+
+/tmp：暫存資料，關機時宜清除
+/proc：存在記憶體中，virtual filesystem，系統核心、process、週邊裝置及網路狀態
+/sys：存在記憶體中，virtual filesystem，系統核心、process、週邊裝置及網路狀態，資訊較多
+
+
+
+
+檔案權限
+====================
+user / group / other
+chattr / lsattr
+SUID / SGID / SBIT
+ACL
+SELinux
+
+
+
+
+Filesystem
+http://people.ofset.org/~ckhung/b/sa/filesystem.php
+====================
+loopback
+cloop, compressed loopback file system, live CD
+  pkg: cloop-utils
+cramfs
+ pkg: included in util-linux
+squashfs, live CD
+  pkg: squashfs-tools
+Translucent File System: 解決子模組並沒有與主要模組放在同一個 cloop 映象檔裡面，而是各有各的 /usr /bin ... 等等，而衍生之問題
+Unionfs, A Stackable Unification File System
+aufs
+
+-------------------------
+ /lib/modules/*.*.*/kernel/fs/
+
+
+
+
+syslog
+====================
+/etc/syslog.conf
+/etc/rsyslog.d/50-default.conf
+
+

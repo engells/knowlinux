@@ -1,0 +1,125 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note knowhow about zsh
+# made by: Engells
+# date: Dec 8, 2023
+# content: Just for memo
+
+
+
+Install zsh
+====================
+安裝 zsh
+	sudo apt install -y zsh
+
+將 zsh 設定為目前使用者的預設shell
+	sudo chsh -s $(which zsh) $(whoami)
+
+
+
+
+Install Oh My ZSH
+====================
+安裝 Oh My ZSH
+	方法一
+		下載 Oh My ZSH
+			# git clone https://github.com/robbyrussell/oh-my-zsh.git $HOME/.local/share/oh_my_zsh
+		產生 Oh My ZSH 組態檔
+			# cp $HOME/.local/share/oh_my_zsh/templates/zshrc.zsh-template $HOME/.zshrc
+			# 自行定義變數
+			# 	export ZSH=$HOME/.local/share/oh_my_zsh
+  		#   export ZSH_CUSTOM=$ZSH/custom 
+			#   export ZSH_CACHE_DIR=$ZSH/cache
+	方法二
+		curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | bash
+
+
+修改 home 的.zshrc，設定 Oh My ZSH
+	vim $HOME/.zshrc
+		佈景主題修改 ZSH_THEME="theme_name"
+		佈景主題位置在 $ZSH/themes/底下，可自 https://github.com/robbyrussell/oh-my-zsh/wiki/Themes 取得佈景
+
+安裝 plugins
+  下載
+    git clone https://github.com/xxxx/yyyy ${ZSH_CUSTOM:-$HOME/path/to/oh_my_zsh/custom}/plugins/zsh-autosuggestions
+  啟用 plugin，編輯 $HOME/.zshrc
+    在 plugins=()區段中加入 plugin 名稱
+  常見 plugins
+    extract   command-not-found    fzf    autojump    fd    mosh
+    zsh-users/zsh-autosuggestions  zsh-users/zsh-syntax-highlighting
+    MichaelAquilina/zsh-you-should-use    
+
+自動更新
+  停用自動檢查更新
+    zstyle ':omz:update' mode disabled
+  啟用自動檢查更新
+    zstyle ':omz:update' mode auto
+  手動更新
+    omz update
+
+
+
+
+安裝 powerlevel10k
+====================
+方法一，在有 Oh My ZSH 情況時
+  下載 powerlevel10k
+    git clone — depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.local/share/oh_my_zsh/custom}/themes/powerlevel10k
+  主題換裝，編輯 $HOME/.zshrc
+    ZSH_THEME="powerlevel10k/powerlevel10k"
+  重設 zsh 組態
+    source $HOME/.zshrc
+  設定 prompt，應會自動跳出設定畫面
+    p10k configure
+      
+方法二，沒有 Oh My ZSH 情況時
+  下載 powerlevel10k
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $HOME/.local/share/powerlevel10k
+  重設 zsh 組態
+    echo 'source $HOME/powerlevel10k/powerlevel10k.zsh-theme' >>! $HOME/.zshrc
+    source $HOME/.zshrc
+
+
+
+
+Zim (Zsh IMproved FrameWork)，效能強於 Oh My ZSH
+====================
+安裝
+  curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
+安裝 plugin
+  編輯 $HOME/.zimrc，加入
+    zmodule romkatv/powerlevel10k
+  回至終端機，執行安裝指令
+    zimfw install
+
+
+
+
+zsh 組態檔應用順序
+====================
+zsh 會依據以下順序載入：
+  /etc/zsh/zshenv 與 $HOME/.zshenv
+    任何啟動情境下，都會載入這個檔案，請將各種環境變數請全部設定在這裡
+  /etc/zsh/zprofile 與 $HOME/.zprofile
+    如執行在 Login shell 模式，則依序執行 /etc/zsh/zprofile 與 $HOME/.zprofile
+  /etc/zsh/zshrc 與 $HOME/.zshrc
+    如執行在 Interactive 互動模式，則依序執行 /etc/zsh/zshrc 與 $HOME/.zshrc
+  /etc/zsh/zlogin 與 $HOME/.zlogin
+    如執行在 Login shell 模式，最後才會依序執行 /etc/zsh/zlogin 與 $HOME/.zlogin
+  $HOME/.zlogout 與 /etc/zsh/zlogout
+    以 exit 或 logout 命令登出時，會自動依序執行 $HOME/.zlogout 與 /etc/zsh/zlogout
+
+
+
+
+參考資料
+====================
+Customize your terminal (Oh My Zsh) on Ubuntu 20.04 LTS :: https://caffeinedev.medium.com/customize-your-terminal-oh-my-zsh-on-ubuntu-18-04-lts-a9b11b63f2
+Best Terminal Setup - Terminator + ZSH + Powerlevel10k :: https://dev.to/web3coach/best-terminal-setup-terminator-zsh-powerlevel10k-7pl
+如何在Linux作業系統上使用 Z Shell (Zsh) :: https://magiclen.org/zsh/
+【分享】Oh My Zsh + powerlevel10k 快速打造好看好用的 command line 環境
+　　https://holychung.medium.com/%E5%88%86%E4%BA%AB-oh-my-zsh-powerlevel10k-%E5%BF%AB%E9%80%9F%E6%89%93%E9%80%A0%E5%A5%BD%E7%9C%8B%E5%A5%BD%E7%94%A8%E7%9A%84-command-line-%E7%92%B0%E5%A2%83-f66846117921
+mac 安裝 homebrew, iterm2, oh-my-zsh, powerlevel10k 筆記 (內附贈個人設定檔供下載)
+　　https://medium.com/@howarder3/mac-%E5%AE%89%E8%A3%9D-homebrew-iterm2-oh-my-zsh-powerlevel10k-%E7%AD%86%E8%A8%98-bfa72ced659a
+
+

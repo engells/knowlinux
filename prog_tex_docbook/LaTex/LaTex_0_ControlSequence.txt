@@ -1,0 +1,297 @@
+# vim:ts=4
+
+
+
+控制序列
+==============================
+\\：拆行指令
+\setlength{\textwidth}{12cm}
+\setlength{\baselineskip}{18pt plus0.3pt minus0.2pt}
+\addtolength{\baselineskip}{10pt}：將標準行距加大 10pt，適用變數「baselineskip(行距)」已有預設值的情形。10pt 可改為 -5pt
+\vspace{3cm}：若插入垂直空白處為下一頁的頂端，此指令失效。改用 \vspace* 則強制生效
+\hspace{2cm}：若插入水平空白處為下一行的左端，此指令失效。改用 \hspace* 則強制生效
+
+page style
+	\documentclass[12pt,a4paper]{article}
+	 (preamble)
+		\paperheight=25.5cm\paperwidth=17.0cm：排版書籍時需在「全文設定區」自行設定紙張大小
+		\textwidth=11.5cm\textheight=20.5cm
+		\voffset=-0.5cm\hoffset=1cm
+	leqno 選項：數學式編號置於左邊，預設置於右邊
+	fleqn 選項：數學式靠左編排，預設置中
+	\mathindent=1.5cm：搭配 fleqn 選項，讓數學式靠左縮排 1.5cm
+	openany 選項：取消章節由單數頁開始
+	twoside 選項：
+	twocolumn 選項：以兩攔
+	titlepage 選項：文章標題(\title)及作者(\author)等資訊自成一頁
+
+Packages
+	array：處理表格
+	fancyhdr(fancy header)：處理頁眉(header)與頁足(footer)
+	titlesec：設計章節標題
+
+
+文稿類別
+	atricle、report、book﹍
+	\author(name1.name2)
+	\thanks：感謝詞
+	\date{\small 2005.1.4}：日期
+	\maketitle：意指該指令以前的內容為題目，亦即 title、author、date、thanks
+	\begin{titlepage} ... \end{titlepage}
+	\renewcommand{\abstractname}{\ctxfr 摘要}
+
+	\thesection：意指 section 的序號計數器
+	\renewcommand{\thesection}{\textsf{\arabic{section}}}：在「全文設定區」加入左列指令，節編號採阿拉伯數字
+	\renewcommand{\thesubsection}%
+		{\thesection.{\textsf{\arabic{subsection}}}}
+
+	\chaptername：意指英文字「Chapter」
+	\renewcommand{\chaptername}{}：取消章節名稱上方自動加上英文字「Chapter」
+
+	\thetitle：章節的數字編號
+	\titlelabel{\S\ \thetitle\quad}：在「全文設定區」加入左列指令，可在章節編號前帶上 § 符號
+		\thetitle 似乎泛稱 \thesection、\thesubsection﹍等
+
+cross-reference
+	\label：設置引述來源，可應用在章節、註解註解(\footnote)、圖表標題(\caption) ﹍等
+	\ref：引述章節編號
+	\pageref：引述頁碼
+
+	\section[引述章節]{引述章節}\label{refer}
+		... 請參見\Z\ref{refer}\Z 節 (頁\Z\pageref{refer}) 之說明
+	\caption{設定頁面格式}\label{pagestyleop}
+		... 請參見表\Z\ref{pagestyleop}\Z 列出全部的選項 → 表 7.8 列出全部的選項
+
+page style(頁碼樣式)
+	\pagestyle{plain}
+	\pagestyle{headings}
+		\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+		\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
+	\thispagestyle{empty}
+		\pagestyle 似乎是 \thispagestyle 的合稱
+	\setcounter{page}{20}：將頁碼計數器設為 20
+	\pagenumbering{roman}：將頁碼改為羅馬數字，注意頁碼計數會歸為 1
+	\frontmatter、\mainmatter、\backmatter：適用於 book 文稿類別排版
+		\mainmatter 之前與 \backmatter 之後的章節不編號
+	\newpage：在新頁的起始處無作用
+	\mbox{}\newpage：\mbox{} 創造出一虛擬字元, 因此跳頁指令即可產生效果
+	\clearpage：此指令除了換頁之外，還會把尚未排出的圖表列印於本頁之後
+	\cleardoublepage：用於兩欄式版面，下接之文字會跳至單數頁開始編排。換言之如果本頁為單數頁，下一頁將跳空。
+	\clearpage
+		\ifodd\count0 \else \mbox{}\clearpage \fi：p105
+	\clearpage
+		\ifodd\count0 \else \thispagestyle{empty}\mbox{}\clearpage \fi
+	\samepage
+	\enlargethispage{5pt}：將本頁之文字版面加長 5pt
+
+目錄
+	章節標題須使用 \chapter, \section 等指令編排, 圖表標題則須以 \caption 指令編排
+	\tableofcontents：選定目錄頁所要出現之位置，使用左列指令產生目錄
+	\renewcommand{\contentsname}{\ctxfbb 目錄}：以中文字「目錄」代替英文字「Contents」
+	\setcounter{tocdepth}{3}：目錄將編排到 \subsubsection 層級
+	\addcontentsline{toc}{sec-name}{text}
+		章節標題若如 \section*，則不會自動排版於目錄內。欲自動編入目錄, 可使用 \addcontentsline 指令
+
+附錄
+	\renewcommand{\appendixpagename}{\Large\ctxfr 附錄}
+	\appendix：僅適用僅 book 與 report 文稿類別
+	\appendixpage：排版出英文字「Appendices」，可由第一項指令改為「附錄」
+
+段落
+	\parindent=0.8cm：在「全文設定區」加入左列指令，將段落首行統一縮排 0.8cm
+	新段落：空一行，或在前段段落結束處加上 \par 指令
+	\parskip=20pt：段落間距離為 20pt
+	\\[.5cm]：段落內新起一行，以將換行指令 \\ 加於本行之末，下一行之文字將齊頭編排，不會內縮。中括弧內單位為下一行行距
+	\newline：與 \\ 功能完全相同，但不能加上變更行距之選項
+
+	\centering 標題居中\\
+	\raggedright 可靠左\\
+	\raggedleft 或靠右
+
+	\begin{center}
+		我打江南走過,\\
+		那等在季節裡的容顏 \dots{} \\
+		東風不來, \dots
+	\end{center}
+
+	\begin{flushleft}
+		我打江南走過,\\
+		那等在季節裡的容顏 \dots{} \\
+		東風不來, \dots
+	\end{flushleft}
+
+	\par\vfill\noindent \jobname.ctx (\today)
+
+	\bigskip
+	\medskip
+	\smallskip=\vspace{\smallskipamount}：\smallskipamount 是內定之數值，在正常情況下其值為 3pt (約 1 公分)
+
+	\hfill=\hspace{\fill}：2005 年\hfill 經濟\hfill 台大
+	\vfill
+	\dotfill：前言 \dotfill 1\\
+	\hrulefill：職稱: \hrulefill\hspace{1cm} 公司: \hrulefill
+
+	\begin{verse}﹍\end{verse}
+	\begin{quote}﹍\end{quote}：較短的引文
+	\begin{quotation}﹍\end{quotation}：較長的引文
+
+	\begin{itemize}﹍\end{itemize}
+	\begin{enumerate}﹍\end{enumerate}
+	\item
+	\labelitemi、\labelitemii、\labelitemiii：改變表列項目標籤
+		\renewcommand{\labelitemii}{+}：第 2 層指令環境之標籤將由 - 改變成 +。
+	labelenumi
+		\renewcommand{\labelenumi}{\arabic{enumi})}：把指令環境最外層之標籤改變成 1), 2), . . . 之形式
+	\begin{description}\itemsep=-1pt
+		\item [{\ctxfbb 政治}] 政客玩的遊戲,
+		\item [{\ctxfbb 政客}] 玩政治的人,
+		\item [{\ctxfbb 政治家}] 英俊的政客。
+	\end{description}
+	\leftmargini=7mm：列舉項條文之內縮距離
+
+方塊
+	LR 方塊: 文字只能由左至右編排
+		\mbox{...}		\makebox[width][pos]{...}
+			\raisebox{lift}[height][depth]{ ... }：大括號內之文字形成一 \mbox, 並使之垂直移動 lift 之距離
+		\fbox{...}		\framebox[width][pos]{...}
+			\fboxrule：設定外框線條的粗細，值若為零，則外框線條將隱而不見
+			\fboxsep：外框與其內文字之距離
+
+	段落方塊: 由數行文字由上而下垂直疊起來的方塊
+		\parbox[pos][height][in-pos]{width}{ ... }
+			\parbox[t]{5cm}{...}
+		\begin{minipage}[pos][height][in-pos]{width}
+			\begin{minipage}[t]{5cm}...\end{minipage}：p118
+
+	線條方塊 (rule boxes): 由線段本身所構成的方塊
+		\rule[lift]{width}{height}
+			\rule{1cm}{0.1cm}:
+			\rule[1mm]{1cm}{0.1cm}
+			\rule[-1mm]{1cm}{0.1cm}
+			\rule{2cm}{0pt}：產生 2 公分的水平空白
+			\rule{0cm}{1cm}：產生 1 公分之垂直空白
+
+	重複使用方塊
+		\newsavebox{\sqe}：正塊取名為 \sqe
+		\sbox{\sqe}{\framebox{\rule{3mm}{0pt}\rule{0pt}{3mm}}}
+			或 \savebox{\boxname}[width][pos]{...}
+		\usebox{\sqe} \usebox{\sqe} \usebox{\sqe}
+
+註解(footnote)與邊註(marginal notes) 
+	\footnote{...} 
+
+
+
+
+
+
+
+章節用中文表示
+==============================
+\usepackage{titlesec, titletoc}		% 使用 titlesec、titletoc 這二個 package
+\titleformat{\chapter}{\centering\Huge\bfseries}{第\,\CJKnumber{\thechapter}\,章}{1em} {}
+
+
+
+
+摘要、文獻等頁碼編進目錄
+==============================
+
+摘要
+-------------------------
+在要編進目錄的所在位置，使用 \addcontentsline{toc}{層級}{顯示名稱} 指令，
+除 chapter 顯示層級外，依需求也可改成 section 等層級，最後就是顯示在目錄的名稱
+
+\pagenumbering{Roman}	% 使用 \pagenumbering{Roman} 讓頁碼變成羅馬數字的表示方式
+\phantomsection			% 如果使用了 hyperref 這個 package 來產生 PDF 的連結，則須在前面加上左述指令
+\addcontentsline{toc}{chapter}{摘要}
+xxxxxx文章內容xxxxxx
+xxxxxx文章內容xxxxxx
+xxxxxx文章內容xxxxxx
+
+
+參考文獻
+-------------------------
+\cleardoublepage	% 若 \addcontentsline 造成頁碼錯亂，則在前面再加上 \clearpage
+					% 而由於 book 及 report 新章節是由奇數頁面開始，因此要改成 \cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{參考文獻} 
+\bibliographystyle{plain}
+\bibliography{reference}
+
+
+在本文前，將頁碼的數字改回阿拉伯數字的表示方式
+-------------------------
+\setcounter{page}{1}	% \setcounter 表示頁數從 1 開始
+\pagenumbering{arabic}
+
+
+
+
+取消浮動圖、表
+==============================
+
+浮動圖
+-------------------------
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{pic.eps}
+\caption{圖標題}
+\label{figurelabel}
+\end{figure}
+
+
+浮動表
+-------------------------
+\begin{table}[h]
+\centering
+\caption{表標題}
+\label{tablelabel}
+……
+\end{table}
+
+
+取消浮動圖、表
+-------------------------
+%加入這段語法
+\makeatletter
+\newcommand{\figcaption}{\def\@captype{figure}\caption}
+\newcommand{\tabcaption}{\def\@captype{table}\caption}
+\makeatother
+
+%非浮動圖
+\begin{center}
+\includegraphics[width=0.8\textwidth]{pic.eps}
+\figcaption{圖標題}	% 圖標題改成 figcaption，而不是原來的 caption
+\label{figurelabel}
+\end{center}
+
+%非浮動表格
+\begin{center}
+\tabcaption{表標題}	% 表標題改成 tabcaption，而不是原來的 caption
+\label{tablelabel}
+……
+\end{center}
+
+
+
+
+插入 PDF 檔案
+==============================
+\usepackage{pdfpages} % 使用 pdfpages 巨集套件
+......
+\includepdfmerge{file.pdf,1-3} % 插入 file.pdf 檔案的 1-3 頁
+
+
+
+
+參考資料來源：
+==============================
+	維護純潔思想組：
+		http://minsky.pixnet.net/blog/category/1424778
+	玉米園：(文章數不多)
+		http://eavedcorn.pixnet.net/blog/post/24773932-新手安裝latex懶人教學(step-by-step)
+	胖果米：(僅一篇文章)
+		http://pangomi.blogspot.tw/2012/11/latex-in-ubuntu.html
+
+

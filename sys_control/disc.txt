@@ -1,0 +1,58 @@
+# vim:ts=4
+
+
+
+掛載分割區
+==============================
+mount -t iso9660 /dev/cdrom /path/to/mnt/
+	# 掛載實體光碟
+
+mount -o loop /path/to/name.iso /path/to/mnt/
+	# 將 iso 檔案映射到 loop 裝置，掛載後可以編輯 iso 檔案內容
+	# 實質上，前述指令相當於 losetup /dev/loop[x] /path/to/name.iso && mount /dev/loop[x] /path/to/mnt/
+
+mount -t iso9660 -o ro,loop=/dev/loop0 cd_image.iso /path/to/mnt/
+	# 將 iso 檔映射到 loop0 後，掛載於 /path/to/mnt/。因參數 -o ro 的設定，iso 檔可編寫
+
+mount -t udf /path/to/file.iso /path/to/mount
+	# 掛載 udf 格式的光碟映像檔
+
+cdrecord dev=/dev/cdrom driveropts=burnfree -v -data file.iso
+	# 燒錄資料光碟
+
+cdrecord dev=/dev/cdrom driveropts=burnfree -v -audio [wav files...]
+	# 燒錄音樂光碟
+
+
+
+
+製作 iso 檔案
+==============================
+
+mkisofs 語法
+-------------------------
+	# -J：增加 Joliet -R:Rock Ridge, 可在 Linux/Windows 系統環境中，保持檔名及權限與 Linux 系統一致
+	# -hfs：支援Mac系統
+	# -o：生成的映像檔名稱
+	# -p：作者ID
+	# -publisher：表示作者說明
+	# -V：表示Volume ID
+	# -A：表示產生 iso 程式
+	# -volset:表示iso相關資訊
+	# -c：啟動的目錄檔的路徑名稱，如 mountpoint/boot/loader/boot.cat 
+	# -d：啟動用的映像檔的路徑名稱，如 mountpoint/boot/loader/isolinux.bin
+	# -l：允許 31 字元長度的檔名，一般的檔名是8.3格式
+	# -P：指定一個字元串寫到 cdrom的卷標頭上
+	# -r：生成 SUSP 和 RR 記錄來啟用 RR 保護，並把所有檔的 uid 和 gid 設置為 0 等等
+	# -T：生成 TRANS.TBL 檔，幫助建立正確的檔名
+	# -x：刻光碟時不包含的檔
+		#-no-emul-boot:指定是'no emulation'映像
+		#-boot-load-size:指定'no emulation'虛擬扇區數量
+		#-graft-point dvdimg上目錄=光碟上相應目錄
+
+
+釋例
+-------------------------
+	mkisofs -r -J -o /media/disk/20080108.iso /media/disk/CDROM/
+
+

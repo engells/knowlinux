@@ -1,0 +1,60 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about rxvt
+# made by: Engells
+# date: Feb 27, 2021
+# content: Only for memo
+
+
+
+參數
+====================
+urxvt -imlocale zh_TW.UTF-8 -fn "xft:AR PL New Sung:pixelsize=20" -tn xterm -bg black -fg lightgray -sl 800 -pt Root -sr
+urxvt -imlocale zh_TW.UTF-8 -fn "xft:AR PL New Sung:pixelsize=20" -tn xterm -bg black -fg lightgray -sl 5000 -pt Root -sr -geometry 80x25
+若喜歡透明背景可以再最後加上 -ip 的參數
+
+
+
+
+概觀
+====================
+xvt-unicode 支持「服務器—客戶端」的運行模式：
+  urxvtd 啟動一個守護進程 daemon（支持控制台）
+  urxvtc 啟動客戶端 client。多個客戶端可以同時連接到一個 urxvtd，達到節省系統資源的目的
+
+
+設定檔位置
+---------------
+用戶層級 →  $HOME/.Xresources $HOME/.Xdefault
+系統層級 → /etc/X11/Xresources/Xresources 
+
+
+
+
+Xresources 語法
+====================
+name.Class.resource: value
+  name： 應用名稱，如 xterm、xpdf 等
+  class： 用於將資源分組在一起的分類。類名通常是大寫的
+  resource： 要更改的值的資源的名稱
+  value： 資源的真實值，可以有三種類型：
+    整數
+    布爾值(true/false, yes/no, on/off)
+    字元串（單詞(white)，顏色(#FFFFFF)，路徑(/usr/bin/firefox)
+
+  delimiters：點（.）用於表示向下進入層次結構的每一步-在上例中，自應用名稱開始，然後進入 Class，最後進入資源本身
+  冒號（:)： 用於將資源聲明與實際值分開
+  通配符： ?用於匹配任何單個組件名稱，而*用於表示任意數量的中間組件，包括 none
+  註釋： !開頭的行
+  引入文件： 安裝了 C 預處理器可以使用
+
+
+
+
+參考資料
+====================
+URxvt 折騰筆記 :: https://segmentfault.com/a/1190000020859490
+開源世界旅行手冊 :: https://i.linuxtoy.org/docs/guide/ch14s03.html#id3062822
+Why I use rxvt as my terminal :: https://opensource.com/article/19/10/why-use-rxvt-terminal
+
+

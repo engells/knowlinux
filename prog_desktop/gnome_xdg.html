@@ -1,0 +1,337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Gnome</title>
+  
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8"></head><body>
+<br>
+
+<h1>Gnome<br>
+</h1>
+
+<br>
+
+<h3>Edit Config</h3>
+
+<hr>
+<ul>
+
+  <li>Gnome 2
+    <ul>
+      <li>在終端輸入：gconf-editor，找到下列兩個選項，把勾勾去掉：
+        <div style="margin-left: 20px;">/apps/nautilus/preferences/media_automount
+=&gt; 是是否自動掛載<br>
+/apps/nautilus/preferences/media_automount_open =&gt; 是否自動打開</div>
+      </li>
+    </ul>
+  </li>
+  <li>Gnome 3
+    <ul>
+      <li>Gnome 3 的組態編輯器改為 dconf-editor，截至 201208，gconf-editor還可使用</li>
+      <li>未有類似 /apps/nautilus/preferences/media_automount 的選項 </li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+<h3>PlugIns</h3>
+
+<hr>nautilus-gksu; nautilus-open-terminal;
+nautilus-image-converter;
+nautilus-cd-burner; nautilus-script-audio-convert;
+nautilus-script-collection-svn; <br>
+
+nautilus-script-manager; nautilus-sendto;
+nautilus-share; nautilus-wallpaper; <br>
+
+To download and save scripts to
+~/.gnome2/nautilus-scripts/<br>
+
+<br>
+
+<h3>Ububtu Config</h3>
+
+<hr>
+<ul>
+
+  <li>Gnome config</li>
+  <ul>
+    <li>Tools: gconf-editor, gconftool<br>
+    </li>
+    <li>/apps/nautilus/desktop, /apps/nautilus/preference</li>
+  </ul>
+</ul>
+
+<br>
+
+<h3>Thems</h3>
+
+<hr>
+<ul>
+
+  <li>一般性作法 <br>
+    <ol>
+      <li>備份原來的佈景檔案 /usr/share/theme 文件</li>
+      <li>下載佈景套件，可以到 http://www.linuxidc.com/theme/index.htm 尋找</li>
+      <li>解壓縮佈景套件，然後把文件拷貝到 /usr/share/theme 目錄下</li>
+      <li>在GNOME tweak tool 下選擇該佈景。</li>
+    </ol>
+  </li>
+  <li>安裝 elementary 佈景主題
+    <ol>
+      <li>sudo tar -xzvf Mac-Lion-Cursors.tar.gz -C /usr/share/icons</li>
+      <li>tar -xzvf Mac-Lion-Theme.tar.gz -C ~/.themes</li>
+      <li>tar -xzvf Mac-Lion-Icons.tar.gz -C ~/.icons</li>
+    </ol>
+  </li>
+  <li>更換開機動畫， 20120524 實測無效
+    <ol>
+      <li>unzip -d /path/extracted/to filename</li>
+      <li>sudo update-alternatives --install
+/lib/plymouth/themes/default.plymouth default.plymouth
+/lib/plymouth/themes/Paw-OSX/paw-osx.plymouth 100</li>
+      <li>sudo update-alternatives --config default.plymouth, 選擇
+paw-osx.plymouth
+manual mode</li>
+      <li>sudo update-initramfs -u</li>
+      <li>sudo apt-get install compizconfig-settings-manager, to
+autohide unity
+launcher, not necessary</li>
+    </ol>
+  </li>
+</ul>
+
+<div class="ref">
+參考資料：
+<hr class="ref"><cite class="ref">http://www.linuxidc.com/Linux/2012-01/51057.htm</cite>
+</div>
+
+<br>
+
+<h3>Put Items in Gnome Menu</h3>
+
+<hr>
+<ul>
+
+  <li>安裝完成看一下應用程式→辦公→有沒有出現FoxitReader，如果沒出現的話，只要把複製檔案applications到就可
+使用了。 <br>
+cp /usr/share/applications/Foxit-Reader.desktop
+$HOME/.local/share/applications/&nbsp;</li>
+  <li>Gnome捷徑儲存位置<br>
+/usr/share/applications/*.desktop<br>
+/opt/gnome/share/applications/*.desktop<br>
+  </li>
+</ul>
+
+<br>
+
+<h3>Hot-Keys</h3>
+
+<hr>
+<ul>
+
+匯總表：
+  <table border="1" cellpadding="1" cellspacing="0">
+    <colgroup><col width="250"><col width="350"></colgroup> <tbody>
+      <tr>
+        <td align="center" height="24"><span style="font-weight: bold;">Hot-Keys</span><br>
+        </td>
+        <td align="center"><span style="font-weight: bold;">Actions</span><br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Ctrl + Alt + ← → </td>
+        <td style="vertical-align: top;">切換工作區<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Ctrl + Shift + Alt + ← → </td>
+        <td style="vertical-align: top;">將目前作業程式移至其他工作區<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Ctrl + Alt + D </td>
+        <td style="vertical-align: top;">將目前作業視窗最小化<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Ctrl + Alt + L </td>
+        <td style="vertical-align: top;">鎖定螢幕<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Alt + Tab / Shift + Alt + Tab </td>
+        <td style="vertical-align: top;">切換作業程式<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Alt + F7 </td>
+        <td style="vertical-align: top;">移動目前作業視窗<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Alt + Enter<br>
+        </td>
+        <td style="vertical-align: top;">檔案屬性<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">Shift + F10<br>
+        </td>
+        <td style="vertical-align: top;">滑鼠右鍵<br>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;">...<br>
+        </td>
+        <td style="vertical-align: top;">...<br>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</ul>
+
+<br>
+
+<h3>XDG(X DESKTOP GROUP)</h3>
+
+<hr>
+RHEL 6 和 Ubuntu 採用了 FreeDesktop.org 的規格，其官方網站
+http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html。該
+規格定義了 Linux 下基本的 X Window System (X11) 及其他 Unix-like
+作業系統的桌面環境，主要目的是為了增加 free software desktop environments 的互通性，這環境簡稱為
+XDG(X Desktop Group)。<br>
+
+<ul>
+
+  <li>修改帳戶目錄
+    <ul>
+      <li>/home/engells/.config/user-dirs.dirs</li>
+    </ul>
+  </li>
+  <li>在 x-window 開啟後自動執行命令搞(scripts)
+    <ul>
+      <li>~/.xinitrc, ~/.xsession<br>
+.xinitrc/.xsession 使用上比較麻煩。 不論是誰 (GDM/KDM/startx) 把它叫起來的，控制權就不會再回去。所以
+.xinitrc 或 .xsession 裡面的最後一句通常是 exec gnome-session 或 exec startkde 或
+exec enlightenment 或 exec icewm 之類。總之，就是自己要變身成某個視窗管理員程式
+(或內含視窗管理員的某個桌面環境)。<br>
+有網路文章建議，優先使用 ~/.xsession，然後將 ~/.xinitrc 連結至 ~/.xsession。(ln -s
+~/.xsession ~/.xinitrc)</li>
+      <li>~/.xprofile<br>
+        <span style="color: rgb(0, 0, 0); font-family: Verdana,Arial,sans-serif; font-size: 16px; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 21px; orphans: 2; text-align: left; text-indent: 40px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255); display: inline ! important; float: none;"></span>由
+GDM/KDM 呼叫起來, 比較單純, 裡面就只放要加的命令就好。 .xprofile 執行結束之後，控制權會回到 GDM / KDM，此外
+.xprofile 也負責啟動視窗管理員 (window manager)。</li>
+    </ul>
+  </li>
+  <li>在 x-window 開啟後自動啟動應用程式<br>
+在指定目錄修改或是新增 .desktop 檔案：
+    <ul>
+      <li>System-wide autostart directories:
+        <ul>
+          <li>/etc/xdg/autostart → existed in Ubuntu，有作用</li>
+          <li>/usr/share/autostart → Ubuntu無此目錄</li>
+        </ul>
+      </li>
+      <li>User specific autostart directories:
+        <ul>
+          <li>~/.config/autostart =&gt; existed in Ubuntu，有作用
+          </li>
+          <li>~/.kde/share/autostart&nbsp; =&gt; KDE specific</li>
+          <li>~/.kde/Autostart =&gt; KDE specific</li>
+        </ul>
+      </li>
+    </ul>
+另外 Ubuntu 下可執行 System &gt; Preferences &gt; Startup Applications 執行 GUI
+程式進行設定。 </li>
+  <li>登入帳戶設定
+    <ol>
+      <li>執行 gdmsetup</li>
+      <li>修改 /etc/gdm/gdm.conf
+        <div style="margin-left: 20px;">[daemon]<br>
+TimedLoginEnable=true<br>
+AutomaticLoginEnable=true<br>
+TimedLogin=root<br>
+AutomaticLogin=root&nbsp; =&gt;設定自動登入帳號<br>
+TimedLoginDelay=30<br>
+DefaultSession=gnome</div>
+      </li>
+    </ol>
+  </li>
+  <li>修改 Gnome 右鍵選單<br>
+Ubuntu 下執行 System &gt; Preference &gt; Main Menu，或在終端機執行
+alacarte，可以增、改、隱藏、顯示選單，但即使 root 權限也無法刪除選單。<br>
+修改檔案結構依照 Freedesktop 規則，選單是由指定目錄下的 .desktop 檔案及 icon 圖示動態產生：<br>
+    <ul>
+      <li>/usr/share/applications/*.desktop 及
+~/.local/share/applications/*.desktop<br>
+.desktop檔案會在Application、System等主選單下出現成為選單項目。/usr下的是系統層級選項，~/.local下的是用戶用
+選項。<br>
+      </li>
+      <li>/usr/share/icons 或者 /usr/share/pixmaps<br>
+icons放置目錄<br>
+      </li>
+      <li>/etc/gnome/defaults.list 及
+~/.local/share/applications/default.list<br>
+default.list 檔案保存的是檔案的預設打開程式，比如 txt 檔用什麼程式打開。/etc 下的適用於全系統，.local
+下的適用於帳戶個人。<br>
+Gnome 環境下修改檔案的打開方式，選擇右鍵 &gt; 屬性 &gt; 打開方式 &gt; 選擇某一程式，之後在 Nautilus
+雙擊檔案時，系統會啟用相應的程式開檔。此法不能刪除或增加選單中的開檔程式。<br>
+      </li>
+      <li>/usr/share/applications/mimeinfo.cache 及
+~/.local/share/applications/mimeinfo.cache<br>
+mimeinfo.cache 檔定義各種檔案類型的打開方式，包含預設程式在內。預設程式出現在滑鼠右鍵選單頂部，其他程式出現在 "open
+with" 子選單內。<br>
+      </li>
+      <li>/etc/gnome/defaults.list的結構
+        <div style="margin-left: 20px;">[DefaultApplications]<br>
+application/csv=gnumeric.desktop<br>
+application/excel=ooo-calc.desktop<br>
+application/msexcel=ooo-calc.desktop<br>
+application/msword=ooo-writer.desktop<br>
+application/ogg=mplayer.desktop<br>
+application/pdf=evince.desktop<br>
+application/postscript=evince.desktop<br>
+...<br>
+項目格式為：檔案副檔名/檔案類型=打開這個檔案的項</div>
+      </li>
+      <li>/usr/share/applications/mimeinfo.cache的結構
+        <div style="margin-left: 20px;">[MIME Cache]<br>
+text/plain=vim.desktop;gvim.desktop;madedit.desktop;openoffice.org-writer.desktop;<br>
+...<br>
+項目格式為：檔案副檔名/檔案類型=項目1;項目2;…項目n;<br>
+各項目中間用 ";" 隔開，不留其餘字元。要修改某類檔案的開檔程式，以 txt檔為例，text/plain預設開檔程式是 vim，其次是
+firefox、gvim等</div>
+      </li>
+      <li>/usr/share/applications/*.desktop檔案的結構
+        <div style="margin-left: 20px;">[DesktopEntry]<br>
+Encoding=UTF-8&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; #字符編碼<br>
+Name=vim&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; #程式名稱<br>
+MimeType=text/plain&nbsp;&nbsp;&nbsp; #檔案類型<br>
+Exec=vim %f&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; #執行的程式，%f表示執行參數<br>
+Type=Application&nbsp;&nbsp;&nbsp; #類型<br>
+Terminal=true&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; #是否使用終端<br>
+NoDisplay=true&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; #是否顯示在gnome選單裏</div>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<div class="ref">
+參考資料：<hr class="ref"><cite class="ref">http://benjr.tw/node/115#comment-509</cite>
+</div>
+
+<br>
+
+<br>
+
+</body></html>

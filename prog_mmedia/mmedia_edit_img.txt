@@ -1,0 +1,49 @@
+#!/bin/bash
+# program: 光碟影像管理
+# made by: Engells
+# date: Oct 7, 2021
+# content: 將光碟內容轉成 iso 格式檔案
+
+
+
+Convert DVD to MP4
+====================
+sudo mount /dev/sr0 /mnt
+cd /mnt/
+cat VTS_01_*.VOB | ffmpeg -i - -aq 100 -ac 2 -vcodec libx264 -crf 24 -threads 0 ~/VTS_01.mp4
+
+URL:
+  Ubuntu 上使用 ffmpeg 將 DVD 轉成 mp4  http://worldend.logdown.com/posts/449003-using-ffmpeg-on-ubuntu-dvd-to-an-mp4
+
+
+
+
+使用 vcdxrip 指令將光碟影片取出，該指令含於 vcdimager 套件
+====================
+vcdxrip -C /dev/cdrom1 
+
+#使用 dd 指令產生 iso 檔案
+dd if=/dev/cdrom1 of=/home/t1.iso
+
+#CloneCD/IMG Images 檔案轉換程式
+sudo apt-get install ccd2iso
+ccd2iso /路徑/來源檔.img  路徑/目的檔.iso
+
+#CUE/BIN Images 檔案轉換程式
+sudo apt-get install bchunk
+bchunk /路徑/來源檔.bin /路徑/來源檔.cue 路徑/目的檔.iso (需同時指定來源的 cue 和 bin 檔，順序不能顛倒)
+
+#MDF Images 檔案轉換程式 ( Alcohol 120% 酒精檔案)
+sudo apt-get install mdf2iso
+mdf2iso /路徑/來源檔.mdf 路徑/目的檔.iso
+
+#NRG Images 檔案轉換程式 ( Nero 檔案)
+sudo apt-get install nrg2iso
+nrg2iso /路徑/來源檔.nrg 路徑/目的檔.iso
+
+#DMG Images 檔案轉換程式 ( Apple 檔案)，DMG 檔案要先轉換成 img 檔之後再由 img2iso 轉成ISO 檔
+sudo apt-get install dmg2img
+dmg2img /路徑/來源檔.dmg 路徑/目的檔.img
+
+
+

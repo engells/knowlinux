@@ -1,0 +1,118 @@
+##!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about vim
+# made by: Engells
+# date: Jun 28, 2022
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+簡要操作
+====================
+產生設定檔
+  $HOME/.config/fontconfig/fonts.conf ，由 /home/engells/mnt/zktws/scripts/confs_sys/font_fonts.conf 檔案複製
+  $HOME/.config/fontconfig/conf.d/30-cjk-aliases.conf ，由 /home/engells/mnt/zktws/scripts/confs_sys/font_30_cjk_aliases.conf 檔案複製
+  $HOME/.config/fontconfig/conf.d/49-sansserif.conf ，由 /home/engells/mnt/zktws/scripts/confs_sys/font_49_sansserif.conf 檔案複製
+  $HOME/.config/fontconfig/conf.d/69-language-selector-zh-tw.conf ，由 /home/engells/mnt/zktws/scripts/confs_sys/font_69_language_selector_zh_tw.conf 檔案複製
+  設定字型檔在 $HOME/.local/share/fonts ，及各種情況下字型應用順序
+
+
+
+設定字體
+====================
+繁體中文字體設定檔：
+  系統層級
+    檔案 /etc/fonts/fonts.conf 及 /etc/fonts/conf.d/xxxx.conf ，該處 xxxx.conf 檔案由 /etc/fonts/conf.avail/xxxx.conf 軟連結而來
+    檔案 69-language-selector-zh-tw.conf 字體有三種：serif、sans-serif 及 monospace。各字體有單獨之區段，各區段所列出之字型，即為引用順序。
+      若在 font family 出現類似 zh-tw 的語系判斷字句，建議刪除，共有三處：
+        <test name="lang">
+          <string>zh-tw</string>
+        </test>
+    檔案 65-nonlatin.conf 可設定中文以及其他非拉丁字母對應字型，不確定與 69-language-selector-zh-tw.con 的適用順序。 
+
+  使用者層級
+    檔案 $HOME/.config/fontconfig/fonts.conf 及 $HOME/.config/fontconfig/conf.d/xxxx.conf ，可能需要手動建立，參見 /etc/fonts/conf.d/50-user.conf
+    指令示例
+      fc-cache -vf $HOME/.local/share/fonts
+      cp 10-powerline-symbols.conf $HOME/.config/fontconfig/conf.d/ 
+
+字型顯示
+  建議系統字型使用蘋果黑體、蘋果儷黑體或微軟正黑體。
+  除系統字型外，FireFox、Chrome、MadEdit、Gedit等均可個別設定字型
+
+Linux 以 fontconfig 套件來管理跟控制字型，可使用 fontconfig 程式，自行設定螢幕顯示字型繪製的方法，或轉換字體格式為 ttf
+  http://wiki.ubuntu-tw.org/index.php?title=HowtoCustomFontswithFontconfig
+  http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?viewmode=compact&order=DESC&topic_id=51992&forum=8
+
+字體安裝位置設定
+  編輯 /etc/fonts/fonts.conf，在 <!-- Font directory list --> 區段加入或修改相關路徑
+
+
+參考資料：
+  http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=18145&viewmode=flat&order=ASC&type=&mode=0&start=0
+
+
+
+
+X-Window Fonts Aliases
+====================
+設置 30-cjk-aliases.conf
+----------
+sudo ln -s /etc/fonts/conf.avail/30-cjk-aliases.conf  /etc/fonts/conf.d/30-cjk-aliases.conf
+  詳細範例請參閱相關網址，設定字體別名簡單範例如下：
+    <!--增加一段 alias，指定文泉驛正黑(WenQuanYi Zen Hei)作為 SimHei 的替代字體-->
+    <alias>
+      <family>SimHei</family>
+        <accept>
+          <family>WenQuanYi Zen Hei</family>
+        </accept>
+    </alias>
+
+
+相關設定檔
+----------
+字型說明
+  黑體
+    可設定文泉驛正黑體作為黑體的替代字型。
+    目前 Ubuntu 與大多數的 Linux 桌面環境，皆使用文泉驛正黑體作為預設字體。可以作為微軟 Windows 系統的正黑体(SimHei), 微軟正黑體與微軟雅黑體的替代字體。微軟雅黑體是微軟 Windows Vista 簡體中文版的默認字體。微軟正黑體是微軟 Windows Vista 繁體中文版的預設字體。
+
+  楷書
+    可設定全字庫正楷體作為標楷體(DFKai-sb)的替代字型。
+    Ubuntu 內建提套 AR PL UKai TW 楷體，是文鼎公司捐贈出來的楷書字體。然而，該字體不符合中華民國教育部頒標準字體，嚴格說來，不適合作為「標楷體」的替代。
+    標楷體的英文名稱是 DFKai-sb ，為 Windows XP 繁體中文版的預設字體之一。 只有 Windows XP 繁體中文版認「標楷體」這個名稱，其他語系的 Windows 認的是 DFKai-sb 這個名稱。標楷體是微軟向華康公司購買的楷書字型，支援 Unicode ，同時提供簡、繁兩種字體。此外，其繁體字體符合中華民國教育部頒標準字體，故名為「標楷體」。
+
+  明體與宋體
+    可設定全字庫正宋體作為細明體(MingLiu)的替代字型。
+    Ubuntu 內建提供一套 AR PL UMing 宋體，是文鼎公司捐贈出來的字體。該字體不符合中華民國教育部頒標準字體。
+    細明體的英文名稱是 MingLiu ，為 Windows XP 繁體中文版的預設字體之一。 只有 Windows XP 繁體中文版認「細明體」這個名稱，其他語系的 Windows 認的是 MingLiu 這個名稱。細明體是微軟向華康公司購買的字體，支援 Unicode ，同時提供簡、繁兩種字體。
+
+
+字型表
+  字型中文名稱  Fontname            適用項目
+  ------------- ------------------  --------------------
+  全字庫正楷體  TW-Kai              襯線字(serif)
+  標楷體        DFKai-sb            襯線字(serif)
+  华文楷体      STKaiti             襯線字(serif)
+  全字庫正宋體  TW-Sung             襯線字(serif)
+  新細明體      PMingLiu            襯線字(serif)
+  細明體        MingLiu             襯線字(serif)
+  宋体          SimSun              襯線字(serif)
+  文泉驛正黑    WenQuanYiZen Hei    無襯線字(sans-serif)
+  黑体          SimHei              無襯線字(sans-serif)
+  微软雅黑      Microsoft YaHei     無襯線字(sans-serif)
+  微軟正黑體    Microsoft JhengHei  無襯線字(sans-serif)
+
+
+參考資料：
+  http://blog.roodo.com/rocksaying/archives/12397861.html
+
+
+
+
+用 Evince 完美看PDF檔
+===================
+編輯 /etc/fonts/conf.d/49-sansserif.conf，將 <edit name="family" mode="append_last"> 那行定義的字型指定成 Droid Sans Fallback 或其他適當字型
+
+參考資料：
+  http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=30432&forum=7&post_id=142152#forumpost142152
+

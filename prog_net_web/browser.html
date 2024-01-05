@@ -1,0 +1,254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Browsers</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body style="direction: ltr;">
+<br>
+
+<h1>Browsers</h1>
+
+<br>
+
+<h3>Swiftfox, Swiftweasel and Iceweasel</h3>
+
+<hr>
+<ul>
+
+  <li>Add the source: "deb http://getswiftfox.com/builds/debian
+unstable non-free"</li>
+  <li>Install swiftfox, please choose suitable version</li>
+  <li>Or we could download deb files form URL:
+http://getswiftfox.com/ <br>
+  </li>
+</ul>
+
+<br>
+
+<h3>Text-Based Browsers</h3>
+
+<hr>
+<ul>
+
+  <li>w3m</li>
+  <li>links</li>
+  <li>lynx</li>
+</ul>
+
+<br>
+
+<h3>將瀏覽器cache目錄放至tmpfs</h3>
+
+<hr>
+Chromium:
+<ul>
+
+  <li>較穩妥的方法是將 ~/.cache/chrom 掛載為 tmpfs。建議將整個 ~/.cache/ 都掛載為 tmpfs</li>
+  <li>編輯檔案/usr/share/applications/chromium-browser.desktop，此法似乎無效<br>
+將 Exec=/opt/google/chrome/google-chrome %U 改成<br>
+    <ul>
+#Exec=/opt/google/chrome/google-chrome %U<br>
+Exec=/opt/google/chrome/google-chrome --disk-cache-dir="/dev/shm" %U
+    </ul>
+  </li>
+</ul>
+
+Firefox:
+<ul>
+
+  <li>編輯 Firefox 設定檔 <br>
+在 ~/.mozilla/firefox/亂數.default/prefs.js
+加上這一句：user_pref("browser.cache.disk.parent_directory",
+"/tmp/firefox")<br>
+也可以選擇 /dev/shm，不過較建議將 /tmp 以 tmpfs 方式掛載，然後將 cache 放至 /tmp <br>
+或在終端機下指令：<br>
+    <ul>
+      <li>echo 'user_pref("browser.cache.disk.parent_directory",
+"/tmp/ckhung/firefox"); ' &gt;&gt; ~/.mozilla/firefox/*.default/prefs.js</li>
+      <li>rm -rf ~/.mozilla/firefox/*.default/Cache/*</li>
+    </ul>
+  </li>
+  <li>Firefox 控制台 <br>
+在網址列輸入：about :confg 進入控制台 &gt; 滑鼠右鍵 &gt; 新增 &gt; 字串：
+browser.cache.disk.parent_directory &gt; 值：/tmp/firefox <br>
+說明：
+    <ol>
+      </ol>
+    <ul>
+      <li>亦可選擇 /dev/shm，該目錄是 Linux 預設的 RamFS，不需設定一開機就自動載入，預設可使用大小約為 RAM
+的一半，若 RAM
+吃緊資料會被移到 SWAP</li>
+      <li>將快取目錄改到 RamFS 可以大幅增加瀏覽速度，且關機自動清除（因為 Ram 不通電無法保存資料）。 </li>
+      <li>請確定 Ram 夠大才這樣用，不然吃到 SWAP 就划不來了，不快反而慢... </li>
+      <li>可去觀察 /tmp 或 /dev/shm 目錄，會看到多出一個 Cache 目錄，裡面資料就是 Firefox
+的快取，證明有效</li>
+    </ul>
+    <ol>
+
+      
+      
+      
+    
+    </ol>
+
+  </li>
+<li>將「開機時從隨身碟還原到記憶體」的動作寄生在 bootlogd 裡面<br>
+    <ul>
+      <li>在 /etc/init.d/bootlogd 裡面搜尋 "start)" 並且在這句後面加上<br>
+cp -a /var/backups/log/* /var/log/<br>
+(echo -n "bootlogd start ; /var/log restored from /park/var/log " ; date) &gt;&gt; /root/log ;</li>
+      <li>在 /mnt/sda10/etc/init.d/umountroot 裡面搜尋 "stop)" 並且在這句後面加上:<br>
+cp -a /var/log/* /var/backups/log/<br>
+(echo -n "umountfs stop ; /var/log saved to /park/var/log " ; date) &gt;&gt; /root/log ;</li>
+      <li>把 /etc/default/bootlogd 裡面的 BOOTLOGD_ENABLE=No 改成 BOOTLOGD_ENABLE=Yes</li>
+      <li>將 /var/log 掛載成 tmpfs</li>
+      <li>用別的 linux 開機、掛載系統所在硬碟、進入硬碟根目錄, 並下指令:<br>
+du -s tmp run var/cache var/tmp var/log #查看各目錄用了多少空間。<br>
+find tmp run var/cache var/tmp var/log -mmin -60 #查看有沒有最近 60 分鐘內修改過的檔案<br>
+確認在從把相關目錄掛在 tmpfs 之後，這些目錄就再也不曾更新過。如果一切 OK，用 rm -rf tmp/* run/* var/cache/* var/tmp/* var/log/* 把這幾個目錄都清空。但目錄本身不能刪除。 <br>
+      </li>
+    </ul>
+
+</li>
+</ul>
+
+<br>
+
+<h3>Firefox 搜尋引擎及擴充套件</h3>
+
+<hr>
+來源
+<ul>
+
+  <li>http://releases.mozilla.org/pub/mozilla.org/firefox/releases/
+&gt;
+選擇版本，如 10.0 &gt; linux-x86_64 &gt; xpi</li>
+  <li>http://mycroft.mozdev.org/</li>
+  <li>http://wiki.moztw.org/Search_plugins_%E5%88%97%E8%A1%A8 </li>
+  <li>http://moztw.org/docs/</li>
+</ul>
+
+搜尋引擎設定
+<ul>
+
+  <li>直接修改組態檔<br>
+browser.search.defaulturl &gt;
+http://www.google.com.tw/search?lr=&amp;hl=zh-TW&amp;ie=UTF-8&amp;oe=UTF-8&amp;q=<br>
+browser.search.defaultenginename</li>
+  <li>刪除資料檔，讓 Firefox 啟動時重新設定搜尋引擎<br>
+將 /usr/lib/firefox-x.y/searchengines/ 目錄底下要保留的搜尋引擎複製到
+~/.mozilla/firefox/亂數.default/searchplugins/ 目錄<br>
+接著移除 /usr/lib/firefox-x.y/searchengines/ 目錄，sudo rm -r
+/usr/lib/firefox-x.y/searchengines/，重新啟動 Firefox 後即可移除不需要的搜尋引擎<br>
+但每次 Firefox 更新時，搜尋引擎都會回覆成預設值，可以編輯 /etc/crontab 檔案，定時刪除
+/usr/lib/firefox-x.y/searchengines/ 目錄</li>
+</ul>
+
+<br>
+
+<h3>Speed up Firefox on Ubuntu</h3>
+
+<hr>
+這方法是讓Firefox『完全』在RAMDISK(tmpfs)記憶體上頭執行, 包括設定檔~/.mozilla,
+和Plugins等...(不是只有cache喔)
+但因為記憶體在重開機後會洗掉資料，所以必須讓系統自動載入、回存被洗掉的資料。<br>
+
+/media/firefox.tmpfs：Firefox執行位置，tmpfs<br>
+
+/home/你的帳號/firefox：Firefox執行檔備份位置<br>
+
+/home/你的帳號/.mozilla：Firefox執行時profile存放位置，tmpfs<br>
+
+/home/你的帳號/.mozilla-save：Firefox之profile備份位置<br>
+
+<br>
+
+<ul>
+
+  <li>將Firefox安裝至tmpfs<br>
+tar -jzv -f ~/firefox.config.bak ~/.mozilla =&gt; 先存一份複本。<br>
+rm -rf ~/.mozilla/* =&gt; 接著移除檔案<br>
+sudo mkdir /media/firefox.tmpfs =&gt; 建立虛擬記憶體硬碟(tmpfs)掛載目錄<br>
+cp /etc/fstab ~/fstab.bak =&gt; 備份fstab<br>
+sudo gedit /etc/fstab，最下方加入tmpfs的設定，/media/firefox.tmpfs/
+佔32M。~/.firefox/ 佔100M。大小請自行斟酌。
+    <ul>
+tmpfs /media/firefox.tmpfs tmpfs size=32m 0 0<br>
+tmpfs /home/你的帳號/.mozilla tmpfs size=100m 0 0
+    </ul>
+sudo mount -a =&gt; 重新掛載，如果沒錯誤訊息就是掛好了。<br>
+從官網下載Firefox
+3，解壓縮至~/firefox"<br>
+    <ul>
+注意! 如果是gcin
+1.4.2以前的使用者，請打開解壓後的資料夾，編輯檔案"firefox"。假設firefox解壓
+在家目錄，則輸入編輯t ~/firefox/firefox,
+在字串"&gt;moz_libdir=/usr/local/lib/firefox-3.0" 下方加入一行:GTK_IM_MODULE=
+xim。這是為了防止gcin害FX衝到。
+    </ul>
+sudo
+cp
+-R ~/firefox/* /media/firefox.tmpfs/&nbsp; =&gt; 將 ~/firefox 內的東西複製到
+/media/firefox.tmpfs<br>
+cp -R ~/.mozilla-save/*
+~/.mozilla/&nbsp; =&gt; 再拷貝.mozilla設定檔至tmpfs<br>
+在桌面建立一個啟動圖示，執行指令輸入 =&gt; sh
+/media/firefox.tmpfs/firefox,
+若跑得起來就大功告成了! </li>
+  <li>做一個script，假設取名為
+loadfirefox.sh。讓系統開機時自動將FX3複製/media/firefox.tmpfs，再把~/.mozilla-save的設定檔回
+存至~/.mozilla。<br>
+sudo gedit
+~/loadfirefox.sh，輸入下列內容
+    <ul>
+#/bin/bash<br>
+sudo cp -R /home/你的帳號/firefox/* /media/firefox.tmpfs<br>
+cp -R /home/你的帳號/.mozilla-save/* ~/.mozilla/<br>
+sudo chown -R 你的帳號:你的帳號 ~/.mozilla/
+    </ul>
+chmod +x loadfirefox.sh =&gt; 存檔離開，並改權限讓它可執行<br>
+cd /etc/init.d/ &amp;&amp; sudo ln -s ~/loadfirefox.sh
+=&gt;把這個script連結至/etc/init.d/<br>
+sudo update-rc.d
+loadfirefox.sh defaults =&gt; 設定啟動時自動執行 </li>
+  <li>做一個script，假設取名為 save-mozilla.sh， 在關機、重啟時自動將設定檔
+(~/.mozilla) 存下來<br>
+gedit ~/save-mozilla.sh，輸入下列內容:
+    <ul>
+#!/bin/bash<br>
+sudo rm -rf /home/你的帳號/.mozilla-save<br>
+cp -R /home/你的帳號/.mozilla/ /home/你的帳號/.mozilla-save/<br>
+注意要先刪掉原先備份.mozilla-save，如果只是覆蓋過去，那些資料夾內已移除的檔案，如移除的套件檔，仍會留著
+    </ul>
+chmod +x save-mozilla.sh =&gt; 加上可執行權限<br>
+sudo cp ~/save-mozilla.sh /etc/init.d/save-mozilla.sh =&gt;
+複製至啟動指令稿專區/etc/init.d/<br>
+sudo ln -s /etc/init.d/save-mozilla.sh /etc/rc0.d/K10save-mozilla.sh
+=&gt; 把檔連結到 /etc/rc0.d/，halt時使用<br>
+sudo ln -s /etc/init.d/save-mozilla.sh /etc/rc6.d/K10save-mozilla.sh
+=&gt; 把檔連結/etc/rc6.d/，reboot時使用</li>
+</ul>
+
+<hr>
+<h4>Config:</h4>
+
+<ul>
+
+  <li>config.trim_on_minimize: true</li>
+  <li>browser.cache.disk.capacity: 5000-15000</li>
+  <li>browser.cache.memory.capacity: 22500-60000</li>
+  <li>browser.sessionhistory.max_total.viwer: 10</li>
+  <li>network.prefetch-next: false</li>
+</ul>
+
+<br>
+
+<br>
+
+</body></html>

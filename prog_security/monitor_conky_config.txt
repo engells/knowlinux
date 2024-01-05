@@ -1,0 +1,252 @@
+
+
+﻿
+
+安裝conky
+==============================
+sudo apt-get install conky
+mkdir -p ~/.conky/default/
+cp /etc/conky/conky.conf ~/.conky/default/
+conky -c /home/用戶名稱/.conky/default/conky.conf
+
+gedit ~/.conky/default/conky.conf　或你從網路下載下來的Conky設定檔的路徑、檔名
+
+請將「alignment」的值改為「 top_right」　或者你想要的
+top_right是靠右上　alignment top_left是靠左上　bottom_right是靠右下　bottom_left是靠左下
+
+請將「gap_x」的值改為「10」　或者你想要的
+這是離水平邊緣的距離
+
+請將「gap_y」的值改為「35」　或者你想要的
+這是離垂直邊緣的距離
+
+請將「own_window_type」的值改為「normal」
+並換行後加入下面這一行　這樣可以讓Conky不會有圖層覆蓋方面的問題
+own_window_hints undecorated,below,sticky,skip_taskbar,skip_pager
+
+還有加入下一行可以改善閃爍
+double_buffer yes
+
+
+調整設定檔的美觀設定
+
+請將「xftfont DejaVu Sans Mono:size=12」改為「xftfont Monospace:size=10」
+或想使用的字型名稱與字型大小　注意字型名稱若選用沒有中文字的字型檔　將無法顯示中文
+
+若要改變預設的字型顏色　請在「default_color」設定想要的顏色
+設定值請打顏色名稱或RGB值　例如：white或ffffff
+
+假如想替字型加上陰影　請將「draw_shades」的值改為「yes」
+並在「default_shade_color」設定顏色
+
+或者如果想替字型加上描邊（但是「陰影」會被遮住）　請將「draw_outline」的值改為「yes」
+並在「default_outline_color」設定顏色
+
+假如想顯示邊框　請將「請將「draw_borders」的值改為「yes」
+而「border_width」可以決定邊框的粗細
+並且若把「stippled_borders」的值設為大於「0」便能成為虛線
+
+如果想更換底色請加入下面這一行　「black」請換為你想要的顏色的名稱或RGB值
+own_window_colour black
+
+而加入下面三行可以使底色透明化（需視窗管理器有支援RGBA）
+第二行的數值0全透明到255不透明　第三行可以決定是否去掉底色
+own_window_argb_visual yes
+own_window_argb_value 128
+own_window_transparent no
+
+讓背景半透明
+own_window_transparent no
+own_window_argb_visual yes
+own_window_argb_value 128
+
+自訂背景顏色　以黑色為例
+own_window_colour black 或 own_window_colour 000000
+
+metacity（Ubuntu預設的視窗管理器）及compiz都有支援RGBA，但是metacity預設不開啟。想開啟的話在終端機中輸入 gconf-editor
+然後勾取/apps/metacity/general/compositing_manager
+如果有用compiz則不用做上述動作
+
+（順便一提 「own_window_type」若設「override」則會與「own_window_argb_visual」衝突）
+
+上述那些設定都要打在「TEXT」之上
+設好後按「儲存」並結束gedit　大功告成！
+
+關於擷取CPU溫度、風扇轉速的詳細作法： http://dominic16y.world.edoors.com/CufaKMP6MAlQ
+
+
+
+
+---
+http://kernel.ubuntu.com/~kernel-ppa/mainline/
+http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?post_id=98955
+http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=21050&forum=3
+http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=21750&viewmode=flat&order=ASC&type=&mode=0&start=0
+http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=35948&viewmode=flat&order=ASC&type=&mode=0&start=0
+https://help.ubuntu.com/community/RadeonHD
+http://pierreroc.blogspot.com/2009/11/conky-for-pc.html
+
+
+
+conkyrc組態語法
+url: http://sinolog.it/?p=309
+==============================
+
+Conky的配置文件分為兩個部分，第一部分對Conky的全局屬性做設定，比如字體、嵌入桌面等等；第二部分是定義Conky的輸出格式，也就是Conky呈現在桌面上的樣式。
+
+在全局屬性的部分，重要的參數有：
+
+1、background no：是否嵌入桌面，「no」表示不嵌入；「yes」表示嵌入。
+
+2、out_to_console no：是否輸出結果到終端，主要在判斷Conky在哪裏出錯時使用，一般情況下為「no」即可。
+
+3、use_xft yes：是否使用xft字體，一般為「yes」。
+
+4、xftfont Monospace:size=8：設置一個默認字體，在下面的樣式定義段可以特別定義使用別的字體，如不特別指定，則使用默認字體；這裏最好選則一個等寬中文字體，比如我這裏選的就是「Monospace」，字體大小為「8」。
+
+5、update_interval 1：刷新時間。Conky需要每隔一段時間讀取一次要監視的系統狀態並把結果輸出到屏幕上，設定的時間間隔越短，監控的實時性越好，但系統負擔也越重；間隔時間越長則系統負擔越輕，但是監控的實時性越差。我這裏設定為1秒。
+
+6、minimum_size 280 5：設定Conky的邊界範圍，最小寬度為280像素，最小高度為5像素，一般沒有用，我這裏沒有使用，前面插入「#」號表示注釋掉。
+
+7、maximum_width 308：Conky邊界範圍最大寬度308像素，很多時候用這個參數來限制Conky的邊界。
+
+8、default_color white：設定Conky默認顏色，在樣式定義中可以設定使用任何一種顏色，如果沒有設置則采用缺省的顏色。這裏設定缺省顏色為「white」，也可以用16位值表示的顏色值，如「#0A0F00」。
+
+9、gap_x 10
+  gap_y 10：以上兩條設定Conky輸出範圍距離屏幕邊界的像素數量，最小為10像素。
+  alignment top_right：設定Conky輸出範圍在屏幕上的位置，「top_right」表示右上方，依此類推，「bottom_left」是左下角。
+
+10、uppercase no：如果值設為「yes」則所有輸出的文字都變成大寫字母。
+
+
+下面介紹一下輸出樣式定義區：
+
+Conky樣式定義的語法和編寫網頁有點相似，首先，以字符「TEXT」標志樣式定義的開始。Conky樣式的定義以行為單位，每一行對應Conky輸出到屏幕時的一行。
+
+每一行可以分為樣式屬性、文字和元素。其中樣式屬性和元素都以「$」開頭，並包含在「{}」裏面，「${}」應該放在應用目標的前面。
+
+樣式屬性如顏色、字體大小、停靠位置等。
+
+顏色的定義格式為：
+
+${color #5000a0}
+
+其中的16位值色可以用X中定義的顏色名稱代替，如${color snow}，以在/etc/X11/rgb.txt中找到全部顏色的列表。
+
+字體屬性的定義格式如下：
+
+${font Monospace:style=Bold:size=10}
+
+上面三個字體屬性中任何一個不設定則使用上面定義的默認值。
+
+${alignr}表示以該參數定義的元素向右對齊，${alignl}表示左對齊，${alignc}表示居中對齊。
+
+需要注意的是，${}中定義的顏色和字體屬性將一直影響到Conky配置文件的最後，即如果你在前面定義了第一行的顏色為「white」，那麼以後各行的顏色都是白色。所以原則上你需要為每一行甚至每一行的各個元素設定顏色或者字體屬性。
+
+文字即Conky顯示在屏幕上的文字，它不需要特別的定義，你希望Conky顯示什麼文字就添加什麼文字即可。
+
+元素即呈現在屏幕上的那些進度條、你要監視的系統狀態等等，格式為：
+
+${監視目標 參數}
+
+如果沒有參數，也可以直接使用
+
+$監視目標
+
+的格式。
+
+下面介紹一些常用的元素和其參數的格式：
+
+1、time：采用strftime的參數格式，其參數有好幾個，可以到這裏查找適合自己的參數並布置其格式。如我這裏設置為：
+
+${color lightgrey}${font Monospace:style=Bold:size=8}${time %b%d日 星期%a}${alignr}${time %p%l:%M:%S}
+
+即輸出字體為Monospace、字體大小為8像素、粗體、顏色為lightgrey，依次輸出月、日、星期幾，後面以12小時格式輸出時間並向右對齊。
+
+2、nodename：本機在網絡上的名稱。
+  sysname：如Linux。
+  kernel：內核版本。
+  machine：硬件系統類型，如i686。
+
+3、stippled_hr：在本行餘下的空間輸出虛線，多用於分隔區塊。
+
+4、uptime：系統持續運行時間。
+
+5、cpu：CPU實時占用百分比。
+  cpubar：CPU占用的進度條樣式。
+  cpugraph：CPU占用的頻譜圖樣式。該元素可以加兩個顏色值作參數，實現顏色漸變：
+
+${cpugraph 000000 5000a0}
+
+6、mem：內存實時占用大小。
+  memmax：內存總量。
+  memperc：內存實時占用百分比。
+  swap、swapmax、swapperc是虛擬內存的相應參數。
+
+7、processes：正在運行的進程數。
+  running_processes：活躍的進程數。
+
+8、addr ppp0：顯示ADSL撥號建立的連接的IP地址，「addr eth0」表示顯示第一塊網卡的IP地址。
+
+9、offset 70：表示相對於當前位置向右偏移70像素。
+
+10、downspeed eth0：第一塊網卡下載數據的實時速度。
+  upspeed eth0：第一塊網卡上傳數據的實時速度。
+  downspeedgraph eth0 32,150 ff0000 0000ff：以頻譜圖的樣式顯示第一塊網卡下載速度，高度為32像素，寬度為150像素，後面是兩種顏色，用於漸變色。
+  upspeedgraph eth0 …：用法同上。
+
+11、fs_used /home：顯示掛載到/home文件夾下的硬盤分區的使用量。
+  fs_size /home：顯示掛載到/home文件夾下的硬盤分區的總量。
+  fs_bar /home：以進度條樣式顯示掛載到/home文件夾下的硬盤分區的占用量。
+
+12、top name 1：按CPU占用從大到小排序當前進程並顯示第一個的名字。
+  top mem 2：按CPU占用從大到小排序當前進程並顯示第二個的內存占用量。
+  top pid 3：按CPU占用從大到小排序當前進程並顯示第三個的pid號。
+  top cpu 4：按CPU占用從大到小排序當前進程並顯示第四個的CPU占用量。
+  top_mem按內存占用從大到小排序當前進程。
+
+13、mpd_status：監視mpd的狀態。
+  mpd_elapsed：歌曲的已播放時間。
+  mpd_length：當前播放歌曲的長度。
+  mpd_bar：當前播放歌曲的進度條。
+  mpd_smart：智能判斷當前歌曲的輸出信息，如果id3可用，則輸出」歌手-歌名「的格式，如果id3不可用，則輸出當前歌曲的文件名。
+
+  除mpd外，Conky支持對audacious、bmp、xmms的監視。
+
+14、rss：訂閱一個feed並顯示其最新的幾個條目的標題等信息，如
+
+${rss http://feed.feedsky.com/my_cnbeta 5 item_titles 10}
+
+即每隔五分鍾獲取該源的最新條目，並輸出最新的十個條目的標題。
+
+15、tcp_portmon：監視當前使用的端口，目前只支持IPv4。使用格式為：
+
+tcp_portmon port_begin port_end item (index)
+
+16、電子郵件監視：通過設置fechmail並在配置文件中加入相關參數，Conky可以實現對電子郵箱的監視，每隔一段時間fechmail會收取服務器上的郵件，Conky會監視系統中的mail管道並顯示未閱讀的郵件的數量。
+考慮到安全性，我沒有設置郵件監視，不過可以在這裏找到Conky監視郵件的設置方法。
+
+17、exec：執行一個shell命令並把結果輸出到屏幕上。如，我這裏使用：
+
+${exec whoami}
+
+輸出當前用戶名。
+
+18、acpitemp：監視並輸出CPU溫度，攝氏溫標。Conky支持很多種CPU溫度監視方案。
+
+19、diskio：監視當前硬盤讀寫速度。
+  diskiograph：以頻譜形式輸出硬盤讀寫頻度，用法如cpugraph。
+
+使Vim支持Conky配置文件的語法高亮
+
+默認情況下，Vim不認識Conky的配置文件，使用Vim打開「.conkyrc」文件無法實現語法高亮。
+
+首先，到http://www.vim.org/scripts/script.php?script_id=1367下載Vim的Conky配置文件語法高亮插件。然後將其複制到用戶主目錄下的「.vim/syntax」文件夾（如果沒有則新建）裏。最後在「.vim/ftdetect」文件夾裏建立一個新文件，命名為「conkyrc.vim」，在裏面添加如下內容：
+
+au BufNewFile,BufRead *conkyrc set filetype=conkyrc
+
+再打開Conky的配置文件就可以實現語法高亮了。
+
+Conky的詳細說明
+
+Conky的功能非常豐富，這裏無法一一說明，只挑選了我認為有用的一些常用功能和參數進行分析。關於Conky的更詳細的說明可以參看官方的文檔。

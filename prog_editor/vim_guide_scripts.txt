@@ -1,0 +1,345 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim scripts
+# made by: Engells
+# date: Apr 1, 2019
+# content: Just for memo, http://learnvimscriptthehardway.onefloweroneworld.com/chapters/00.html
+
+
+
+option
+====================
+commands syntax:
+	set <name1> <name2>=<value2>
+	setlocal <name1> <name2>=<value2>
+
+examples:
+	:set number :set nonumber :set number! :set number?
+	:set numberwidth=4
+	:set wrap?
+	:set shiftround?
+	:set matchtime?
+
+
+
+
+abbreviations
+====================
+通常用於 insert、replace、command 模式
+
+commands syntax:
+  abbrev <left-string> <right-string>	          	" 定義簡寫(置換字串)，將左邊字串更換為右邊字串
+
+examples:
+  :iabbrev adn and									          		" 在插入模式下，adn 字串由 and 字串取代
+  :iabbrev <buffer> @@ steve@stevelosh.com				" 在插入模式及目前緩衝區下，@@ 字串由 steve@stevelosh.com 字串取代，變相成為簡易輸入電郵地址
+
+
+
+
+Operator-Pending
+====================
+:onoremap il( :<c-u>normal! f)vi(<cr>
+  <c-u> => make sure mapping active
+  normal! => 模擬按下按鍵，但不能識別特殊符號如 <CR>，故常搭配 execute
+  f) => 向後移動至最近的 ) 字元
+  vi( => 進入可視模式選取括弧內所有內容
+:onoremap ih :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rkvg_"<cr>
+  execute => run a vim script
+  ?^==\+$ => 向上搜尋兩個或以上 = 字元所組成之行，行內無 = 以外之字元。? ^$ ==\+
+  \r => <Enter>
+  nohlsearch => no high light search
+  k => 向上一列
+  v => 進入可視模式
+  g_ => 移到最後非空白字元
+:onoremap ah :<c-u>execute "normal! ?^==\\+$\r:nohlsearch\rg_vk0"<cr>
+
+Operator-Pending 常用到的 Operator 有d，y 和 c
+
+
+
+
+variables
+====================
+general variables name rule:
+  a:var_name	=> variable local to a function
+  b:var_name	=> variable local to a buffer
+  w:var_name	=> variable local to a window
+  g:var_name	=> global variable (also in a function)
+  l:var_name	=> variable local
+  s:var_name	=> variable local to a script
+  t:var_name	=> variable local to current tab
+  v:var_name	=> variable predefined by Vim
+
+pseudovariables name rule:
+  &var_name		=> option（default local, otherwise is global, &mouse 意謂取用滑鼠控制參數
+  &l:var_name	=> local option, &l:number = 1
+  &g:varname	=> golbal opnion
+  @var_name		=> register (list all by :reg)
+  $VAR_NAME		=> system environment variable 
+
+
+command syntax:
+  let
+  unlet
+  exists("s:call_count")
+
+
+let variable=value
+let &l:number = 1						" 將內部變數 &number 改為 &l:number
+let @a = "hello!"						" @a 是暫存器 a
+let b:hello = "world"				" b:hello 表示該變數只應用於現在 buffer
+
+boolean 0 => false others => true
+
+
+
+
+if and function
+====================
+if elseif else endif
+  one-line if: if ... | command1 | else | command2 | endif
+
+:set noignorecase
+:if "foo" ==? "FOO"					<= '==?' 忽略大小寫，'==#' 強制分辨大小寫
+:    echom "first"
+:elseif "foo" ==? "foo"
+:    echom "second"
+:endif
+
+function function_name() ... endfunction
+
+:function DisplayName(name)
+:  echom "Hello!  My name is:"
+:  echom a:name						<= a: 代表後接之參數為區域型，注意已提到 a:參數 b:參數
+:  if &l:textwidth ># 80
+:    return "xxxx"
+:  endif
+:endfunction
+
+:function Varg(foo, ...)
+:  echom a:foo
+:  echom a:0							<= quantity of *variables
+:  echom a:1
+:  echo a:000							<= list of *variables
+:endfunction
+
+:call Varg("aaa", "bbb", "ccc")
+
+Vimscript function 如果不回傳值，則會回傳 0，似乎是意謂 false
+
+:function! xxxx(）					<= 允许在需要时指出某个函数声明可以被安全地重载
+
+
+examples:
+  :echo split("one,two,three", ",")
+  :echo join(["foo", "bar"], "...")
+  :echo join(split("foo bar"), ";")
+
+help documents
+	:help ignorecase
+	:help expr4
+	:help :call
+	:help return
+  :echom tolower("Foo")
+  :echom toupper("Foo")
+
+
+
+
+Execute
+====================
+examples:
+  :execute "rightbelow vsplit " . bufname("#")		"在第二個檔案的右邊打開第一個檔案的垂直分割窗口
+  :normal G																				" 移至檔首，受熱鍵映射干擾
+  :normal ggdd
+  :normal! G																			" 建議使用方式，避免熱鍵映射干擾
+  :execute "normal! gg/foo\<cr>dd"
+  :execute "normal! mqA;\<esc>`q"
+  execute "normal! ..."：执行命令序列，一如它们是在normal模式下输入的，忽略所有映射， 并替换转义字符串。
+    " mq			=> 將目前位置標誌為 q
+    " A 			=> 移至現行列的尾端進入插入模式
+    " ; 			=> 在列尾插入 ; 字元
+    " \<esc>	=> 即 <Esc> 鍵，離開插入模式
+    " `q			=> 回到標誌 q 所在位置
+
+help documents
+  :help leftabove
+  :help rightbelow
+  :help normal
+  :help expr-quote
+
+
+
+List
+====================
+:echo [0, [1, 2]][1]
+:echo [0, [1, 2]][-2]
+:echo ['a', 'b', 'c', 'd', 'e'][0:2]
+:echo ['a', 'b', 'c', 'd', 'e'][-2:-1]
+:echo ['a', 'b', 'c', 'd', 'e'][:1]
+:echo "abcd"[0:2]								" 不可使用複數索引字串，如 :echo "abcd"[-2:-1]
+:echo "abcd"[-1] . "abcd"[-2:]	" 使用負數切割字串
+:echo ['a', 'b'] + ['c']
+:call add(foo, 'b')							" 將字元 b 加入變數 foo
+:echo len(foo)
+:echo get(foo, 100, 'default')
+:echo index(foo, 'b')
+:echo index(foo, 'nope')				" 若在變數 foo 中搜尋不到 nope，則回報 -1
+:echo join(foo, '---')					" 以 --- 連結列表變數 foo 中各個元素
+:call reverse(foo)
+:call sort(foo)
+:call remove(foo)
+
+
+
+
+loop
+====================
+:let c = 1
+:for i in [1, 2, 3, 4]
+:  let c += i
+:endfor
+
+:let c = 1
+:let total = 0
+:while c <= 4
+:  let total += c
+:  let c += 1
+:endwhile
+
+
+
+
+dictionary
+====================
+:echo {'a': 1, 100: 'foo',}['a']
+:echo {'a': 1, 100: 'foo',}.a					" if key is named by a-Z 0-9 _
+
+:let foo = {'a': 1}
+:let foo.a = 100
+:let foo.b = 200
+:echo foo
+
+:let test = remove(foo, 'a')
+:unlet foo.b
+:echo foo
+:echo test
+
+:echom get({'a': 100}, 'a', 'default')
+:echom get({'a': 100}, 'b', 'default')
+
+:echom has_key({'a': 100}, 'a')
+:echom has_key({'a': 100}, 'b')
+
+:echo items({'a': 100, 'b': 200})
+:echo keys({'a': 100, 'b': 200})
+:echo values({'a': 100, 'b': 200})
+
+
+
+
+customized functions in ~/.vim/plugins
+====================
+nnoremap <leader>f :call FoldColumnToggle()<cr>
+
+function! FoldColumnToggle()
+    if &foldcolumn
+        setlocal foldcolumn=0
+    else
+        setlocal foldcolumn=4
+    endif
+endfunction
+
+:help foldcolumn.
+:help winnr()
+:help ctrl-w_w.
+:help wincmd.
+
+----------
+function! Reversed(l)
+    let new_list = deepcopy(a:l)
+    call reverse(new_list)
+    return new_list
+endfunction
+
+function! Append(l, val)
+    let new_list = deepcopy(a:l)
+    call add(new_list, a:val)
+    return new_list
+endfunction
+
+function! Assoc(l, i, val)
+    let new_list = deepcopy(a:l)
+    let new_list[a:i] = a:val
+    return new_list
+endfunction
+
+function! Pop(l, i)
+    let new_list = deepcopy(a:l)
+    call remove(new_list, a:i)
+    return new_list
+endfunction
+
+:let Myfunc = function("Append")
+:echo Myfunc([1, 2], 3)
+
+:let funcs = [function("Append"), function("Pop")]
+:echo funcs[1](['a', 'b', 'c'], 1)		" funcs变量不需要以大写字母开头，因为它储存的是列表，而不是函数。 列表的内容不会造成任何影响。
+
+----------
+function! Mapped(fn, l)
+    let new_list = deepcopy(a:l)
+    call map(new_list, string(a:fn) . '(v:val)')
+    return new_list
+endfunction
+
+:let mylist = [[1, 2], [3, 4]]
+:echo Mapped(function("Reversed"), mylist)
+	" Mapped()接受两个参数：一个funcref("储存一个函数的变量"在 Vim 里的说法)和一个列表。 使用内置的 map()函数实现真正的工作
+
+
+:help sort()
+:help reverse()
+:help copy()
+:help deepcopy()
+:help map()
+:help filter()
+
+
+
+
+path
+====================
+:echom expand('%')										" 目前檔案的相對路徑
+:echom expand('%:p')									" 目前檔案的絕對路徑
+:echom fnamemodify('foo.txt', ':p')		" foo.txt 的絕對路徑
+:echo globpath('.', '*')
+:echo split(globpath('.', '*.txt'), '\n') " 顯示目前目錄下所有的 txt 檔案
+:echo split(globpath('.', '*'), '\n')
+:echo split(globpath('.', '**'), '\n')		" 顯示目前目錄及所有子目錄的檔案
+
+
+
+General
+====================
+一些按鍵的書寫方法
+----------
+<Esc> Esc 鍵
+<Tab> Tab 鍵
+<Space> Space 鍵
+<Home> Home 鍵
+<Del> Del 鍵
+<CR> Enter 鍵
+<Enter> Enter 鍵，和上面的相同
+<LT> 就是 <，在和 < 字元本身會有混淆、疑義時使用。也可以使用 \<。
+<BS> Backspace 倒退鍵
+<Up> PageUp 向上翻頁鍵
+<F5> F5 功能鍵
+<C-G> Ctrl+G 鍵
+<A-x> Alt+x 鍵、因為某些歷史原因、Alt 幾乎無法對映。
+<Shift> Shift 鍵
+<K-9> 九宮格數字鍵的 9
+
+注意大小寫是不分的
+

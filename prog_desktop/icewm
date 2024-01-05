@@ -1,0 +1,21 @@
+icewm 桌面管理器设置初探
+
+在 Puppy 發行版中，icewm 相關聯的文件主要會涉及到七個地方：
+1、/usr/bin
+2、/usr/share/icewm
+3、/etc/xdg/templates/_root_.icewm_menu
+4、/usr/local/lib/X11/themes
+5、/usr/share/backgrounds
+6、/root/icewm
+7、/root/.icewm
+現分別理清上述文件的作用和設置調整內容：
+1、/usr/bin下所涉icewm字樣的文件不需作任何修改，因為這是程序啟動命令。
+2、/usr/share/icewm下除themes內的文件外，其它文件不需要調整。/usr/share/icewm/themes放置的是程序的主題，可以根據喜好新增或刪減。調整後，/root/icewm所反映的文件其實是與/usr/share/icewm內的文件是完全一致的，所以/root/icewm也是不作任何調整的。
+3、/etc/xdg/templates/_root_.icewm_menu，這是反映菜單欄的內容，可以手動修改菜單的名稱，如將『幫助』改為『幫助說明』後，在菜單欄中就反映出『幫助說明』的字樣。
+4、/usr/local/lib/X11/themes，這是存放icewm桌面管理桌面圖標的地方，可以新增或刪減。
+5、/usr/share/backgrounds，這是存放icewm桌面管理系統壁紙的地方，可以新增或刪減。
+6、/root/.icewm下有四個文件需要弄明白：
+/root/.icewm/menu，這是系統菜單的子菜單，只要設置好/usr/share/applications下的各程序後，系統子菜單都會在/root/.icewm/menu中反映，所以『menu』文件不需要作任何修改。
+/root/.icewm/menu-previous，它與『menu』文件一樣。因此，也不需要作任何修改。
+/root/.icewm/toolbar，這是編輯快速啟動的菜單。
+7、/root/.icewm/preferences，『preferences』文件是幹什麼的呢？『preferences』文件全是E文，只有翻譯後，它所反映的內容才明白是負責icewm桌面管理器的啟動設置的。『preferences』文件翻譯過來，一看就會知道該如何設置了，

@@ -1,0 +1,36 @@
+##!/bin/bash
+# vim:ts=4
+# program: Memo thr package of matplotlib
+# made by: Engells
+# date: May 5, 2019
+# content: Just for memo
+
+
+
+Basic
+====================
+Commands
+---------------
+matplotlib.pyplot.plot(*args, scalex=True, scaley=True, data=None, **kwargs)
+matplotlib.pyplot.show
+matplotlib.pyplot.grid(True)
+matplotlib.pyplot.setp(lines,marker = "o")    # color = , marker = "o" , linewidth =
+
+
+
+
+Pie Chart
+====================
+Commands
+---------------
+matplotlib.pyplot.pie(x, explode=None, labels=None, colors=None, autopct=None, pctdistance=0.6, shadow=False, labeldistance=1.1, startangle=None, radius=None, counterclock=True, wedgeprops=None, textprops=None, center=(0, 0), frame=False, rotatelabels=False, *, data=None)
+
+
+
+
+Bar Chart
+====================
+matplotlib.pyplot.bar(x, height, width=0.8, bottom=None, *, align='center', data=None, **kwargs)
+    # https://matplotlib.org/3.3.3/api/_as_gen/matplotlib.pyplot.bar.html
+
+

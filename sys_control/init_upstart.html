@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="zh-tw"><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Upstart</title>
+
+  
+  
+  <style type="text/css">
+@import url(/home/engells/mnt/MyDefaultType.css);
+  </style>
+</head><body style="direction: ltr;">
+<br>
+
+<br>
+
+<h1>About Upstart in Ubuntu</h1>
+
+<br>
+
+<h3>前言</h3>
+
+<hr>截至 Ubuntu 11.04為止，
+部份的程式仍在 sysvinit 模式下管理，因此可使用傳統的 /etc/rc[x].d 的方式在開機或關機時執行。以 tmpfs
+方式掛載的目錄就是用 sysvinit 模式處理，運作情形良好。但如何在 upstart
+模式下增加或停用程式，例如開機時不要進入 X 環境，則仍未摸索出來。<br>
+<br>
+部份網路文章所依據的資料太舊，需小心不要被誤導。<br>
+<br>
+Ubuntu 預設採用 runlevel 2 開機，參閱 /etc/init/rc-sysinit.conf，可發現 env
+DEFAULT_RUNLEVEL=2，即指定開機 runlevel ，<br>
+
+/etc/rc[x].d/S99rc.local =&gt; /etc/init.d/rc.local =&gt; /etc/rc.local<br>
+
+/etc/init.d/rcS =&gt; 以 S 參數執行 /etc/init.d/rc<br>
+
+<br>
+
+<br>
+
+<h3>Ubuntu 開機管理</h3>
+
+<hr>Upstart是 Ubuntu Linux 用來規範開機啟動程序的工具，是由 Canonical Ltd. 公司（Ubuntu）的員工
+Scott James Remnant 開發而成。在 Unix-Like 底下，這原來是由 sysvinit 服務，並配合 runlevel
+的機制運作，但 Ubuntu 為實現快速開機的需求，因此另外建立 Upstart 專案，並融合 sysvinit 的運作於內。
+<br>
+
+以使用者的觀點來看，可以用簡單的兩分法：某些服務跑 sysvinit ；另外走
+upstart。因此，要設定開機是否啟用某服務，只要知道該服務是走那個路子的，就有辦法改。判斷依據<br>
+
+<ul>
+<li>查詢目錄及檔案<br>
+在 /etc/init 底下出現的 服務名稱.conf，歸 upstart
+管。找不到的服務名稱就歸 sysvinit 管，此部份位於 /etc/init.d 。</li>
+<li>以 initctl 指令 查詢<br>
+initctl list → 若是由 upstart 啟動的服務，便會列出其狀態。</li>
+</ul>
+
+<br>
+
+System-V init 運作機制
+<ul>
+
+  <li>設定工具： rcconf</li>
+  <li>適用服務：目前大多數的服務，舉凡 apache2 , xrdp, postfix,...等</li>
+  <li>工作目錄：所有服務的啟動 shell 放在 /etc/init.d 底下</li>
+  <li>運作概要：
+    <ul>
+      <li>在 /etc/ 底下，分成 rc[12345].d 及 rcS.d
+幾個資料夾，代表當以某個 level 來開機時，要啟動的程序有那些。</li>
+      <li>RunLevel 重點
+rcS.d -&gt; 無論那個 runlevel ，必定要執行的服務。<br>
+rc1.d -&gt; 安全模式下（sigle user mode）會啟動的項目<br>
+rc3.d -&gt; 純文字介面下會啟動的項目<br>
+rc5.d -&gt; 圖形化介面下會啟動的項目</li>
+      <li>各個 runlevel （rcX.d）下要啟動的項目，以，在該資料夾底下建立該服務的啟動捷徑<br>
+例如： /etc/rc3.d/K09apache2 -&gt; /etc/init.d/apache2</li>
+      <li>這些動作的設定，是用 rcconf 或 sysv-rc-conf 工作來作，不必打指令 </li>
+    </ul>
+  </li>
+  <li>補充說明：<br>
+rc.local / url: http://benjr.tw/node/678<br>
+當電腦開啟至 Linux 系統下，首先 init 會執行 run-level 目錄，也就是 /etc/rc.0.d ~ /etc/rc6.d
+目錄裡的 scripts。可以用 ls -l 指令查詢這些目錄，scripts 的名稱都是以 S 或 K 開頭再加上一串數字。S 代表在這個
+runlevel 是要開啟這個 daemon ，而 K 代表在這個 runlevel 是要關閉的，數字則代表他們執行的先後順序。<br>
+其實 scripts 只是連結，主要都是連結到 /etc/init.d 目錄下，所以真正的 script 是存在 /etc/init.d
+下的。一般在 runlevel 2、3、4 及 5 目錄下都有 S99rc.local 並且指向 ../init.d/rc.local 如
+/etc/rc5.d/S99local -&gt; ../init.d/rc.local，所以系統最後都會去執行
+/etc/init.d/rc.local 這支 script。而這支 script 會呼叫執行 /etc/rc.local。<br>
+rc.local 只能執行文字介面的程式，因為 rc.local 在執行時，還沒登入 x-window 環境。如果要自動執行 GUI
+的程式可以透過 XDG(X DESKTOP GROUP)
+的方式來啟動，或是使用前面（http://benjr.tw/node/115）所提到的 login system 會使用到的 script
+file。 <br>
+附註：<br>
+    <ul>
+      <li>Debian 的 rc.local 預設是存在 /etc/rc.d/rc.local</li>
+      <li>standard linux run level<br>
+0 halt (系統直接關機)<br>
+1 single user mode (單人維護模式，用在系統出問題時的維護)<br>
+2 multi-user, without NFS (類似底下的 runlevel 3，但無 NFS 服務)<br>
+3 full multi-user mode (完整含有網路功能的純文字模式)<br>
+4 unused (系統保留功能)<br>
+5 X11 (與 runlevel 3 類似，但加載使用 X Window)<br>
+6 reboot (重新開機)</li>
+      <li>Debian runlevel<br>
+0 halt<br>
+1 single<br>
+2 full multi-user with display manager (GUI)<br>
+3 full multi-user with display manager (GUI)<br>
+4 full multi-user with display manager (GUI)<br>
+5 full multi-user with display manager (GUI)<br>
+6 reboot </li>
+    </ul>
+  </li>
+</ul>
+
+<br>
+
+UPStart 運作機制<br>
+
+<ul>
+
+  <li>設定工具：無，但可透過設定檔的修改，來決定開機是否啟動</li>
+  <li>適用服務：--</li>
+  <li>工作目錄：所有啟動程序定義在 /etc/init 底下</li>
+  <li>工作原理：</li>
+  <ul>
+    <li>每個服務，都被寫成一個工作定義檔，例：ssh.conf</li>
+    <li>工作定義檔，包含了：要在那些 runlevel 執行；啟動要檢查及執行那些指令。</li>
+    <li>不像 System-V init 一樣，還要建立「捷徑」來控制。</li>
+  </ul>
+</ul>
+
+<br>
+
+UPStart 開機啟動設定
+<ul>
+
+  <li>前置說明<br>
+服務一旦安裝，設定檔便會自動寫妥，並設定成開機自動啟動。/etc/init/ 底下的 *.conf 只是工作定義，不是 SHELL
+Script 。定義檔參數的英文說明，可參閱網址：http://upstart.ubuntu.com/wiki/Stanzas</li>
+  <li>/etc/init/*.conf 工作定義檔結構說明<br>
+四大區塊解說：以 /etc/init.d/vsftpd.conf 為例
+    <ul>
+      <li>註解區塊<br>
+description "vsftpd daemon"<br>
+author "Chuck Short <zulcss@ubuntu></zulcss@ubuntu></li>
+      <li>啟動時機暨啟動失敗管理區塊<br>
+# 在檔案系統及網卡啟動後 start <br>
+start on (filesystem and net-device-up IFACE!=lo) <br>
+# 若 runlevel 不在 2345 的情況下要 stop 運作（意即 single user mode 下要 stop）<br>
+stop on runlevel [!2345] <br>
+# 若啟動失敗，要重試<br>
+respawn<br>
+# 在 5 秒內重試 10 次，仍無法啟動成功就放棄<br>
+respawn limit 10 5</li>
+      <li>啟動前置作業區塊<br>
+pre-start script<br>
+&nbsp;check_standalone_mode()<br>
+&nbsp; {<br>
+&nbsp;&nbsp; # Return 1 if vsftpd.conf doesn't have listen yes or
+listen_ipv6=yes<br>
+&nbsp;&nbsp; CONFFILE="/etc/vsftpd.conf"<br>
+&nbsp;&nbsp; if [ -e "${CONFFILE}" ] &amp;&amp; ! egrep -iq "^
+*listen(_ipv6)? *= *yes" "${CONFFILE}" then<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; echo "${CONFFILE}: listen disabled -
+service will not start"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 1<br>
+&nbsp;&nbsp; fi<br>
+&nbsp; }<br>
+&nbsp; [ -d /var/run/vsftpd ] || install -m 755 -o root -g root -d
+/var/run/vsftpd<br>
+&nbsp; [ -d /var/run/vsftpd/empty ] || install -m 755 -o root -g root
+-d /var/run/vsftpd/empty<br>
+&nbsp; check_standalone_mode || stop
+end script </li>
+      <li>啟動指令區塊<br>
+exec /usr/sbin/vsftpd</li>
+    </ul>
+  </li>
+  <li>關閉開機啟動的方式<br>
+把工作定義檔 start on 那部分（可能一行或兩行），全部加「＃」號註解掉，下次開機便不再啟動。<br>
+以 ssh.conf 為例，/etc/init/ssh.conf 部分內容如下<br>
+description "OpenSSH server"<br>
+#start on filesystem or runlevel [2345]<br>
+stop on runlevel [!2345] </li>
+  <li>已轉成 upstart 的網路服務清單，Ubuntu 11.04<br>
+vsftpd : tcp 21<br>
+ssh: tcp 22<br>
+dovecot: tcp 110, 143, 993, 995<br>
+nmbd: upd 137, 138<br>
+smbd: tcp 139, 445<br>
+mysql: localhost tcp 3306</li>
+</ul>
+
+<br>
+
+<div class="ref">參考資料：
+<hr class="ref"><cite class="ref">http://myip.tw/itsmw/index.php?title=Upstart<br>
+</cite><cite class="ref">http://www.zxbc.cn/html/20081128/68476.html</cite> --<font size="-1">2008/11/08</font><br>
+</div>
+
+<br>
+
+<br>
+<h3>Systemd</h3>
+
+<hr>
+<br>
+
+<br>
+
+</body></html>

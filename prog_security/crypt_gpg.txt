@@ -1,0 +1,201 @@
+# vim:ts=4
+# program: Using to note the knowledge about GPG in Ubuntu
+# made by: Engells
+# date: Dec 3, 2023
+# content: Just for memo
+
+
+
+實例操作
+====================
+情境介紹
+----------
+假設今天 A 有一個私密文件要傳給 B，如何確保傳遞過程中如果被其他人看到卻不會被洩漏呢
+1. A 產生金鑰「公鑰跟私鑰」
+2. A 將前述「公鑰」教予給 B
+3. B 將「目標文件」以 A 交付之「公鑰」加密成「加密文件」
+4. B 將「加密文件」傳給 A
+5. A 將 B 傳送之「加密文件」以第一步驟之「私鑰」解密還原成「目標文件」
+
+實作
+----------
+1.1 建立金鑰
+  gpg --full-generate-key
+1.2 匯出公鑰
+  gpg --output xxxx.asc --armor --export <email> # 此處以 emial 作為 key_id
+3.1 以公鑰加密目標文件
+  gpg --import xxxx.asc
+  gpg --encrypt --armor -r <send-to-email> <path-to-file>
+5.1 解密文件
+  gpg --decrypt <encrypted-file>
+
+
+
+
+金鑰管理
+====================
+產生金鑰
+  gpg --gen-key
+    # 選擇加密方法(預設為：RSA and RSA）、加密長度、金鑰過期日、輸入姓名、郵件地址、備註、加密密碼(passphrase)
+    # gpg 會通知金鑰 id
+
+取出公鑰
+  gpg -o public_key_filename --export key_id 或 gpg --export --armor key_id > key_filename
+    # 取出公鑰
+    # key_id 可以是 name 或 mail 地址
+    # --armor 表示公鑰轉換為 ASCII 碼輸出，否則是二進位格式。
+  gpg -ao private_key_filename --export-secret-keys key_id
+    # 取出私鑰
+    # 參數 -a 表示採 ASCII 格式
+
+發送公鑰
+  gpg --keyserver key_erver_address --send key_id
+    # --keyserver 參數可省略，預設值為 keys.gnupg.net
+
+將 key_erver_address 與 key_id 通知加密方
+
+加密方搜尋公鑰
+  gpg --keyserver key_server_address --search-keys key_id
+
+加密方取得公鑰
+  gpg --keyserver key_server_address --recv-keys key_id
+  gpg --import key_filename
+    # 第二行指令應用在解密方取出公鑰直接傳送給加密方的情形
+
+匯入金鑰
+  gpg --import key_filename
+
+金鑰註銷憑證
+  gpg --output key_filename --gen-revoke key_id
+    # 產生註銷憑證，憑證檔案為 revoke.asc
+  gpg --import key_filename
+    # 匯入註銷憑證
+  gpg --keyserver key_erver_address --send key_id
+    # 將註銷憑證上傳
+
+列出金鑰
+  gpg --list-keys
+    # 列出所有金鑰
+  gpg -k
+    # 列出所有公鑰  
+  gpg -K
+    # 列出所有私鑰
+  gpg --list-sigs
+    # 列出所有金鑰以及簽名
+  gpg --fingerprint
+    # 列出金鑰指紋
+
+金鑰簽章
+  gpg --edit-key key_id
+    # 選擇 sign 指令來對金鑰簽章
+
+刪除金鑰
+  gpg --delete-secret-keys user_name@address
+    # 刪除私鑰
+  gpg --delete-keys user_name@address
+    # 刪除公鑰，需在刪除私鑰後才能執行
+
+
+
+加密及解密
+====================
+以公鑰加密資料
+  gpg -e -r user_name file_name
+    # 參數 -r 代表發出公鑰的用戶
+
+以私鑰解密資料
+  gpg -d file_name.gpg
+
+對資料作數位簽章
+  gpg -o file_name.sig -s file_name
+    # 輸入私鑰的 passphrase 後，產生壓縮過的 file_name.sig，該檔案包括原始檔與二進位數位簽章
+
+同時使用加密以及數位簽章
+  gpg -o file_name.sig -ser recipient file_name
+    # 參數 -e 代表加密、 -s 代表簽章、 -r 代表發出公鑰用戶
+  gpg -o file_name.sig -[-u Sender] [-r Recipient] [--armor] --sign --encrypt file_name
+    # 參數 -u 推測為加密方， -r 為解密方
+
+明文模式簽章(原始資料不壓縮)
+  gpg -o file_name.sig --clearsign file_name
+    # 產生未壓縮的 file_name.sig，該檔案包括原始檔與簽章
+
+僅產生簽章檔
+  gpg -o file_name.sig -ab file_name
+    # 參數 b 代表分離式 detach-sign，產生的 file_name.sig，只有簽章
+
+驗證簽章
+  gpg --verify file_name.sig [file_name]
+    # 驗證前需先導入公鑰，對分離式簽章，需加入原始檔。
+
+
+參考資料
+  Gnu 隱私衛士 (GnuPG) 袖珍 HOWTO (中文版) :: http://www.gnupg.org/howtos/zh/
+  如何使用PGP加密以便在非安全通訊工具內進行加密通訊 :: https://pincong.rocks/article/16652
+
+
+
+
+GPG 概說
+====================
+PGP 全稱為 Pretty Good Privacy。GPG 全稱為 GnuPG，是 PGP 的 GNU 版本。
+
+PGP 為加密技術，解密方以演算法產生一對金鑰，也就是公鑰與私鑰。公鑰可有多份，分傳給各加密方。加密方以公鑰加密資料後傳給解密方，解密方再以私鑰解密資料還原。例如交易所將公鑰傳給各上市公司，各上市公司以公鑰加密上傳資料，交易所收到上傳資料後以私鑰解密還原。
+
+
+GPG 組態
+----------
+組態目錄   ~/.gnupg
+組態檔     ~/.gnupg/gpg.conf
+信任庫     ~/.gnupg/trustdb.gpg
+公鑰庫     ~/.gnupg/pubring.gpg
+私鑰庫     ~/.gnupg/secring.gpg
+
+
+GPG 指令參數
+----------
+語法：gpg [選項] [文件名]，簽章、檢查、加密或解密，默認的操作依輸入數據而定
+  -s, --sign [文件名]     生成一份簽章
+  --clearsign [文件名]    生成一份明文簽章
+  -b, --detach-sign       生成一份分離的簽章
+  -e, --encrypt           加密數據
+  -c, --symmetric         僅使用對稱加密
+  -d, --decrypt           解密數據(默認)
+  --verify                驗證簽章
+  --list-keys             列出金鑰
+  --list-sigs             列出金鑰和簽章
+  --check-sigs            列出並檢查金鑰簽章
+  --fingerprint           列出金鑰和指紋
+  -K, --list-secret-keys  列出私鑰
+  --gen-key               生成一副新的金鑰對
+  --delete-keys           從公鑰鑰匙環裏刪除金鑰
+  --delete-secret-keys    從私鑰鑰匙環裏刪除金鑰
+  --sign-key              為某把金鑰添加簽章
+  --lsign-key             為某把金鑰添加本地簽章
+  --edit-key              編輯某把金鑰或為其添加簽章
+  --gen-revoke            生成一份吊銷憑證
+  --export                導出金鑰
+  --send-keys             把金鑰導出到某個公鑰服務器上
+  --recv-keys             從公鑰服務器上導入金鑰
+  --search-keys           在公鑰服務器上搜尋金鑰
+  --refresh-keys          從公鑰服務器更新所有的本地金鑰
+  --import                導入/合並金鑰
+  --card-status           打印卡狀態
+  --card-edit             更改卡上的數據
+  --change-pin            更改卡的 PIN
+  --update-trustdb        更新信任度數據庫
+  --print-md 算法 [文件]  使用指定的散列算法打印報文散列值
+
+選項：
+  -a, --armor             輸出經 ASCII 封裝
+  -r, --recipient 某甲    為收件者「某甲」加密
+  -u, --local-user        使用這個用戶標識來簽章或解密
+  -z N                    設定壓縮等級為 N (0 表示不壓縮)
+  --textmode              使用標准的文本模式
+  -o, --output            指定輸出文件
+  -v, --verbose           詳細模式
+  -n, --dry-run           不做任何改變
+  -i, --interactive       覆蓋前先詢問
+  --openpgp               行為嚴格遵循 OpenPGP 定義
+  --pgp2                  生成與 PGP 2.x 兼容的報文
+

@@ -1,0 +1,33 @@
+
+
+
+
+編譯 MadEdit Ubuntu 12.04
+url:	http://orighost.sinaapp.com/blog/?tag=madedit
+	http://blog.wen.twgg.org/2012/06/madedit-ubuntu-1204.html
+==============================
+
+#建立編譯環境
+sudo apt-get install libwxgtk2.8-0 libwxgtk2.8-dev libboost-dev libglib2.0-dev libgtk-3-dev libgtk2.0-dev bison gettext libglib2.0-bin
+
+#設置 boost(o[tional)，主要是建立軟鏈接，指向boost頭文件位置
+ln -s path/to/boost安裝目錄/boost /usr/local/boost 
+
+#藉壓縮原始碼
+tar xzvf madedit-0.2.9.tar.gz
+
+#更正原始碼
+cd madedit-0.2.9
+vi src/MadEdit/MadEdit.cpp
+# 修改第9716行處的函數OnPaint，在最前面加入
+# if(m_ClientWidth==0 || m_ClientHeight==0) return;
+# 然後保存退出
+
+#指定安裝位置
+./configure –prefix=/home/orighost/soft/madedit
+
+#編譯
+make
+
+#安裝
+make install

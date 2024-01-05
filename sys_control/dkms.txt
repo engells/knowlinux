@@ -1,0 +1,65 @@
+# vim:ts=4
+
+
+
+概說
+==============================
+如果 Linux 驅動程序沒有包入到內核之中，就需要手動編譯。當然，這並不是什麼難事，即使是對於沒有編程經驗的 Linux 使用者，只要稍微有點 hacker 的意識，努力看看代碼包裏的 Readme 或者 INSTALL 檔案，按部就班的執行幾條指令還是很容易辦到的。
+
+但還有個問題：Linux 模組和內核存有依賴關系。如果是因為發行版更新造成的內核版本的變動，之前編譯的模塊並無法繼續使用，只能手動再編譯一遍。這樣重複的操作不但繁瑣，反生產力，且對於沒有內核編程經驗的使用者來說可能會造成困擾。使用者搞不清楚為什麼更新系統之後，原來用的好好的驅動程序突然就不能用了。
+
+這就是 Dell 創建的 DKMS 項目的意義所在。DKMS 全稱是 Dynamic Kernel Module Support，它可以幫忙維護內核外的這些驅動程序，在內核版本變動之後可以自動重新生成新的模塊。
+
+在使用 DKMS 之前先安裝：sudo apt-get install dkms
+
+
+原始碼位置：/usr/src/module_name-module_version
+	目錄中有三個檔案：dkms.conf、module_name.c、Makefile
+	dkms.conf 內容
+		PACKAGE_NAME="module_name"
+		PACKAGE_VERSION="module_version"
+		CLEAN="make clean"
+		MAKE[0]="make all KVERSION=$kernelver" → 一般情形下可不設定
+		BUILT_MODULE_NAME[0]="module_name" → 一般情形下可不設定，預設值為 $PACKAGE_NAME
+		DEST_MODULE_LOCATION[0]="/updates"
+		AUTOINSTALL="yes"
+
+DKMS 指令
+	add、build、install、uninstall、remove 及 status
+
+查看由 DKMS 維護的驅動程式
+	/var/lib/dkms
+
+sudo dkms add -m module_name -v module_version
+	將 module 模組加入 DKMS 維護清冊
+	Creating symlink /var/lib/dkms/module_name/module_version/source -> /usr/src/module_name-module-version
+	DKMS: add Completed.
+
+sudo dkms build -m hellomodule_name -v module_version
+	在 /var/lib/dkms/hello/0.1/$(uname -r)/$(uname -m)/module/ 目錄下編譯出新的模組 ***.ko
+
+sudo dkms install -m hellomodule_name -v module_version
+	安裝新的模組
+
+sudo dkms uninstall -m hellomodule_name -v module_version
+sudo dkms uninstall -m hellomodule_name -v module_version --all
+	移除模組
+
+
+
+
+
+dkms Case Study : Nvidia Driver HowTo
+==============================
+一: 先將顯示卡 Driver 移除
+二：確認 kernel-header
+三：下載顯示卡 Drive
+四：準備 install.sh preinstall.sh
+五：將 install.sh、preinstall.sh 與下載下來的 Driver 安裝檔放在同一個目錄下，輸入指令：sudo sh ./preinstall.sh 190.42。
+	可以再第二個參數直接輸入 NV-Installer 的名稱
+六：如果有興趣, 可以打指令：dkms status，看看到底裝了什麼
+
+
+url:
+	http://www.ubuntu-tw.org/modules/newbb/viewtopic.php?topic_id=19469&viewmode=flat&order=ASC&type=&mode=0&start=0
+

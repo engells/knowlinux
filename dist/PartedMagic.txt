@@ -1,0 +1,23 @@
+
+
+
+
+安裝 Parted Magic 至硬碟
+==============================
+1.在 USB 碟切割一塊大於 200MB 的硬碟分區，可為邏輯分區，檔案系統可為 FAT、Ext2~4
+	fdisk /dev/sd[x]
+	mkfs.vfat /dev/sd[x][y]
+
+2.將 iso 檔內容複製至硬碟分區，注意至少保留 pmagic 目錄
+	mount -t iso9660 /dev/cdrom0 /path/to/source
+	mount /dev/sh[x] /path/to/target
+	cd /path/to/source && cp -av . /path/to/target
+
+3.在硬碟的 boot loader 開機清單中加入 Parted Magic，以 Grub 1.9x 為例
+	menuentry "Parted Magic" {
+	set root=(hd0,6)
+	linux /pmagic/bzImage edd=off load_ramdisk=1 prompt_ramdisk=0 rw loglevel=9 vga=normal livemedia noeject max_loop=256 vmalloc=256MiB
+	initrd /pmagic/initramfs
+	}
+
+

@@ -1,0 +1,224 @@
+##!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about proxmox
+# made by: Engells
+# date: Nov 28, 2023
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+PVE direct IO
+====================
+Direct to HD
+---------------
+啟用 Host AT-D
+  BIOS => Advanced => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advanced => System Agent (SA) Configuration => VT-D >> Enable
+修改開機選項
+  編輯 /etc/default/grub >> GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on pcie_acs_override=downstream"
+  sudo update-grub
+  sudo reboot
+修改啟用模組
+  編輯 /etc/modules 或 /etc/modules-load.d/modules.conf，加入
+    vfio
+    vfio_iommu_type1
+    vfio_pcioptions     # vfio_pci ?
+    vfio_virqfd         # not need on PVE 8
+  sudo update-initramfs -u -k all
+將硬碟指定至虛擬機(選用步驟)
+  qm set <vmid> -<vm device> /path/to/disk
+  # 釋例 qm set 102 -scsi2 /dev/disk/by-id/ata-ST4000DM004-2CV104_WFN1Z43V
+  edit /etc/pve/qemu-server/vm_id.conf
+  # scsi[x]: /dev/disk/by-id/ata-ST4000DM004-2CV104_WFN1Z43V,size=xxxx,serial=xxxx
+  # serial 可以 lsblk -o +MODEL,SERIAL,WWN 指令查詢
+
+
+PVE 與 Ubuntu direct to HD 差異
+---------------
+PVE 啟用 VFIO 核心模組，搭配 qm 指令將 HD 掛於 VM，再編輯 VM 設定檔補充 Serial 資料。亦可不補充 Serial 資料
+Ubuntu 不需啟用 VFIO 核心模組，直接編輯 VM 設定檔即可。
+
+
+Direct to GPU
+---------------
+簡述
+  啟用 Host 硬體對 IOMMU / VFIO 支援
+  啟用 Host OS 核心對 IOMMU / VFIO 支援
+  啟用 Host OS 核心 VFIO 模組
+  禁止 PVE Host 開機佔用要直通之顯卡
+  修正 VM 重開機失敗
+  將 GPU 加入 VM 直通清單
+
+啟用 Host 硬體對 IOMMU / VFIO 支援，開啟 Host AT-D 功能
+  BIOS => Advanced => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advanced => System Agent (SA) Configuration => VT-D >> Enable
+
+啟用 Host OS 核心對 IOMMU ，修改開機選項
+  Grub with UEFI 開機管理模式
+    編輯 /etc/kernel/cmdline 修改 boot=xxx 相關的指令
+      root=ZFS=rpool/ROOT/pve-1 boot=zfs intel_iommu=on iommu=pt pcie_acs_override=downstream video=efifb:off,vesafb:off
+      # intel_iommu=on 開啟IOMMU
+      # iommu=pt 加強IOMMU的性能
+      # pcie_acs_override=downstream 加入此參數，分組後可把繪圖裝置跟聲音裝置分別直通給不同 VM。沒加入此參數，分組後直通顯卡會同步綁定繪圖裝置跟聲音裝置
+      # video=efifb:off,vesafb:off efi 開機後不載入 fb0，若顯卡插在主機板第一條 PCI-E 才需要加上 video=efifb:off 參數
+      # 自 PVE 7.2 起，可以 initcall_blacklist=sysfb_init 取代 video=efifb:off,vesafb:off efi 
+    pve-efiboot-tool refresh && reboot
+  Grub with Legacy 開機管理模式
+    編輯 /etc/default/grub >> GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on iommu=pt pcie_acs_override=downstream video=efifb:off,vesafb:off"
+      # 選項 "intel_iommu=on" 或 "amd_iommu=on"
+      # 選項 iommu=pt iommu=1，參考： https://morphechan.com/pve-gpu-passthrough-ubuntu-vm/
+      # 選項 pcie_acs_override=downstream
+      # 自 PVE 7.2 起，initcall_blacklist=sysfb_init 可取代 video=efifb:off,vesafb:off 有較佳效果
+      # 只適用 grub 控制開機核心模組情形，若PVE 已改用 systemd-boot 開機，本段不適用
+    update-grub && reboot
+    確認 iommu 開啟成功
+      dmesg | grep -e DMAR -e IOMMU → [ ... ] ... : IOMMU performance counters supported
+      find /sys/kernel/iommu_groups/ -type l → /sys/kernel/iommu_groups/17/devices/0000:09:00.3 ...
+
+啟用 Host OS 核心 VFIO 模組
+  編輯 /etc/modules(該檔案為 /etc/modules-load.d/modules.conf 鍊結標的)，加入
+    # load GVT-G drive
+    kvmgt
+    # load VFIO drivers
+    vfio
+    vfio_iommu_type1
+    vfio_pcioptions
+    vfio_virqfd
+  編輯 /etc/modprobe.d/iommu_unsafe_interrupts.conf，加入
+    # IOMMU interrupts allow
+    options vfio_iommu_type1 allow_unsafe_interrupts=1
+  重開機
+    update-initramfs -u -k all
+    systemctl reboot
+  確認模組加載成功
+    dmesg | grep -i vfio → ... [ ... ] VFIO - User Level meta-driver version: 0.3
+    dmesg | grep 'remapping' → [ ... ] ... : Interrupt remapping enabled
+    lspci -v → ... VGA compatible controlle ... Kernel driver in use: vfio-pci ... 
+
+禁止 PVE Host 開機佔用要直通之顯卡
+  編輯 /etc/modprobe.d/pve-blacklist.conf，加入
+    # block INTEL driver
+    blacklist snd_hda_intel
+    blacklist snd_hda_codec_hdmi
+    blacklist i915
+    # block NVIDIA driver
+    blacklist nouveau
+    blacklist nvidia
+    blacklist nvidiafb
+    blacklist nvidiadrm
+    # block AMD driver
+    blacklist radeon
+    blacklist amdgpu
+
+修正 VM 重開機失敗
+  NVIDIA 顯卡禁止自動開機，編輯 /etc/modprobe.d/kvm.conf，加入
+    # KVM config to avoid code 43
+    options kvm ignore_msrs=1
+    options report_ignored_msrs=0
+  AMD 顯卡禁止自動開機
+    apt install pve-headers-$(uname -r)
+    apt install git dkms build-essential
+    git clone https://github.com/gnif/vendor-reset.git
+    cd vendor-reset
+    dkms install .
+    echo "vendor-reset" >> /etc/modules
+    update-initramfs -u
+    shutdown -r now
+  Intel 顯卡啟用 GVT，編輯 /etc/modprobe.d/kvm.conf，加入
+    # INTEL Graphic config
+    options i915 enable_gvt=1
+    options i915 enable_guc=0
+
+更新開機起始檔，需開機 Host 才能啟用 pass-through
+  update-initramfs -u
+  # pve-efiboot-tool refresh 備用
+  reboot
+
+將 GPU 加入 VM 直通清單
+  查詢顯卡 ID
+    lspci -nnk or lspci -nnv or lspci -nn
+  編輯 /etc/modprobe.d/vfio.conf，加入：
+    options vfio-pci ids=XXXX:XXXX
+    options vfio-pci ids=XXXX:XXXX
+
+
+PVE 與 Ubuntu pass-through GPU 差異
+---------------
+啟用 Host OS 核心對 IOMMU / VFIO 支援階段
+  Ubuntu 未使用 video=efifb:off,vesafb:off 核心參數
+
+啟用 Host OS 核心 VFIO 模組階段
+  Ubuntu 使用較新核心已內建 vfio 及 iommu 驅動類模組，仍需補充目標 GPU 的 Device ID
+  PVE 預設未啟用 vfio 相關模組，需在 /etc/modules 設定，之後與 Ubuntu 相同需補充目標 GPU 的 Device ID
+
+其餘階段，兩者作法相同
+
+
+參考資料
+---------------
+PCI passthrough in Win 11 VM on Ubuntu 22.04 :: https://mathiashueber.com/passthrough-windows-11-vm-ubuntu-22-04/
+PCI/GPU Passthrough on PVE 8 :: https://forum.proxmox.com/threads/pci-gpu-passthrough-on-proxmox-ve-8-installation-and-configuration.130218/
+Proxmox VE總整理(二) - PVE基本配置(直通包括獨顯+開啟內顯GVT-G) :: https://home.gamer.com.tw/creationDetail.php?sn=5516262
+Proxmox VE设置GPU直通Ubuntu虚拟机 :: https://morphechan.com/pve-gpu-passthrough-ubuntu-vm/
+PVE 虛擬機直通 SATA硬盤，安裝、洗白黑群暉 :: https://www.v2rayssr.com/pve-nas.html
+Promox VE(PVE)虛擬機安裝黑群暉保姆級圖文教程 :: https://www.10bests.com/install-synology-dsm-on-pve/
+電腦數位 篇二：intel小主機安裝PVE+Kodi(18.6)+OpenWrt，實現HTPC+旁路由功能 :: https://post.smzdm.com/p/a9926n90/
+
+
+
+
+
+SR-IOV
+====================
+SR-IOV 全稱 Single Root I/O Virtualization，是用於虛擬機的一項技術，簡單說它在實體網卡上面產生一些虛擬網卡，然後把這些虛擬網卡直接指派(PassThrough)給虛擬機(VM)來使用，從而使得VM的網卡效能變好。
+
+SR-IOV 利用兩個概念來完成裝置虛擬化
+  物理功能 (Physical Function, PF) 就是標準的 PCIe 功能 ，也就是實體網卡的功能。
+  虛擬功能 (Virtual Function, VF) 是一種輕量級 PCIe 功能，可以與物理功能以及與同一物理功能關聯的其他 VF 共享一個或多個物理資源。VF 僅允許擁有用於其自身行為的配置資源。
+
+操作步驟
+  BIOS >> 把與虛擬有關的技術都打開：Intel VT-D 或 AMD-VI (IOMMU)、SR-IOV、"Virtualization Technology"
+  grub >> GRUB_CMDLINE_LINUX_DEFAULT=" ... intel_iommu=on ..."
+  VF網卡設定 >> echo 2 > /sys/class/net/NIC_ID/device/sriov_numvfs && lspci | grep Ethernet or ip link show ;; cat /sys/class/net/NIC_ID/device/sriov_totalvfs
+  LXC設定 >> edit vim /etc/pve/lxc/100.conf
+    lxc.net.0.type:phys
+    lxc.net.0.link:enp6s6 (NIC in host)
+    lxc.net.0.name:eth0 (NIC in lxc container or vm)
+    lxc.net.1.type:phys
+    lxc.net.1.link:enp6s6f1
+    lxc.net.1.name:eth1
+  boot strip >> 
+    echo 2 > /sys/class/net/enp6s0f1/device/sriov_numvfs      # sr-iov 啟用vf網卡兩張
+    ip link set enp6s0f1 vf 0 vlan 10 mac GE:C6:B2:3C:X6:DD   # 設 VF 網卡固定 mac address，ip link set 實體網卡代號 vf VF網卡序號 vlan vlan_tag qos 優先權
+    
+Refs
+  SR_IOV :: http://note.zn2.us/sriov.htm
+
+
+
+
+Proxmox VE 4x 檔案位置
+====================
+設定檔：/etc/pve
+KVM 虛擬機：/var/lib/vz
+lxc 容器：/var/lib/lxc
+lxc 範本：/var/lib/vz/template/cache/xxxx.tar.gz
+iso 檔案：/var/lib/vz/template/iso
+
+local：儲存映像檔、容器模板、VM/CT 備份用的空間
+local-lvm：儲存 VM 與 CT 虛擬硬碟的空間
+
+
+
+
+Proxmox VE 參考指令
+====================
+qm importdisk <vmid> <images-name> <storage pool> --format=<disk-fs>
+  # qm importdisk 102 Ubuntu_22.04.vmdk local-lvm --format=qcow2
+  # vmid： virtual machinne id
+  # storage pool: pool name / location
+  # disk-fs: raw / vmdk / qcow2
+qm set <vmid> -<vm device> /path/to/disk
+  # qm set 102 -sata2 /dev/disk/by-id/xxxxx
+
+

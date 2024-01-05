@@ -1,0 +1,58 @@
+
+
+
+timidity + eawpats12
+url:	http://abev66.blogspot.com/2007/06/ubuntu-linuxmiditimidity.html
+	ubuntu 正體網站
+==============================
+
+安裝 timidity
+-------------------------
+sudo apt-get install timidity timidity-interfaces-extra
+
+
+安裝 eawpats12
+-------------------------
+下載 http://wclhfl.dyndns.org/abev66/eawpats12_full.tar.gz，解開至 /usr/share/timidity/eawpats/ 下，
+
+
+組態 timidity
+-------------------------
+編輯 /etc/timidity/timidity.cfg，將 source /etc/timidity/freepats.cfg 這一行的最前瑞加上 # 註解掉，並加入以下設定內容：
+opt -A80,120a （A80是音量, 120a 是敲擊樂音量）
+dir /usr/share/timidity/eawpats/
+source gravis.cfg
+source gsdrums.cfg
+source gssfx.cfg
+source xgmap2.cfg
+
+然後執行：timidity -Os -ig midi檔 ← 以 Gtk+ 圖形介面，並用 ALSA 音效輸出播放 MIDI 檔
+輸出的方式如下：
+-Od OSS輸出
+-Os ALSA pcm輸出
+-OR aRts(KDE 聲音伺服器)
+-Oe Enlightened sound daemon(ESound Server)
+-Oj JACK device
+-On Network Audio Server
+-Ow RIFF WAVE檔案
+-Or Raw waveform data
+-Ou Sun 音樂檔
+-Oa AIFF 檔案
+-Ov Ogg Vorbis
+-OF FLAC / OggFLAC
+-Ol List MIDI event
+-OM MOD -> MIDI 檔案轉換
+介面：
+-ig gtk+
+-ii X Skin
+-ik Tcl/Tk
+-is slang
+-iT vt100
+
+
+另一個音源庫，fluid
+-------------------------
+sudo apt-get install fluid-soundfont-gm (3.1-1)
+sudo apt-get install 
+fluid-soundfont-gs (3.1-1)
+

@@ -1,0 +1,329 @@
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about SSH
+# made by: Engells
+# date: Aug 24, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+
+Cofigure LDAP Tree
+====================
+
+ldapadd -x -D "cn=authgov,dc=wtc,dc=com" -W -h 10.0.3.11 -f /root/ldap_tree.ldif 
+yum install httpd php php-mbstring php-pear -y && echo $?
+
+ldapsearch -x -D "cn=authgov,dc=wtc,dc=com" -h 10.0.3.11 -b "ou=member,dc=wtc,dc=com" -W
+ldapsearch -x uid=angus
+ldappasswd -x -D "cn=authgov,dc=wtc,dc=com" -h 10.0.3.11 -W "uid=angus,ou=member,dc=wtc,dc=com"	-S
+
+
+
+
+Buid LDAP clients
+====================
+Debian or Ubuntu
+----------
+安裝套件
+  # apt install libnss-ldap libpam-ldap ldap-utils nscd
+  # 若有需要執行右列指令設定客戶端：dpkg-reconfigure ldap-auth-config
+  # 套件 ldap-auth-client 會自動安裝 
+
+編輯 /etc/ldap/ldap.conf
+  # BASE
+  # LDAP
+
+編輯 /etc/nsswitch.conf，加入 ldap 驗證方式
+  # passwd:         ldap compat
+  # group:          ldap compat
+  # shadow:         ldap compat
+
+編輯 /etc/pam.d/common-session，建立使用者家目錄
+  # session required        pam_mkhomedir.so skel=/etc/skel umask=077
+
+重啟 nscd 服務
+  # service nscd restart
+
+測試是否可取得使用者帳戶資料
+  # getent passwd user_name
+  # 順利的話，出現類似右列訊息：user_name:x:5001:5001:messages:/home/user_name:/bin/bash
+
+完成，可以 user_name 登入
+
+URLs：
+  http://www.itzgeek.com/how-tos/linux/ubuntu-how-tos/configure-ldap-client-on-ubuntu-16-04-debian-8.html
+
+
+
+RedHat or CentOS
+----------
+yum install openldap-clients nss-pam-ldapd -y
+authconfig-tui
+authconfig --savebackup=/root/authconfig.bak
+authconfig --enableldap --enableldapauth --disableldaptls --ldapserver=ldap://10.0.3.11 --ldapbasedn="dc=wtc,dc=com" --enableshadow --enablemkhomedir --update
+root@centos
+
+
+
+
+Build LDAP Server
+====================
+Debian or Ubuntu
+----------
+安裝套件
+  # apt install slapd ldap-utils
+
+設定 slapd
+  #  dpkg-reconfigure slapd
+
+查詢 slapd 是否啟用
+  # netstat -antup | grep -i 389
+
+編輯 ldif 檔案，將組織及使用者資料加入
+  # vi usrs.ldif
+  #  dn: ou=login,dc=xxx,dc=yyy
+  #  objectClass: organizationalUnit
+  #  ou: login
+  #
+  #  dn: ou=groups,dc=xxx,dc=yyy
+  #  objectClass: organizationalUnit
+  #  ou: group
+  #
+  #  dn: uid=bruce.lee,ou=login,dc=xxx,dc=yyy
+  #  objectClass: top
+  #  objectClass: account
+  #  objectClass: posixAccount
+  #  objectClass: shadowAccount
+  #  cn: bruce.lee
+  #  uid: bruce.lee
+  #  uidNumber: 9999
+  #  gidNumber: 100
+  #  homeDirectory: /home/bruce.lee
+  #  loginShell: /bin/bash
+  #  gecos: bruce.lee
+  #  userPassword: {crypt}x
+  #  shadowLastChange: 17058
+  #  shadowMin: 0
+  #  shadowMax: 99999
+  #  shadowWarning: 7
+
+將組織及使用者資料導入
+  # ldapadd -x -W -D "cn=admin,dc=xxx,dc=yyy" -f usrs.ldif
+
+URLs：
+  http://www.itzgeek.com/how-tos/linux/debian/install-and-configure-openldap-on-ubuntu-16-04-debian-8.html/2
+  https://linoxide.com/linux-how-to/setup-openldap-server-authenticate-client-workstation/
+
+
+
+RedHat or CentOS
+----------
+設定防火牆
+  # service iptables stop
+  # iptables -A INPUT -p tcp -m state --state NEW --dport 389 -j ACCEPT
+  # iptables -A OUTPUT -p tcp -m state --state NEW --dport 389 -j ACCEPT
+  # iptables -A INPUT -p tcp -m state --state NEW --dport 636 -j ACCEPT
+  # iptables -A OUTPUT -p tcp -m state --state NEW --dport 636 -j ACCEPT
+  # service iptables save
+  # service iptables restart && chkconfig iptables on
+
+設定 SELinux
+  # setenforce 0
+  # cat /etc/selinux/config | grep -i '^SELINUX'
+
+安裝 LDAP Server Packages
+  # yum install openldap openldap-servers openldap-clients
+  # cp /etc/openldap/slapd.d /etc/openldap/slapd.d.bak
+  # rm -rf /etc/openldap/slapd.d/*
+  # cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+  # cp /use/share/openldap-servers/slapd.conf.obsolete /etc/openldap/slapd.conf
+  # chown -R ldap:ldap /var/lib/ldap/
+  # chown -R ldap:ldap /etc/openldap/
+
+  # slaptest -f /etc/openldap/slapd.conf || slaptest -u
+  # slaptest -f /etc/openldap/slapd.conf -F /etc/openldap/slapd.d
+  # chown ldap:ldap /etc/openldap/slapd.d
+  # service slapd restart
+
+==========
+
+
+
+
+Build CA Center
+====================
+CA Private Key
+	openssl genrsa -out /etc/pki/CA/private/cakey.pem 2048
+
+CPA Public Key
+	openssl req -new -x509 -key /etc/pki/CA/private/cakey.pem -out /etc/pki/CA/cacert.pem -days 3650
+	openssl x509 -noout -text -in /etc/pki/CA/cacert.pem
+
+Set certiicate number
+	touch index.txt serial crlnumber
+	echo "01" > serial
+
+Builld LDAP Server Certificate
+	openssl genrsa -out ldapkey.pem 1024
+	openssl req -new -key ldapkey.pem -out ldap.csr -days 3650
+
+	openssl ca -in ldap.csr -out ldapcert.pem -days 3650
+
+
+Test LDAP Server Certificate
+ openssl verify -CAfile /etc/pki/CA/cacert.pem /etc/openldap/certs/ldapcert.pem
+ openssl s_client -connect 10.0.3.11:636 -showcerts -state -CAfile /etc/pki/CA/cacert.pem
+
+
+
+
+
+
+
+
+
+
+
+
+
+http://linux.onlinedoc.tw/2016/05/centos7rhel7-ldap-server.html
+產生加密後的密碼
+	slappasswd -s redhat -n > /etc/openldap/passwd
+
+製作加密通訊用的金鑰組
+	openssl req -new -x509 -nodes -out /etc/openldap/certs/cert.pem -keyout /etc/openldap/certs/priv.pem -days 3650
+
+修改 /etc/openldap/certs 權限：
+	cd /etc/openldap/certs
+	chown ldap:ldap *
+	chmod 600 priv.pem
+	chown ldap /var/lib/ldap/DB_CONFIG
+
+複製 LDAP 資料庫範例檔
+	cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+
+產生資料庫檔(不用管出現的錯誤)
+	slaptest
+	chown ldap:ldap /var/lib/ldap/*
+
+防火牆設定(389/686 port)
+	firewall-cmd --permanent --add-service=ldap
+	firewall-cmd --permanent --add-service=ldaps
+	firewall-cmd --reload
+
+啟動 slapd 服務：
+	systemctl enable slapd.service
+	systemctl start slapd.service
+
+檢查啟動狀況：
+	netstat -ltn | grep ldap
+
+將 ldif 檔案導入系統中，例如： cosine 以及 nis 兩個 schemas：
+	cd /etc/openldap/schema
+	ldapadd -Y EXTERNAL -H ldapi:/// -D "cn=config" -f cosine.ldif
+	ldapadd -Y EXTERNAL -H ldapi:/// -D "cn=config" -f nis.ldif
+
+編寫 changes.ldif 檔案：
+	vim /etc/openldap/changes.ldif
+		dn: olcDatabase={2}hdb,cn=config
+		changetype: modify
+		replace: olcSuffix
+		olcSuffix: dc=example,dc=com
+
+		dn: olcDatabase={2}hdb,cn=config
+		changetype: modify
+		replace: olcRootDN
+		olcRootDN: cn=Manager,dc=example,dc=com
+
+		dn: olcDatabase={2}hdb,cn=config
+		changetype: modify
+		replace: olcRootPW
+		olcRootPW: {SSHA}xxxxxxxxxxxxxxxxxxxxxxxx
+
+		dn: cn=config
+		changetype: modify
+		replace: olcTLSCertificateFile
+		olcTLSCertificateFile: /etc/openldap/certs/cert.pem
+
+		dn: cn=config
+		changetype: modify
+		replace: olcTLSCertificateKeyFile
+		olcTLSCertificateKeyFile: /etc/openldap/certs/priv.pem
+
+		dn: cn=config
+		changetype: modify
+		replace: olcLogLevel
+		olcLogLevel: -1
+
+		dn: olcDatabase={1}monitor,cn=config
+		changetype: modify
+		replace: olcAccess
+		olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" read by dn.base="cn=Manager,dc=example,dc=com" read by * none
+
+
+導入 changes.ldif 檔案到 LDAP Server 中：
+	ldapmodify -Y EXTERNAL -H ldapi:/// -f /etc/openldap/changes.ldif
+
+
+開始建立所須網域的 ldif 檔案：
+	vim /etc/openldap/base.ldif
+		dn: dc=example,dc=com
+		dc: example
+		objectClass: top
+		objectClass: domain
+
+		dn: ou=People,dc=example,dc=com
+		ou: People
+		objectClass: top
+		objectClass: organizationalUnit
+
+		dn: ou=Group,dc=example,dc=com
+		ou: Group
+		objectClass: top
+		objectClass: organizationalUnit
+
+
+導入 base.ldif 檔案到 LDAP Server
+	ldapadd -x -w redhat -D cn=Manager,dc=example,dc=com -f /etc/openldap/base.ldif
+
+
+增加兩個系統使用者帳號來測試一下：
+	mkdir /home/guests
+	useradd -d /home/guests/ldapuser01 ldapuser01
+	passwd ldapuser01
+	useradd -d /home/guests/ldapuser02 ldapuser02
+	passwd ldapuser02
+
+
+編寫 migrate_common.ph內容，將系統上的使用者，導入到 LDAP Server
+	vim /usr/share/migrationtools/migrate_common.ph
+		$DEFAULT_MAIL_DOMAIN = "example.com";
+		$DEFAULT_BASE = "dc=example,dc=com";
+
+
+在LDAP Server 中，建立目前的使用者與群組：
+	grep ":10[0-9][0-9]" /etc/passwd > passwd
+	./migrate_passwd.pl passwd users.ldif
+	ldapadd -x -w redhat -D cn=Manager,dc=example,dc=com -f users.ldif
+	grep ":10[0-9][0-9]" /etc/group > group
+	./migrate_group.pl group groups.ldif
+	ldapadd -x -w redhat -D cn=Manager,dc=example,dc=com -f groups.ldif
+
+
+測試目前的使用者 ldapuser01：
+	ldapsearch -x cn=ldapuser01 -b dc=example,dc=com
+
+
+可加入系統記錄服務：
+	vim /etc/rsyslog.conf
+		local4.* /var/log/ldap.log
+
+	systemctl restart rsyslog
+
+
+
+
+
+
+

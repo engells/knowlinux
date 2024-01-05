@@ -1,0 +1,154 @@
+##!/bin/bash
+# vim:ts=4
+# program: Memo thr package of numpy
+# made by: Engells
+# date: Feb 5, 2021
+# content: Just for memo
+
+
+
+ndarray
+====================
+產生陣列
+---------------
+numpy.zeros(10, dtype=int)        # numpy.zeros(shape, dtype=float, order='C', *, like=None)
+numpy.ones((3,5) ,dtype=float)    # numpy.ones(shape, dtype=None, order='C', *, like=None
+numpy.empty((3,2) )               # numpy.empty(shape, dtype=float, order='C', *, like=None)
+numpy.full((4,2), 2.2)            # numpy.full(shape, fill_value, dtype=None, order='C', *, like=None)
+numpy.arange(0,20,2)              # numpy.arange([start, ]stop, [step, ]dtype=None, *, like=None)
+numpy.linspace(0,1,5)             # numpy.linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None, axis=0)
+
+numpy.random.normal(0,1,(5,3))    # numpy.random.normal(loc=0.0, scale=1.0, size=None)
+numpy.random.randint(0,10,(5,3)   # numpy.random.randint(low, high=None, size=None, dtype='l')
+numpy.random.randn(5, 4)          # numpy.random.randn(d0, d1, ..., dn)           
+numpy.random.random(size=None)    # Return random floats in the half-open interval [0.0, 1.0)
+numpy.random.ranf(size=None)      # Return random floats in the half-open interval [0.0, 1.0)
+numpy.random.sample(size=None)    # Return random floats in the half-open interval [0.0, 1.0)
+
+numpy.array([1, 2, 3], dtype=complex)    # numpy.array(object, dtype=None, *, copy=True, order='K', subok=False, ndmin=0, like=None)
+numpy.array([[ 0.226, -0.23 , -0.86], [ 0.5639, 0.2379, 0.904]])
+numpy.array(python_list)
+
+
+
+
+Numpy 陣列屬性
+----------
+numpy.array.ndim()：取得陣列的維度數量
+numpy.array.shape()：陣列的形狀
+numpy.array.dtype()：資料型態
+numpy.array.size()：陣列的數量
+numpy.array.itemsize()：陣列中元素的大小(位元組為單位)
+numpy.array.nbytes()：陣列的大小(位元組為單位) 一般來說 nbytes = itemsize * size
+
+
+
+
+index
+====================
+arr = np.arange(10) => array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+arr[5]
+arr[5:8]
+narr[5:8] = 7
+arr[::-1] <= reverse the array, 9,8,7...
+
+arr_x3 = np.random.randint(10, size=(3,4,7))
+print("arr_x3[1,2,1]----->", arr_x3[1,2,1])
+print("arr_x3[1,2,1]----->", arr_x3[1:, :, :5:2])
+
+
+
+Slicing and Reshape
+====================
+ 
+
+
+
+Concatenate, VStack, HStack
+====================
+arr_x = np.array([1,2,3])
+arr_y = np.array([4,5,6])
+np.concatenate([arr_x,arr_y])
+
+
+
+Split,HSplit,VSplit
+====================
+arr_z = np.array([1,2,3,4,5,6,7,8,9])
+arr_z1,arr_z2,arr_z3 = np.split(arr_z,[3,5])
+    # 分割3個陣列 [index 0~(3-1) ] [ index 3~(5-1)] [index (5~end)]
+
+
+
+
+
+Broadcasting
+====================
+
+
+
+
+Statistac
+====================
+numpy.array.mean()
+numpy.array.sum()
+numpy.array.min()
+numpy.array.max()
+numpy.array.cumsum(x)    # accumulated sum
+numpy.array.std()
+
+arr_x = np.random.randint(10, size=(3,4))
+print(arr_x)
+np.all(x<8,axis = 0)
+np.sum(arr_x>5,axis = 1)          # 計算大於 5 的數量，應用了 True 相當於數值 1 的效果
+np.sum((arr_x > 5) & (arr_x <8))
+arr_x[(x>5) & (x <8)]
+
+
+
+
+File input and output
+====================
+numpy.save
+numpy.load
+numpy.savez
+    # my_array_a = [1,2,3,4,5,6]
+    # my_array_b = [7,8,9,10,11,12]
+    # np.savez('my_archive.npz', a=my_array_a, b=my_array_b)  # 儲存多個陣列在一個zip的檔案中
+    # myArch = np.load('my_archive.npz')
+    # myArch['b']    # get aData
+    # myArch['a']
+
+
+numpy.loadtxt('txt_file_name', delimiter=',')  # delimiter=',' 是指資料或數值的分隔的符號
+numpy.savetxt('txt_file_name', numpy.array)
+numpy.genfromtxt(fname, dtype=<type 'float'>, comments='#', delimiter=None, skip_header=0, skip_footer=0, converters=None, missing_values=None, filling_values=None, usecols=None, names=None, excludelist=None, deletechars=None, replace_space='_', autostrip=False, case_sensitive=True, defaultfmt='f%i', unpack=None, usemask=False, loose=True, invalid_raise=True, max_rows=None)
+
+
+
+
+Ufuncs
+====================
+絕對值：abs()
+三角函數：abs()、cos()、tan()
+指數和對數：exp()、exp2()、power()、log()、log2()、log10()
+外積：outer()
+陣列：加總 sum()、最小值 min()、最大值 max()
+  ironman_int_multi = np.random.randint(0,10000,(3,4))
+  ironman_int_multi.min(axis=0)  # 縱向取值
+  ironman_int_multi.min(axis=1)  # 橫向取值
+  np.sum       所有元素的加總
+  np.prod      所有元素的乘積
+  np.mean      所有元素的平均值
+  np.std       標準差
+  np.var       變異量
+  np.min       找出元素的最小值
+  np.max       找出元素的最大值
+  np.argmin    找出最小值的索引
+  np.argmax    找出最大值的索引
+  np.median    元素的中位數
+  np.any       當陣列中有任一值是True或是非零值時傳回True
+  np.all       當陣列中有所有值是True或是非零值時傳回True
+
+
+

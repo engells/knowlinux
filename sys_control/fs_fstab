@@ -1,0 +1,104 @@
+# vim:ts=2
+# program: knowhow about fstab
+# made by: Engells
+# date: Dec 1, 2020
+# content: 
+
+
+
+典型的 fstab 檔案：
+====================
+# <file system>        <dir>         <type>      <options>                                                   <dump> <pass>
+none                   /dev/pts      devpts      defaults                                                    0      0
+none                   /dev/shm      tmpfs       defaults                                                    0      0
+/dev/cdrom             /media/cd     iso9660     ro,user,noauto,unhide                                       0      0
+/dev/dvd               /media/dvd    udf         ro,user,noauto,unhide                                       0      0
+/dev/fd0               /media/fl     auto        user,noauto                                                 0      0
+/dev/hda1              swap          swap        defaults                                                    0      0
+/dev/hda4              /             ext3        defaults                                                    0      1
+/dev/hda3              /home         xfs         rw,suid,exec,auto,nouser,async                              0      2
+
+proc                  /proc           proc       rw,relatime                                                 0      0
+udev                  /dev            devtmpfs   rw,nosuid,relatime,size=10240k,nr_inodes=94876,mode=755     0      0
+sys                   /sys            sysfs      rw,relatime                                                 0      0
+devpts                /dev/pts        devpts     rw,relatime,mode=600,ptmxmode=000                           0      0
+none                  /dev/shm        tmpfs      defaults,rw,relatime,size=400M                              0      0
+tmpfs                 /tmp            tmpfs      defaults,noatime,mode=1777                                  0      0
+LABEL=BOOT            /boot           ext2       defaults                                                    0      1
+LABEL=ROOT            /               ext4       defaults,noatime                                            0      1
+LABEL=USR             /usr            ext4       defaults,noatime                                            0      0
+LABEL=VAR             /var            ext4       defaults,noatime                                            0      0
+LABEL=OPT             /opt            ext4       defaults,noatime                                            0      0
+LABEL=HOME            /home           ext4       defaults,noatime                                            0      0
+
+
+<file systems>   儲存裝置的標識 (i.e. /dev/sda1). 
+<dir>            告訴 mount 命令應該將檔案裝置掛載到哪裡。 
+<type>           定義了要掛載的裝置或是分割槽的檔案系統型別，支援許多種不同的檔案系統，如 ext2, ext3, reiserfs, xfs, jfs, smbfs, iso9660, vfat, ntfs, swap
+                 以及 auto。 auto 型別使 mount 命令對這檔案系統型別進行猜測，這對於如 CDROM 和 DVD 之類的可移動裝置是非常有用的。
+<options>        定義了不同檔案系統的特殊引數，不同檔案系統的引數不盡相同。其中一些比較通用的引數有以下這些： 
+    auto         - 檔案系統將在啟動時，或被鍵入了 'mount -a' 的命令時自動被掛載。
+    noauto       - 檔案系統只在你的命令下被掛載。
+    exec         - 允許執行此分割槽的二進位制檔案（預設值）。
+    noexec       - 不允許此檔案系統上的二進位制檔案被執行。
+    ro           - 以只讀模式掛載檔案系統。
+    rw           - 以讀寫模式掛載檔案系統。
+    sync         - I/O 同步進行。
+    async        - I/O 非同步進行。
+    flush        - 指定 FAT 格式更加頻繁地重新整理資料，使得如複製對話方塊或是進度條持續到檔案被寫入到磁碟中。
+    user         - 允許任意使用者來掛載這一裝置（同時有 noexec, nosuid, nodev 引數的屬性）。
+    nouser       - 只能被 root 掛載（預設值）。
+    defaults     - 預設的掛載設定（即 rw, suid, dev, exec, auto, nouser, async）。
+    suid         - 允許 suid 操作和設定 sgid 位。這一引數通常用於一些特殊任務，使一般使用者執行程式時臨時提升許可權。
+    nosuid       - 禁止 suid 操作和 sgid 位。
+    noatime      - 不要更新檔案系統上 inode access 記錄，可以提升效能(參見 atime_options)。
+    nodiratime   - 不要更新檔案系統上 directory access inode 的記錄，可以提升效能(參見 atime_options)。
+    relatime     - 實時更新 inode access 記錄。只有在記錄中的訪問時間早於當前訪問才會被更新。
+                   （與 noatime 相似，但不會打斷如 mutt 或其它程式探測檔案在上次訪問後是否被修改的程序。），可以提升效能(參見atime_options)。 
+<dump>           dump utility 用來決定何時作備份. 安裝之後 ( ArchLinux 預設未安裝 ), dump 會檢查其內容，並用數字來決定是否對這個檔案系統進行備份。 
+                 允許的數字是 0 和 1 。0 表示忽略， 1 則進行備份。大部分的使用者是沒有安裝 dump 的 ，對他們而言 <dump> 應設為 0。
+<pass>           fsck 讀取 <pass> 的數值來決定需要檢查的檔案系統的檢查順序。允許的數字是0, 1, 和2。 
+                 根目錄應當獲得最高的優先權 1, 其它所有需要被檢查的裝置設定為 2，0 表示裝置不會被 fsck 所檢查。
+
+
+檔案系統標識
+--------------------
+在 /etc/fstab配 置檔案中可以三種不同的方法表示檔案系統：通過 Kernal Naming 描述， 通過 UUID 或者通過 Label。使用 UUID 或是 Label 的好處在於它們與磁碟順序無關。如果你在 BIOS 中改變了你的儲存裝置順序，或是重新拔插了儲存裝置，或是因為一些 BIOS 可能會隨機地改變儲存裝置的順序，那麼用 UUID 或是 Label 來表示將更有效。 
+
+Kernel Naming： fdisk -l ...    
+
+UUID 由生成工具 (mkfs.*) 在建立檔案系統時生成。blkid 命令將顯示已掛載裝置的 UUID 值：
+
+Label，使用這一方法，裝置或是分割槽一定要被標識： e2label /dev/<disk-or-partition> label_name 。可使用一些工具，如 e2label 對 ext2，ext3, ext4分割槽進行標記。需要注意的是，並不是所有格式的分割槽都支援標記 （如 FAT 檔案系統就不支援標記）。在嘗試對裝置進行標識時裝置不能被掛載時，可以 LiveCD/DVD/USB 啟動，再用 e2label 等工具來對裝置進行標識。Label 最多可以有 16 個字元長。理論上 Label 可以包含空格，但是如果這樣做將無法讓 fstab 或是 GRUB 配置檔案識別出來。
+
+
+建議 
+--------------------
+atime 引數
+**********
+使用 noatime,nodiratime orrelatime 可以提升 ext2， ext3 及 ext4 格式磁碟的效能。 Linux 在預設情況下每次在磁碟上讀取（或寫入）資料時都會產生一個記錄。這是在 Linux 用於伺服器而設計的，在桌面使用中意義不大。這些引數對於大部分的程式來說都是有效的。但對於 mutt （它需要這些記錄資訊），你應該僅僅使用realtime 選項。
+
+tmpfs
+*********
+tmpfs 是一個臨時檔案系統，駐留於交換分割槽或是記憶體中（取決於你的使用情況）。它的意義在於提高系統一些部分的速度，並能在重啟時自動清除一些檔案。
+tmpfs 可以被安全使用在的目錄有 /tmp, /var/lock and /var/run. 不要將之使用於 /var/tmp, 因為這一目錄中的臨時檔案在重啟過程中還是被保留。
+Warning: 一些 daemon 程序仍然將一些檔案（或目錄）安裝在 /var/lock 和 /var/run 下。因此需要編輯/etc/rc.d 下的指令碼來使它們正常工作 （如 lighttpd）。
+
+預設情況下， tmpfs 分割槽被設定為你總的記憶體的一半，當然你可以自由設定這一值。注意實際中記憶體和交換分割槽的使用情況取決於你的使用情況，而 tmpfs 分割槽在其真正使用前是不會佔用儲存空間的。
+
+要在 /tmp，/var/lock 和 /var/run 下使用 tmpfs，在 /etc/fstab 中新增如下幾行： 
+  tmpfs /tmp      tmpfs defaults,nodev,nosuid,mode=1777                   0 0
+  tmpfs /var/lock tmpfs defaults,nodev,nosuid,noexec,mode=1777,size=10m   0 0
+  tmpfs /var/run  tmpfs defaults,nodev,nosuid,noexec,mode=0755,size=10m   0 0
+
+可以在這裡指定其大小，但是在這種情況下應突出 mode 部分，以確保它們可以有正確的許可權設定。在上面的例子中， /tmp 將會佔用你的一半記憶體，其它的兩個目錄被設定為各佔用 10 MB 大小。
+
+重啟後方能產生 tmpfs。但千萬不要直接執行 mount -a 命令，因為可能造成當下這些目錄的不可訪問 （比如你應該保證 lockfiles 的正常存在）。然而，如果它們都是空的，那麼就可以直接執行mount -a 而不必重啟電腦。在重啟前你可以執行 mount /tmp 等來啟用其中一些選項，其餘的則要在重啟後生效。 
+
+
+
+參考
+--------------------
+https://www.itread01.com/content/1548894797.html    <轉載的關於 linux fstab檔案 uuid 的疑惑 | itread01 >
+
+

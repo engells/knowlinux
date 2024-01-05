@@ -1,0 +1,32 @@
+dn: ou=login,dc=wtc,dc=com,dc=tw
+cn: login
+objectClass: dcObject
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit
+
+dn: cn=ckhung,ou=login,dc=wtc,dc=com,dc=tw
+cn: ckhung
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: sambaSamAccount
+sn: 洪
+givenName: 朝貴
+
+dn: cn=snoopy,ou=login,dc=wtc,dc=com,dc=tw
+cn: snoopy
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: sambaSamAccount
+sn: 史
+givenName: 奴比
+
+dn: cn=foxmosa,ou=login,dc=wtc,dc=com,dc=tw
+cn: foxmosa
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: sambaSamAccount
+sn: 狐耳
+givenName: 摩莎

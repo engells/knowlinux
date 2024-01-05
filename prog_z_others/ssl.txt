@@ -1,0 +1,176 @@
+#!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about SSL and CA
+# made by: Engells
+# date: Aug 11, 2017
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+Web 或者 Service 能夠支援 SSL
+====================
+產生私有金鑰 (Private Key)
+    openssl genrsa -aes256 -out private.key 2048
+
+產生 CSR (Certificate Signing Request), 並將 CSR 傳送給 CA
+    openssl req -new -key private.key -out CSR.csr
+
+把 CA 所提供的憑證 (Certificate) 安裝在 Web 或 Service的伺服器上
+    openssl req -text -in CSR.csr -noout
+    以上指令是輸出 CSR 內容，確認正確後將 CSR 傳送到公認且有公信力的 CA 單位，請該單位已此 CSR 產生憑證 (Certificate，Crt)，再將憑證安裝在需要支援 SSL 的伺服器上
+
+如果不需要公開對外支援 SSL，可以自行產生 Self-signed 的憑證
+    openssl req -x509 -days 3650 -in CSR.csr -signkey private.key -out self-signed.crt
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/vsftpd/cert/mydomain.key -out /etc/vsftpd/cert/mydomain.crt
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem
+
+或是從私有金鑰直接產生 Self-signed 的憑證
+    openssl req -x509 -new -days 3650 -key private.key -out self-signed-2.crt
+
+參考指令
+	cd /etc/ssl/private
+	openssl genrsa -aes128 -out server.key 2048 # create RSA key
+	openssl rsa -in server.key -out server.key  # remove passphrase from private key
+	openssl req -new -key server.key -out server.csr -days 3650 # create CSR(Crtificate Sign Request)
+	openssl x509 -in server.csr -out server.crt -req -signkey server.key -days 3650  # create self-sign CAT(certificat)
+
+參考資料
+----------
+URL：http://ijecorp.blogspot.tw/2014/03/openssl.html
+
+
+
+
+OpenSSL
+====================
+
+CA 證書
+----------
+(umask 077; openssl genrsa -out /etc/pki/CA/private/cakey.pem 2048)
+	產生 CA 單位本身的金鑰
+
+openssl req -new -x509 -key /etc/pki/CA/private/cakey.pem -out /etc/pki/CA/cacert.pem
+	-reg：產生證書
+	-new：產生自我簽署證書
+	-x509：格式為 x509，self signed certificate 自我簽署證書，需填入 CA 機構相關資料。以後此 CA 頒發其他證書時，頒發機構資料須與 CA 證書的資料一致
+	-key /path/to/cakey.pem：證書以金鑰 cakey.pem 產生
+	-out /path/to/cacert.pem：自我簽署證書檔名
+
+touch index.tt serial crinumber
+	依照 /etc/pki/tls/openssl.conf 設定檔配置缺少的檔案，並在 serial 檔案內寫入 01 作為頒發其他證書的起始編號
+
+
+
+經私人 CA 簽署之於 httpd
+----------
+產生金鑰(包括公鑰及私鑰，在用戶端執行)
+	(umask 077; openssl genrsa -out httpd.key 1024)
+		-out httpd.key：產生的金鑰檔名
+		1024 加密長度為 1024
+		本指令於 Apache 伺服器執行
+
+產生待審證書(在用戶端執行)
+	openssl req -new -key httpd.key -out httpd.csr
+		-out httpd.csr：產生的待審證書檔名，內含公鑰
+		本指令於 Apache 伺服器執行
+
+將證書送交私人 CA 簽署(在 CA 伺服器執行)
+	openssl ca -in httpd.csr -out httpd.crt -days 3650
+		-in httpd.csr：送審證書檔名
+		-out httpd.crt：審查通過頒發之證書檔名
+		-days 3650：所頒發證書有效天數
+		本指令於 CA 伺服器執行
+
+撤銷證書(在 CA 伺服器執行)
+	openssl ca -revoke httpd.crt
+		-revoke：撤銷證書
+
+
+以 OpenSSL 軟體加密檔案
+----------
+openssl genrsa -out test.key 1024
+	產生金鑰(包括公鑰及私鑰)，加密長度為 1024
+
+openssl rsa -in test.key -pubout -out test_pub.key
+	取出公鑰
+
+openssl rsautl -encrypt -in hello -out hello.en -inkey test_pub.key -pubin 
+	以公鑰將檔案 hello 加密為 hello.en，參數 -inkey 指定公鑰檔名，參數 -pubin 表示只用公鑰加密
+
+openssl rsautl -decrypt -in hello.en -out hello.de -inkey test.key
+	以公鑰將檔案 hello.en 解密為 hello.de，參數 -inkey 指定私鑰或金鑰檔名
+
+openssl enc -des3 -a -salt -in /path/to/file_before_crypted -out /path/to/file_after_crypted
+	直接以 DES3 演算法加密檔案
+
+openssl enc -d -des3 -a -salt -in /path/to/file_after_crypted -out /path/to/file_before_crypted
+	以 DES3 演算法解密檔案
+
+
+參考資料
+----------
+URL：http://jianiau.blogspot.tw/p/openssl.html
+
+~~~~
+
+
+
+
+CentOS 6.x 上有關 ssl 證書的目錄結構
+====================
+	/etc/pki/CA/
+		newcerts/	存放CA簽署（頒發）過的數位憑證（證書備份目錄）
+		private/	用於存放CA的私密金鑰
+		crl/		撤銷(revoke)的證書
+
+	/etc/pki/tls/
+		cert.pem	軟連結到certs/ca-bundle.crt
+		certs/		該伺服器上的證書存放目錄，可以房子自己的證書和內置證書
+		ca-bundle.crt	內置信任的證書
+		private/	證書金鑰存放目錄
+		openssl.cnf		openssl的CA主設定檔
+
+~~~~
+
+
+
+
+====================
+修改 CA 設定檔
+	vi /etc/pki/tls/openssl.cnf
+	 # 注意[ policy_match ]所設規則，因證書使用的工具不同，可能導致設置了 csr 中看起來有相同的countryName,stateOrProvinceName等，但最終生成證書時依然報錯
+
+在CA目錄下創建兩個初始檔
+	touch index.txt serial
+	echo 01 > serial
+
+生成根金鑰
+	cd /etc/pki/CA/
+	openssl genrsa -out private/cakey.pem 2048
+	 # 為了安全起見，修改 cakey.pem 私鑰權限為 600或400，或改用子左列指令：(umask 077; openssl genrsa -out private/cakey.pem 2048)
+
+生成根證書
+	openssl req -new -x509 -key private/cakey.pem -out cacert.pem
+	 # 會提示輸入一些內容，因為是私有的，可隨便輸入。之前修改的 openssl.cnf 項目會在這裡引用。上面的自簽證書 cacert.pem 應該生成在 /etc/pki/CA下。
+
+
+
+
+
+openssl中有如下副檔名的文件
+	.key：私有的金鑰
+	.crt：證書文件，certificate 的縮寫
+	.csr：證書簽名請求（證書請求檔），含有金鑰資訊，certificate signing request 的縮寫
+	.crl：憑證撤銷清單，Certificate Revocation List 的縮寫
+	.pem：用於匯出，導入證書時候的證書的格式，有證書開頭，結尾的格式
+ 
+常用證書協議
+	x509v3：IETF的證書標準
+	x.500：目錄的標準
+	SCEP：簡單證書申請協議，用http來進行申請，資料有PKCS#7封裝，資料其實格式也是PKCS#10的
+	PKCS#7：是封裝資料的標準，可以放置證書和一些請求資訊
+	PKCS#10：用於離線證書申請的證書申請的資料格式，注意資料包是使用PKCS#7封裝這個資料
+	PKCS#12：用於單一檔中交換公開金鑰，私密金鑰和證書，fm061j4打包加密放在存儲目錄中。
+			 CISCO 放在 NVRAM 中，用戶可以匯出，以防證書伺服器掛掉可以進行相應恢復。思科是.p12,微軟是.pfx
+
+

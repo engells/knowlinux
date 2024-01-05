@@ -1,0 +1,99 @@
+##!/bin/bash
+# vim:ts=4
+# program: Memo thr package of git submodule
+# made by: Engells
+# date: Feb 6, 2021
+# content: Just for memo
+
+
+
+建立 Submodule
+---------------
+1. 至專案主目錄建立子模組(亦以目錄方式處理)
+    cd /path/to/project/ && git submodule add url_remote_repository path/to/submoudle
+      # 實做，git 進行之動作
+      #   a. 在主專案目錄下建立 path/to/submoudle 目錄來放置 submoudle 之程式碼相關檔案，該目錄勿自行建立
+      #   b. 在主專案目錄下建立 .git/modules/path/to/submoudle 目錄來放置子模組之版本控制相關檔案資料
+      #   c. 在主專案目錄下出現 .gitmodules 檔案，紀錄 submodule 的存放路徑及 URL
+      #   d. 並修改 .git/config 檔案，新增 [submodule "submodule_name"] 區段
+      # 似乎已完成 git submodule init 及 git submodule update 指令
+    git status
+2. 在專案主目錄配置及下載子模組(optional?)
+    git submodule init
+     # 設定 .git/config，新增 [submodule "submodule_name"] 區段
+    git submodule update
+     # 透過 git submodule 將遠地端檔案下載至本地端
+3. 至子模組目錄，自遠地端下載檔案(optional?)
+    cd /path/to/project/path/to/submoudle
+    git pull origin master
+4. 回至專案主目錄，發布 git
+    cd /path/to/project
+    git status 
+    git add . ; git commt -a -m "..." ; git push
+    git submodule status
+
+
+自遠地端更新本地端子模組 → 在本地端主模組 git 更新 → 自本地端將主子模組上傳
+---------------
+1. cd /path/to/project 
+2. git submodule update --remote --merge
+    # 自遠地端拉取主子模組的更新內容，並與 master 進行 merge
+3. git add . && git commit -m "...." && git push
+
+
+在本地端更新子模組 → 自本地端將子模組上傳 → 在本地端作主模組 git 更新 → 自本地端將主子模組上傳 
+---------------
+1. cd /path/to/project/path/to/submodule
+2. edit files in submodule
+3. git add . && git commit -m "...." && git push
+4. cd /path/to/project/ && git add . && git commit -m "...." && git push
+
+
+自遠地端更新整個主子模組至本地端
+---------------
+1. git pull --recurse-submodules branch_name
+
+
+自遠地端 Clone 整個主子模組至本地端
+---------------
+1. git clone <remote_url>
+2. git submodule update --init --recursive
+
+
+刪除 git submodule 的關係
+---------------
+1. 在主模組目錄下解除 submodule 關係
+    git submodule deinit path/to/submoudle
+2. 刪除在 .gitmodules 檔案中與 git submodule 的內容
+    edit .gitmodules
+    git add .gitmodules
+    git rm --cached path/to/submoudle
+3. 刪除 submodule 相關的所有目錄及檔案
+    rm -rf .git/modules/path/to/submoudle 
+    git commit -m 'remove submodule'
+    rm -rf path/to/submoudle
+    git push or git submodule sync
+
+
+下載包含子模組的專案
+---------------
+方法 1:
+**********
+git clone repo_url /path/to/target
+git submodule init
+git submodule update
+
+
+方法 2:
+**********
+git clone --recursive repo_url /path/to/target 
+
+
+
+
+參考資料
+---------------
+子模組    https://zlargon.gitbooks.io/git-tutorial/content/advanced/submodule.html
+
+
+

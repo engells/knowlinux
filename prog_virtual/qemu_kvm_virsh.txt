@@ -1,0 +1,95 @@
+##!/bim/bash
+# vim:ts=2
+# program: knowhow about libvirt
+# made by: Engells
+# date: Jul 15, 2022
+# content:
+
+
+
+qemu-img
+====================
+qemu-img convert [-c] [-e] [-f format] filename [-O output_format] output_filename
+  # -e: 加​密
+  # -c: ​壓​縮​
+qemu-img info [-f format] filename
+qemu-img create [-6] [-e] [-b base_image] [-f format] filename [size]
+
+
+
+
+virsh
+====================
+常用指令
+---------------
+/etc/libvirt/qemu/              # 虛擬機器配置檔案預設目錄
+/var/lib/libvirt/images/        # 預設映象檔案位置 
+
+virsh list --all								# 檢視虛擬機器狀態
+virsh autostart virtual_machine_name			# 設定物理機開機自動啟動虛擬機器
+virsh dumpxml virtual_machine_name > file_name.xml		# 匯出虛擬機器配置檔案
+virsh start virtual_machine_name				# 開機
+virsh shutdown virtual_machine_name				# 關機（虛擬機器需開啟acpid服務）
+virsh destroy virtual_machine_name				# 強制開機（斷電）
+virsh suspend virtual_machine_name				# 掛起虛擬機器
+virsh resume virtual_machine_name				# 恢復掛起的虛擬機器
+
+virsh define /path/to/virtual_machine_name.xml		# 重新定義一個虛擬機器，通常定義在 /etc/libvirt/qemu/ 目錄
+virsh edit virtual_machine_name					    			# 編輯配置檔案
+virsh undefine virtual_machine_name			        	# 刪除一個虛擬機器（會一起刪除配置檔案，映象不刪除）
+
+virsh snapshot-list virtual_machine_name					# 檢視虛擬機器快照
+virsh snapshot-create virtual_machine_name				# 建虛擬機器快照（建快照映象格式要為qcow2格式）
+virsh snapshot-revert virtual_machine_name snapshot_name	# 還原虛擬機器快照
+virsh snapshot-delete virtual_machine_name snapshot_name	# 刪除虛擬機器快照
+
+virsh attach-disk virtual_machine_name /path/to/image_file vdb --cache=none --subdriver=qcow2	      		# 線上新增虛擬機器映象硬碟
+virt-clone -o original_virtual_machine_name -n new_virtual_machine_name -f  /path/to/new_image_file     # 克隆虛擬機器
+
+virsh nodeinfo				# 列出主機(node host)相關資訊
+virsh nodedev-list --tree	# 列出主機(node host)所有硬體裝置(device)
+virsh net-list --all		# 列出所有虛擬網路(virtual network)
+virsh net-start network_name	# 啟用虛擬網路，例如 virsh net-start default
+virsh net-destroy network_name	# 停止虛擬網路
+virsh net-autostart network_name	# 設定虛擬網路自動啟動
+vim network_name.xml && virsh net-define network_name.xml	# 新增不同設定的虛擬網路，xml 檔的格式參考 http://libvirt.org/formatnetwork.html
+virsh net-edit network_name			# 輯虛擬網路設定，預設以 vi 開啟設定檔，如要變更編輯器，請變更 $VISUAL 或 $EDITOR 兩個環境變數 
+virsh net-undefine network_name		# 刪除虛擬網路，Debian 環境中，虛擬網路的設定檔存在 /etc/libvirt/qemu/networks/ 
+virsh net-dumpxml network_name		# 匯出虛擬網路的 XML 內容，例如 virsh net-dumpxml default > my_default_backup.xml
+
+
+
+
+安裝新虛擬機
+---------------
+virt-install \
+	--connect=qemu:///system --name cmdtest --ram 2048 --vcpus=1 --os-type=linux --accelerate --hvm \
+	--disk path=/home/mine612/qiuyangjun/ubuntu-16.04/cmd/cmdtest.img,size=8,bus=virtio \
+	--cdrom /home/mine612/qiuyangjun/ubuntu-16.04/cmd/ubuntu-16.04-desktop-amd64.iso  \
+	--network bridge=ovs,model=virtio \
+	--graphics vnc
+
+	--name           # 虛擬機名字
+	--ram            # 分配給虛擬機器的記憶體，單位 MB
+	--vcpus          # 分配給虛擬機器的 cpu 個數
+	--os-type=       # 作業系統類型 [ex: linux]
+	--os-variant     # 作業系統的版本名稱 [ex: ubuntu jaunty]
+	--accelerate     # KVM 加速器
+	--hvm            # 全虛擬化，hvm 與 paravirt 擇其一
+	--paravirt       # 半虛擬化，hvm 與 paravirt 擇其一
+	--disk           # 指定虛擬機器 img 檔案路徑，如果虛擬機器使用 lvm 分割槽，這裡就指向到 lvm 的分割槽就行
+	  size           # 虛擬機器檔案大小，單位 GB
+	  bus            # 虛擬機器磁碟使用的匯流排型別，為了使虛擬機器達到好的效能，這裡使用virtio
+	  cache          # 虛擬機器磁碟的 cache 型別
+		--file         # 另一種方式表達虛擬硬碟的路徑
+		--file-size    # 另一種方式表達虛擬硬碟的大小，單位 GB
+	--cdrom          # 指定安裝檔案的全路徑
+	--network
+	   bridge        # 指定橋接網絡卡
+		--bridge=br0   # 另一種方式表達橋接網絡卡
+	   model         # 網絡卡模式，這裡也是使用效能更好的 virtio
+	--graphics       # 圖形引數
+		--vnc 
+	--noautoconsole
+	--debug
+

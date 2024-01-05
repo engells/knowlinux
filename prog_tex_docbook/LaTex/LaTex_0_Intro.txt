@@ -1,0 +1,88 @@
+# vim:ts=4
+
+
+
+
+概說及安裝
+==============================
+Linux 平台下多以 Tex Live 套件安裝， Windows 平台則有 MiKTex [http://www.miktex.org/] 或 fpTeX [http://www.fptex.org] 兩套軟體。
+
+
+
+教學網站
+-------------------------
+胖果米	http://pangomi.blogspot.tw/2012/11/latex-in-ubuntu.html
+玉米園	http://leavedcorn.pixnet.net/blog/post/24773932-%E6%96%B0%E6%89%8B%E5%AE%89%E8%A3%9Dlatex%E6%87%B6%E4%BA%BA%E6%95%99%E5%AD%B8(step-by-step)
+LaTeX & U 自助出版 ISBN-978-957-41-9448-3
+
+
+Tex Live
+-------------------------
+主要套件：
+	texlive texlive-xetex
+		包含 texlive-latex-recommended 套件
+
+其他套件：合計約 1.6G
+	texlive-latex-extra texlive-pictures texlive-science texlive-doc-base
+
+
+
+MikTex
+-------------------------
+建議完整安裝
+更新 MiKTeX
+	開始 → 程式集 → MiKTeX 2.8 → Maintenance (Admin) → Update (Admin)
+		預設會選「I want to get updated packages from a remote package repository」，不用更改 → 下一步
+		接著會預設勾選所有有更新的套件，也是按下一步 → 下載及安裝
+安裝 xeCJK (optional)
+	開始 → 程式集 → MiKTeX 2.8 → Maintenance (Admin) → Package Manager (Admin)
+		會看到很多套件，可以挑有關 xeCJK 的全部安裝
+		也可以略過此步驟，到編譯中文文件時，系統也會自動問你要不要裝 xeCJK
+
+
+Texmaker
+-------------------------
+下載及安裝
+
+設定
+	選項 → 設定 Texmaker，左邊有三個部分：「指令」、「快速編譯」、「編輯器」
+		指令：
+			(1) 第一項 LaTeX 加入「xe」，變成「xelatex -interaction=nonstopmode %.tex」
+			(2) 檢視 PDF 檔案的程式，例如「"C:/Program Files/Foxit Software/Foxit Reader/Foxit Reader.exe" %.pdf」
+
+		快速編譯：
+			快速編譯組合選「自訂」，把剛剛的 (1)+(2) 打進去，記得中間用「|」分開，結尾再補上「|bibtex %.aux|xdvi %.dvi」
+		編輯器：
+			編輯器字型編碼選 「UTF-8」
+
+
+
+
+﻿
+加入 Repository
+url: http://monstersupreme.blogspot.com/2010/05/ubuntu-netbook-remix-1004-texlive-xetex.html
+==========================================================================================
+deb http://ppa.launchpad.net/aelmahmoudy/tl2009/ubuntu lucid main
+deb-src http://ppa.launchpad.net/aelmahmoudy/tl2009/ubuntu lucid main
+
+sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 00F6A161A36634CD
+
+sudo apt-get install texlive-xetex
+sudo apt-get install texlive-latex-recommended
+sudo apt-get install texlive-latex-extra
+sudo fc-cache -v
+sudo fc-list
+
+Other URL
+==========================================================================================
+http://www.csie.ntu.edu.tw/~tzhuan/www/resources/ntu/  台大碩士論文樣板
+http://magicsword.wordpress.com/tag/tex/ Miller
+http://fjuphy.co.cc/viewtopic.php?f=44&t=63 輔仁大學
+http://www.heboliang.cn/archive/xetex-intro.html 何勃亮個人網站
+http://young001.blogbus.com/logs/66735586.html young001
+http://www.dujinfang.com/past/2009/11/10/ubuntu-an-zhuang-latexutf8zi-ti-wen-ti/ Latex+UTF8
+http://blog.chinaunix.net/u/25605/showart_2100398.html Ubuntu+Texlive+CJK
+http://www.road2stat.com/cn/tex_latex/tex_live_2009_installation_under_linux.html 統計學之路
+http://blog.chinaunix.net/u3/109488/showart_2222797.html Ubuntu系统下texlive 2009的安装配置
+http://www.linux-wiki.cn/index.php?title=LaTeX%E4%B8%AD%E6%96%87%E6%8E%92%E7%89%88%EF%BC%88%E4%BD%BF%E7%94%A8XeTeX%EF%BC%89&variant=zh-hant
+

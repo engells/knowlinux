@@ -1,0 +1,153 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Hackintosh on Proxmox or QEMU”
+# made by: Engells
+# date: Noc 22, 2021
+# content: Just for memo
+
+
+
+OSK Authentication Key
+====================
+ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc
+# our hard work by the se words guarded please dont steal (c)Apple Computer Inc
+
+
+
+Hackintosh on Proxmox
+====================
+取得 macOS 映像檔
+取得 OpenCore 映像檔，https://github.com/thenickdude/KVM-Opencore/releases
+取得 OSX Authentication Key
+  xcode-select --install # If you don't already have gcc
+  gcc -o smc_read smc_read.c -framework IOKit
+  ./smc_read
+
+建立虛擬機
+  OS     : OS type: Other
+  System : Graphic: VMware compatible ;; Machine: Q35 ;; BIOS: OVMF ;; EFI storage: local-lvm ;; Pre-Enroll Keys: disable
+           SCSI: VirtIO SCSI ;; QEMU agent: enable
+  HD     : Bus: VirtIO ;; Storage: local-lvm ;; Size > 64 GB ;; Cache: Write Back ;; Discard: enable
+  CPU    : Type: Penryn or Host ;; 
+  Memory : Ballooning Device: disable
+  Network: Bridge: vmbr0 ;; Model: VirtIO or VMware vmxnet3
+
+修改虛擬機組態
+  /etc/pve/qemu-server/104.conf
+    args: -device isa-applesmc,osk="THE-OSK-YOU-EXTRACTED-GOES-HERE" -smbios type=2 -device usb-kbd,bus=ehci.0,port=2
+    同列後續接上 -cpu host,kvm=on,vendor=GenuineIntel,+kvm_pv_unhalt,+kvm_pv_eoi,+hypervisor,+invtsc
+    或接上 -cpu Penryn,kvm=on, ... ,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+avx2,+aes,+fma,+fma4,+bmi1,+bmi2,+xsave,+xsaveopt,check
+    ide0: ... media=cdrom => cache=unsafe
+
+防止 boot looping
+  echo 1 > /sys/module/kvm/parameters/ignore_msrs
+  echo "options kvm ignore_msrs=Y" >> /etc/modprobe.d/kvm.conf && update-initramfs -k all -u
+
+安裝 macOS，若進入 EFI shell，執行
+  fs0:                                  # change to the Big Sur .iso, the disk number may be different
+  System\Library\CoreServices\boot.efi  # # launch the MacOS installer
+
+在虛擬機安裝 OpenCore，指令在虛擬機執行
+  diskutil list
+  sudo dd if=/dev/disk[] of=/dev/disk[]s[] # if resources busy, diskutil umount
+
+在 Host 設置 passthrough
+  /etc/default/grub => GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on video=efifb:off"
+  pve-efiboot-tool refresh
+  update-grub
+  reboot
+  dmesg | grep -e DMAR -e IOMMU
+  後續加載 vfio 模組及禁止顯卡驅動，參閱 Proxmox 相關檔案
+
+虛擬機畫面輸出螢幕
+  在虛擬機加入顯卡對應之 PCI 設備，並勾選 Primary CPU，關閉虛擬顯卡
+  加入在 Host 之 USB 界面鍵盤及滑鼠，注意 macOS 不支援 PS2 界面，此步驟搭配顯卡直通，虛擬機操作近似實體機
+  重新設置虛擬機之 EFI partition，以 OpenCore-Passthrough.qcow2 映像檔案的  EFI partition 資料取代，此步驟存疑
+  Host 關機 => 螢幕接上 Host 顯卡 => Host 開機 => 以其他設備 SSH 進入 Host，開啟虛擬機
+  必要時，刪除 config.plist 的 WhateverGreen.kext 項目
+
+喚醒睡眠狀態虛擬機，在 Host 執行指令
+  qm monitor YOUR-VM-ID-HERE 
+  system_wakeup 
+  quit
+
+參考資料
+  Installing macOS 12 “Monterey” on Proxmox 7 :: https://www.nicksherlock.com/2021/10/installing-macos-12-monterey-on-proxmox-7/
+  Install macOS Big Sur 11 on Proxmox 6.3 :: https://manjaro.site/install-macos-big-sur-11-on-proxmox-6-3/
+  Proxmox VE 6.2 安装 macOS 10.15 及 GPU 穿通方案 :: https://zhuanlan.zhihu.com/p/240710958
+
+
+
+
+Hackintosh on QEMU
+====================
+Host 主機板啟用虛擬化功能
+  INTEL: VT-D Enabled ; VT-X Enabled
+  AMD:   IOMMU Enabled ; SVM Enabled
+
+設定 Grub 開機參數
+  系統更新
+    sudo apt-get update && sudo apt-get upgrade -y
+  編輯 /etc/default/grub
+    INTEL: GRUB_CMDLINE_LINUX_DEFAULT="intel_iommu=on iommu=pt iommu=1 video=efifb:off"
+    AMD:   GRUB_CMDLINE_LINUX_DEFAULT="amd_iommu=on iommu=pt iommu=1 video=efifb:off"
+  更新 Grub 並重開機
+    sudo update-grub
+    sudo reboot
+  確認重開機系統核心參數
+    sudo cat /proc/cmdline
+      BOOT_IMAGE=/boot/vmlinuz-5.4.0-60-generic root=UUID=xxxx ro amd_iommu=on iommu=pt iommu=1 video=efifb:off quiet splash vt.handoff=1
+
+查詢 GPU 及 聲卡之 PCI ID
+  lspci -nnk
+    06:00.0 VGA compatible controller [0300] ... [1002:67df] (rev e7) => 1002:67df 即為 PCI ID
+    06:00.1 Audio device [0403] ... [1002:aaf0]
+
+安裝 KVM 軟體
+  sudo apt install qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils virt-manager ovmf
+
+修改 Libvirt 組態
+  編輯 /etc/libvirt/libvirtd.conf
+    unix_sock_group = "libvirt"
+    unix_sock_rw_perms = "0770"
+    log_filters="1:qemu"
+    log_outputs="1:file:/var/log/libvirt/libvirtd.log"
+  啟用新組態
+    sudo usermod -a -G libvirt $(whoami)
+    sudo systemctl start libvirtd && sudo systemctl enable libvirtd
+
+修改 Qemu 組態
+  編輯 /etc/libvirt/qemu.conf
+    user = "YOUR USERNAME"
+    group = "YOUR USERNAME"
+  啟用新組態
+    sudo usermod -a -G kvm $(whoami)
+    sudo systemctl restart libvirtd
+
+建立虛擬機
+  sudo virt-manager
+    In Overview:
+      - set chipset to Q35
+      - set Bios to EUFI
+    In Boot:
+      - Enable boot manager
+    Ensure there are no IDE drives before contuing.
+
+使用 OSX-KVM scripts
+  cd /path/to/target
+  git clone --depth 1 --recursive https://github.com/kholia/OSX-KVM.git
+  cd OSX-KVM
+  git pull --rebase
+  ./fetch-macOS-v2.py
+  qemu-img convert BaseSystem.dmg -O raw BaseSystem.img
+  qemu-img create -f qcow2 mac_hdd_ng.img 128G
+  ./OpenCore-Boot.sh
+  sed "s/CHANGEME/$USER/g" macOS-libvirt-Catalina.xml > macOS.xml
+  virt-xml-validate macOS.xml
+  virsh --connect qemu:///system define macOS.xml
+
+參考資料
+  Single GPU Passthrough in Ubuntu AMD CPU/GPU :: https://www.youtube.com/watch?v=eTX10QlFJ6c
+  kholia/OSX-KVM :: https://github.com/kholia/OSX-KVM
+
+

@@ -1,0 +1,99 @@
+#!/bin/bash
+# vim:ts=4
+# program: 多媒體轉換
+# made by: Engells
+# date: Apr 13, 2019
+# content: 多媒體轉換的釋例
+
+
+#多媒體轉檔，使用 mencoder
+mencoder /media/disk/mpegav/music02.dat -o file.avi -oac copy -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=1200
+mplayer vcd://2 -cdrom-device /dev/cdrom1 -v -v -dumpstream -dumpfile "~/vcd_track_1.mpg"
+mencoder -ss 56:38 -endpos 13:10 -oac mp3lame -ovc lavc ~/downloads/video/0.avi -o ~/downloads/output.mp4
+mencoder ~/downloads/output0.mp4 ~/downloads/output1.mp4 -ovc copy -oac copy -o ~/downloads/output.mp4
+
+#多媒體轉檔，使用 ffmpeg
+ffmpeg -i Disc.3.flac -ab 196k -ac 2 -ar 48000 Disc.3.mp3
+
+#多媒體轉檔，使用 convert <= imagemagick
+for img in $(ls *.BMP); do convert $img A.$img.jpg; done
+convert "$fileName" -quality 90% "${fileName%.png}.jpg"
+
+#多媒體轉檔，使用 mp3splt-gtk 及 mp3wrap
+mp3splt-gtk
+mp3wrap 1.mp3 20.mp3 21.mp3
+
+
+
+ffmpeg
+====================
+查詢檔案資訊或支援格式
+----------
+ffmpeg -i video.mp4 ** ffmpeg -i video.mp4 -hide_banner ** ffmpeg -formats 查詢支援格式
+
+
+視訊轉換
+----------
+ffmpeg -i video.mp4 video.avi ** ffmpeg -i video.flv video.mpeg
+ffmpeg -i input.mp4 -an -sn -b:v 1720k -map 0:0 -map 0:1 -r 29.97 -aspect 16:9 output.mp4
+  -an : 禁用音訊
+  -sn : 禁用字幕
+  -b:v 1720k : 設定 video bitrate 為 1720 kbit/s，另參閱 -b:a xxxk 參數設定 audio bitrate。b 為 bitrate 縮寫
+  -map 0:0 -map 0:1 : 僅處理 0:0 及 0:1 兩個串流
+  -r 29.97 : -r 為 -framerate 縮寫，29.97 設定 29.97 fps(frame per second)
+  -aspect : 設定視訊檔案的螢幕高寬比，常用的高寬比有 16:9、4:3、16:10、5:4、2:21:1、2:35:1、2:39:1
+ffmpeg -i input.mp4 -c:a copy -vf scale=1280:720 output.mp4 ** ffmpeg -i input.mp4 -c:a copy -s 1280x720 output.mp4
+  -c:a : 為 -codec:a / -acodec 別名，處理音訊，相關參數有 -c:v / -codec:v / -vcodec，處理視訊 及 -c:s / -codec:s / -scodec，處理字幕
+    -c:a:0 ac3 將編號 #0 的音訊以 ac3 格式重新編碼
+    -c:v:1 libx264 將編號 #1 的視訊以 H.264 格式重新編碼
+  -vf : 為 -filter:v 別名，處理視訊，另參閱 -af / -filter:a 參數處理音訊
+    -filter:v scale=scale=1280:720，設定輸出解析度，相關參數有 -s[:stream_specifier] size 設定 frame size
+    另可使用 ffmpeg -filters 指令查詢 filters
+ffmpeg -i input.mp4 -filter:v "crop=640:480:200:150" output.mp4
+  -filter:v – 表示視訊過濾器。另參閱 -filter:v scale=xxx:yyy 參數
+  crop – 表示裁剪過濾器。自原視訊的位置 (200,150)，裁取 640 畫素寬度和 480 畫素高度的視訊
+ffmpeg -i input.mp4 -vf scale=1280:-1 -c:v libx264 -preset veryslow -crf 24 output.mp4
+  -bsf:v h264_mp4toannexb : 啟用 bit stream filter，應用 h264_mp4toannexb
+    -bsf[:stream_specifier] bitstream_filters 或 bsf=bitstream_filter_name，可使用 ffmpeg -bsfs 查詢 bitstream_filter_name
+nice -n 20 cpulimit -l 30 ffmpeg -threads 2 -i input.mp4 output.mp4
+  使用 CPU 上限為 30% ，使用雙核心處理 (threads 2)
+常用參數
+  -codec:v -codec:a -b:v -b:a -r -ar -filter:v -filter:a
+
+
+
+音訊轉換
+----------
+ffmpeg -i input.mp4 -vn -ac 2 -ab 320 -ar 44100 -f mp3 output.mp3
+  -vn : 在輸出檔案中禁用視訊
+  -ac : 設定音訊通道的數目
+  -ab : 音訊位元率，bit rate，亦可用 -b:a xxxk 參數，常見音訊位元率 96kbps、112kbps、128kbps、160kbps、192kbps、256kbps、320kbps
+  -ar : 設定輸出檔案的音訊頻率。通常使用的值是 22050 Hz、44100 Hz、48000 Hz
+  -f  : 輸出檔案格式。在我們的例項中，它是 mp3 格式
+  -c:a aac
+  -strict -2
+
+
+圖片轉換
+----------
+ffmpeg -i input.mp4 -r 1 -f image2 image-%2d.png
+  -r : 設定幀速度。即每秒提取幀到影象的數字。預設值是 25。
+  -f : 輸出格式，即，在我們的例項中是影象。
+  image-%2d.png : 提取的影象存檔方式。此例存檔名為 image-01.png、image-02.png、image-03.png … 若用 %3d，則影象名為 image-001.png、image-002.png …
+
+
+URL
+----------
+給新手的 20 多個 FFmpeg 命令示例 :: https://iter01.com/422017.html
+使用 ffmpeg 將 H.265 mkv 批量轉換為 H.264 :: https://ubuntuqa.com/zh-tw/article/12913.html
+
+
+
+
+applications
+====================
+omxplayer --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc --subtitles test.cht.srt test.avi
+RaspBMC
+XBMC(Kodi)
+
+

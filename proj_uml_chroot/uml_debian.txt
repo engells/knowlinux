@@ -1,0 +1,271 @@
+
+
+user mode linux step by step
+url:	http://moto.debian.tw/viewtopic.php?f=4&t=1631
+==============================
+最近在研究 uml(user-mode-linux)，基於獨樂樂不如眾樂樂的前提之下，拿出學習的過程和大家一起分享。 由於英文程度不是很好，有些東東並不知道作用為何，就是先給他做了再說，那位大大看到，知道原委，還煩請補充一二。
+
+以下是小弟是在 debian 的 sid 中使用 user mode linux 的，如果是其他的 testing or stable，我想應該也差不多吧。
+
+首先在目前的 kernel 中加入 Network device support -> <M> Universal TUN/TAP device driver support 。這樣會產生一個 tun.o 這是 uml 的網路卡介面，有了這個 uml 就可以連到 internet 去抓 debian 回來安裝了(當然還有其他的介面，如 ethertap，slip，mcast，但個人比較喜歡 tun/tap。
+
+安裝 user mode linux 套件，這樣子就有基本的 uml 環境了
+apt-get install user-mode-linux
+
+所謂 user mode linux 就是要達到完全由 user 可以全部控制的目的，但由於掛上網卡介面需要 root 的權限，所以須要將欲使用 uml 的 user 加入 uml-net 群組。 
+adduser want_to_use_uml_user uml_net 
+
+如果不想如此，可以預先由 root 將 tap0 給掛上，這樣子就可以不用將 user 加入 uml-net 群組了。全部由一般 user 完全控制。 
+
+開始安裝 debian，基本上安裝 debian 是很容易的是，直接用 debootstrap 即可安裝一套，uml 使用 rootstrap 呼叫debootstrap 來安裝 
+debian 到 uml 中。
+apt-get install rootstrap 
+
+修改 /etc/rootstrap/rootstrap.conf 
+------------------------------------------------------ 
+[global] 
+fstype=ext2		# 改成你想要的檔案系統
+initialsize=150		# uml 的 image 檔的大小，以 M/byte 為單位，建議各位改大一些，因為還要裝 X ，我是設 5000(約 5G) 
+freespace=0 		# 安裝好 uml 後，要將 image 釋放多少 M/byte，0 為不調整大小。安裝時需要下載 deb 檔，安裝後實際空間較小。
+
+[network] 
+interface=eth0		# 在 uml 機器裡的網卡介面 
+transport=tuntap 
+host=192.168.10.1	# 在 host 機器上的 tap0 ip 
+uml=192.168.10.2	# 在 uml 機器上的 eth0 ip 
+netmask=255.255.255.252 
+#host_if=tap0		# 假如是用預先啟動的介面卡，則需要設這個，否則必須將該使用者加入 uml_net 群組。 
+gateway=192.168.10.1 
+nameserver=168.95.1.1 
+
+[debian] 
+dist=woody		# 此為安裝 woody，請依個人需求更改 
+mirror=http://debian.linux.org.tw/debian	# 從那個 debian mirror 安裝 
+------------------------------------------------------ 
+
+至於其他沒提到的參數，可不用管它，需要者請自行研究。
+
+要讓 uml 的機器連上 internet，當然還要設 iptable 啦 
+iptables --append FORWARD --source 192.168.10.0/24 --jump ACCEP 
+iptables --table nat --append POSTROUTING --source 192.168.10.0/24 --jump
+MASQUERADE
+至於其他的(如 echo 1 > /proc/sys/net/ipv4/ip_forward) rootstrap 會自動幫你設好
+
+再來小弟於安裝的過程發現無法安裝成功，研究後發現，需修改
+/usr/lib/rootstrap/modules/debian 中的
+debootstrap $opts $dist $TARGET $mirror $script
+改成
+debootstrap --arch i386 $opts $dist $TARGET $mirror $script
+才可正常安裝
+
+執行 rootstrap 開始安裝: 
+rootstrap root_fs	# 那個 root_fs 為 uml 的 image 檔案，可改成任意名稱。 
+ 
+雖然不曉得那裡錯誤，在結束時有錯誤訊息，不過不影響，等一下再修改即可。 
+Using rootstrap module uml from: 
+/usr/lib/rootstrap/modules/uml 
+./MAKEDEV: warning: can't read /proc/devices 
+Using rootstrap module umount from: 
+/usr/lib/rootstrap/modules/umount 
+umount: /tmp/target/proc: not mounted 
+warning: can't open /etc/fstab: No such file or directory 
+mount: can't find / in /etc/fstab or /etc/mtab 
+System halted. 
+
+這時看一下檔案大小:
+eagle:/app/uml# ls -l root_fs
+-rw-r--r-- 1 louie louie 5242880000 Jun 18 02:54 root_fs
+
+好像滿大的，我是設 5G，那不是太佔硬碟空間嗎 ? 其實也沒那麼大,用以下指令可以看實際的大小: 
+eagle:/app/uml# ls -ls root_fs
+188224 -rw-r--r-- 1 louie louie 5242880000 Jun 18 02:57 root_fs
+
+最前面的那個 188224 就是這個檔案的實際佔用硬碟大小也就是約 188M。(好像太大了些,之前安裝約 120M 而已。 
+
+此時，我們就可以啟動所安裝好的 linux 了: 
+linux eth0=tuntap,,,192.168.10.1 ubd0=root_fs 
+
+可以看到開機的過程，然後出現了 6 個 terminal 的畫面，那就是 uml 的 virtual console 1-6，從這裡可以直接用 root 登入，沒有密碼。 從這裡開始，就和操作一般的 debian 一樣了。 
+
+可是小弟發現，那個 terminal 的字實在不是普通的小啊，所以想辦法去修改 xterm 的 resource 可是都改不成功，或是可以這麼說，有成功，但那是直接執行 xterm 才行，由於 uml 是去呼叫 x-terminal-emulator，而 x-terminal-emulator 似乎不管我的 ~/.Xresource 或 .Xdefaults，於是乎乾脆不要用 xterm 了，在執行 uml 時參數改成 linux eth0=tuntap,,,192.168.10.1 ubd0=root_fs con1=pts con2=pts con3=pts con4=pts con5=pts con6=pts 
+
+這時就不會出現 xterm 的視窗，開機畫面會出現 
+Virtual console 1 assigned device '/dev/pts/6' 
+Virtual console 2 assigned device '/dev/pts/7' 
+Virtual console 3 assigned device '/dev/pts/8' 
+Virtual console 4 assigned device '/dev/pts/9' 
+Virtual console 6 assigned device '/dev/pts/10' 
+Virtual console 5 assigned device '/dev/pts/11' 
+
+開個 terminal 執行 screen 去叫出 /dev/pts/6: 
+screen /dev/pts/6 
+會切換到一個黑黑的視窗，按 enter 就會出現登入畫面。 
+
+登入後，發現由於剛才安裝過程有錯誤訊息，而且在安裝過程也不會問你 hostname 什麼的，現在手動修改 /etc/hostname 加入電腦名稱，並修改 /etc/hosts 對應到 uml 的 ip: 
+woody:~# cat /etc/hosts 
+127.0.0.1 localhost 
+192.168.10.2 woody.louie.idv.tw woody 
+woody:~# cat /etc/hostname 
+woody.louie.idv.tw 
+
+將 uml 重新開機即一切正常。 
+這時可再修改 /etc/apt/sources.list，因為當初安裝時沒有 non-US 和 security 。 
+
+陸續將其他的應用程式和 X 有的沒有的安裝好。 
+此時也可以用 xterm -display 192.168.10.1:0 來控制 uml 了。(先決條件是 host 啟動 X 不可加 -nolisten tcp，而且要執行 xhost + 192.168.10.2) 
+
+但是目前都還只是 console 的執行，那各位當然也想要在 uml 中使用 X 啦，當然有 uml 中的 X server 是 Xnest，所以裝上吧: 
+apt-get install xnest xbase-clients 
+
+要做些小小的修改 /etc/X11/xinit/xserverrc 
+將原來的那行 
+exec /usr/bin/X11/X -nolisten tcp 
+改為 
+exec /usr/X11R6/bin/Xnest -nolisten tcp -display 192.168.10.1:0 
+
+再來執行 startx 即可，就會在 host 開啟一個視窗，內容為 uml 中的 X，怎樣，不錯玩吧 
+
+Xnest 有許多參數，man xnest 吧，我的指令為 
+exec /usr/bin/X11/X -nolisten tcp -name Blackbox -geometry 512x384+0+0 -display 192.168.10.1:0 
+
+以上就是玩 uml 的過程，雖然有些 trouble，但弄出來後還滿有成就感的，但各位不要以為 uml 就是如此罷了，這只是 uml 的一小部份而已。 
+
+當然要先去 uml 的大本營看看了 http://user-mode-linux.sourceforge.net 。debian 中也有整個文件包 apt-get install user-mode-linux-doc。那裡有人在 uml 中裝 suse，slakeware，redhat，mandrake 等等，有興趣去看看吧。
+
+另外，uml 也可模擬多 cpu，我過我還不會用就是了。請教各位大大，那個 kernel-patch-skas 是做什麼用的，好像沒有這個 patch，uml 也能 
+run 說。
+
+
+
+哈哈，我又來了，又想到 uml 其他的功能，補充一下。
+
+接著繼續對 uml 做更進一步的操作，我們除了使用一般的網路服務(telnet，ssh)，如果不想在 uml 中裝上那些服務，uml 還提供了專用的管理工具，uml_mconsole: 
+apt-get install uml-utilities 
+
+在啟動 uml 時，下參數 umid=xxx : 
+linux eth0=tuntap,,,192.168.10.1 ubd0=root_fs con1=pts con2=pts con3=pts 
+con4=pts con5=pts con6=pts umid=woody 
+
+等 uml 開起來後，執行 uml_mconsole 
+uml_mconsole woody 
+(woody) help 
+OK Commands: 
+version - Get kernel version 
+help - Print this message 
+halt - Halt UML 
+reboot - Reboot UML 
+config <dev>=<config> - Add a new device to UML; 
+same syntax as command line 
+config <dev> - Query the configuration of a device 
+remove <dev> - Remove a device from UML 
+sysrq <letter> - Performs the SysRq action controlled by the letter 
+cad - invoke the Ctl-Alt-Del handler 
+stop - pause the UML; it will do nothing until it receives a 'go' 
+go - continueOK Commands: 
+version - Additional local mconsole commands: 
+quit - Quit mconsole 
+switch <socket-name> - Switch control to the given machine 
+(woody) 
+
+鍵入 help 出現可用的指令 
+
+halt: 將 uml 給關掉(切記，這是直接 halt，並沒做 sync 和 unmount 的動作，所以儘量不用這指令，重新開機後會做 check disk 的動作) 
+
+reboot: 重新開機 
+
+config: 這個可好玩了，可在 uml 開機的狀況下新增 device，如硬碟。 
+指令 config ubd1=root_fs_data 
+用法和 command line 一樣 
+
+remove: 拿掉一個 device。 
+指令 remove ubd1 
+
+sysrq: 對 uml 送出鍵值和我們核心如果有開 sysrq 的功能一樣 
+如 sysrq s 會 sync 所有已掛載的檔案系統 
+sysrq r 將所有已掛載的檔案系統重新掛載為唯讀 
+sysrq b 重新開機 
+其他的有興趣自行研究 
+
+cad: 送出 ctrl-alt-del 給 uml(由於在此已有好幾個重新開機的指令了，而沒有正常關機的指令，那個 halt 不算，因為是不正常關機，所以建議將 uml 中 的 /etc/inittab 的 ctrl-alt-del 功能改為 shutdown -h now，這樣就可以用 uml_mconsole 來關掉 uml) 
+
+stop: 暫停 uml，不做任何事，直到收到 go 為止 
+
+go: 讓 uml 繼續運作 
+
+quit: 結束 uml_mconsole 回到 shell 
+
+switch: 如果同時有好幾台 uml 執行，可切換到另一台 uml 
+switch sid 
+
+在 uml-utilities 中還有好幾個工具，不過我也還不會用。 
+
+使用過 user mode linux 後，發覺功能滿完整的，一般我們可以將服務開啟在 uml 中，就算是 uml 被攻陷了，也完全不會影響到 host system。 
+
+另外，如果只有需要安裝 linux 的 virtual machine，倒是可以取代 vmware，畢竟 uml 可以完全在 console 下跑，而 vmware 還需要 X Window，這個對於系統資源來說，差別滿大的，雖然說 uml 不能從 fd 或 cdrom 開機 ^_^。 
+
+還有，從 uml 中若要存取 host 的 file system，除了 ftp，samba，nfs .. 之外，還有一個最方便的 hostfs，直接在 uml 中執行: 
+mount -t hostfs -o /home/ftp hostfs /mnt 
+即可將 host 中的 /home/ftp 掛到 uml 中的 /mnt 下，這樣子是不是很方便，注意，那個 
+host 的 path 是放在 -o 之中，別搞錯了。如要放入 /etc/fstab 為: 
+hostfs /mnt hostfs /home/ftp,ro,user 0 0 
+
+玩到這裡，各位會不會覺得，那如果要有很多台 uml，每個 200M，那不就會佔用很大的硬碟空間，實際的狀況會更大。放心，這個 uml 也幫你想到了，那就是 COW(copy-on-write) 的功用。 
+
+linux eth0=tuntap,,,192.168.10.1 ubd0=root_fs-1-cow,root_fs con1=pts con2=pts con3=pts 
+con4=pts con5=pts con6=pts umid=root_fs-1 
+
+這樣子會建立另一個檔案 root_fs-1-cow，而所有的修改都會放到 root_fs-1-cow 裡，
+而原來的 root_fs 則完全不會被動到。此時可再開另外一台 uml: 
+
+linux eth0=tuntap,,,192.168.10.1 ubd0=root_fs-2-cow,root_fs con1=pts con2=pts con3=pts 
+con4=pts con5=pts con6=pts umid=root_fs-2 
+
+進入第二台 uml 後，修改 ip，這樣子就馬上變成二台 uml 了，看看硬碟的使用情況: 
+bash-2.05b$ ls -ls uml* 
+126732 -rw-r----- 1 louie louie 157286400 Jun 18 08:52 root_fs 
+10956 -rw-r--r-- 1 louie louie 157329408 Jun 18 08:35 root_fs-1-cow 
+16964 -rw-r--r-- 1 louie louie 157329408 Jun 8 17:53 root_fs-2-cow 
+
+由於上面的檔案已修改了很多東東，所以每個 cow 都佔掉十幾M，如果只修改個 ip，應該只佔掉幾 k 而已，但是相對上還是小很多 126+10+16 = 152 使用 cow file 後，二台也只佔硬碟空間 152M，但要是使用原來的二個 root_fs 126+126=252，就要用去 252M 了，如果更多台 uml，那差別將更多了。 
+
+在使用 cow 之後，產生了 root_fs-1-cow，以後就可以直接用 cow 為名稱了，可將原來的 root_fs 給省略掉。 
+linux eth0=tuntap,,,192.168.10.1 ubd0=root_fs-2-cow con1=pts con2=pts con3=pts 
+con4=pts con5=pts con6=pts umid=root_fs-2 
+
+有一點要注意的是，在使用了 cow 之後，千萬別再回去使用原來的 root_fs，否則一但修改到原檔案，這時再用 cow 就無法正常讀取了。 
+
+在使用久了之後，或甚至從 woody 昇級到 sid，這時 cow 會越來越大，甚至比原來的還大，這時就不符合經濟效益了，沒關係，uml 為你準備了 uml_moo 在供你使用，將 cow file 和原來的 image 結合成另外一個新的 image: 
+uml_moo usage: 
+uml_moo <COW file> <new backing file> 
+uml_moo -d <COW file> 
+Creates a new filesystem image from the COW file and its backing 
+file. 
+Specifying -d will cause a destructive，in-place merge of the 
+COW file into 
+its current backing file 
+uml_moo supports version 1 and 2 COW files. 
+
+執行 
+uml_moo root_fs-1-cow sid 
+會產生一個新的檔案，內容是 root_fs-1-cow 和 root_fs 的結合，但丟掉不用的東東，所以 sid 會比 root_fs-1-cow + root_fs 小很多。這樣子就有二個 image 了，root_fs 和 sid。 
+
+而 
+uml_moo -d root_fs-1-cow 則將 root_fs-1-cow 和 sid 的內容結合，產生新檔並將原來的 root_fs 給覆蓋掉 
+
+以上大概就是我所學的了，其他的改天如有研究出來再跟各位分享。
+
+
+
+
+User Mode Linux連接網絡
+url:	http://blog.microsuncn.com/?tag=user-mode-linux%E8%BF%9E%E6%8E%A5%E7%BD%91%E7%BB%9C
+==============================
+
+User Mode Linux 連接網絡有三種方式，分別是 slirp、tuntap 和 uml_switch。
+
+slirp 方式最簡單, 只要安裝 slirp 軟件，在啟動時指定 eth0=slirp，並將 UML 的 ip 設置為 10.0.2.15 即可, 但是這個方法只支持 TCP 和 UDP ，不支持 ICMP ，因此不能 ping 主機。
+
+tuntap 方式稍微複雜一些，啟動時指定 eth0=tuntap,,,192.168.1.201，這樣會在主機上安裝一個 IP 為 192.168.1.201 的 tap 設備，UML 中設置同一網段的 IP 即可.
+
+uml_switch 的方法最為強大，uml_switch 命令會創建一個虛擬交換機，並在主機上安裝一個 tap 設備。如 uml_switch –tap tap1 –unix /tmp/switch1, 將會生成 tap1 設備和虛擬交換機 /tmp/switch1，UML只要指定 eth0=daemon,,unix,/tmp/switch1 即可連上指定的交換機。
+

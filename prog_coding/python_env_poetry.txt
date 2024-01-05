@@ -1,0 +1,88 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about poetry
+# made by: Engells
+# date: Jul 1, 2022
+# content: Just for memo
+
+
+
+常用指令
+====================
+poetry add
+poetry remove
+poetry update
+poetry lock
+
+
+
+一般指令
+====================   
+poetry shell
+poetry add pack1 pack2 ...
+  --dev: add package as development mode
+poetry remove  pack1 pack2 ...
+  --dev: remove packages which work for development oly
+poetry export --without-hashes -f requirements.txt -o requirements.txt
+poetry show     # show the packages which installed in project environment
+poetry install  # reads the pyproject.toml file from the current project, resolves the dependencies, and installs them
+  --no-dev: Do not install dev dependencies.
+  --no-root: Do not install the root package (your project).
+  --extras (-E): Features to install (multiple values allowed).
+
+poetry init  # create a pyproject.toml file interactively
+  --name: Name of the package.
+  --description: Description of the package.
+  --author: Author of the package.
+  --python Compatible Python versions.
+  --dependency: Package to require with a version constraint. Should be in format foo:1.0.0.
+  --dev-dependency: Development requirements, see --require
+poetry env use /full/path/to/python
+  # poetry env list
+  # poetry env info
+  # poetry env info --path
+  # poetry env remove python
+
+poetry --version
+poetry new dir_name --name proj_name  # --src
+poetry cache list
+
+poetry config --local  # 專案目錄下產生 poetry.toml
+poetry config --list
+
+
+
+建置及環境設置
+====================
+安裝 poetry
+  cd /path && curl -o https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+    # 須預先安裝 curl python[x].[y]-venv
+  cd /path && POETRY_HOME=/etc/poetry python get-poetry.py
+
+移除 poetry
+  cd /path && python get-poetry.py --uninstall
+  cd /path && POETRY_UNINSTALL=1 python get-poetry.py
+
+環境設置
+  config file: ~/.config/pypoetry/config.toml
+  commands:
+    poetry config virtualenvs.in-project true
+    poetry config virtualenvs.create true
+    poetry config virtualenvs.path /home/proj/poetry_venv /path/to/target
+    poetry config cache-dir /path/to/target
+
+建置專案
+  cd /path/to/proj && poetry init
+  cd /path/to/proj && poetry env use /full/path/to/python
+  poetry shell
+  poetry add pack1 pack2 ...
+
+
+
+參考資料
+====================  
+poetry documents :: https://python-poetry.org/docs/
+Python包管理之poetry基本使用 :: https://zhuanlan.zhihu.com/p/110721747
+環境建置教學 Conda, Poetry, Docker, Github, Dockerhub :: https://medium.com/allenyummy-note/...
+再見了 pip！最佳 Python 套件管理器——Poetry 完全入門指南 :: https://blog.kyomind.tw/python-poetry/
+

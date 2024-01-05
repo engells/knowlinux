@@ -1,0 +1,71 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about LibreELEC
+# made by: Engells
+# date: Mar 11, 2021
+# content: Just for memo
+
+
+
+環境
+====================
+SSH
+  root :: openelec or admit...5
+
+HTTP remote
+  kodi :: admit...5
+
+
+
+
+Static IP
+====================
+查詢網路
+  login via ssh
+  connmanctl services
+
+設定網路
+  connmanctl config <entry_with_asterisk> --ipv4 manual 192.168.1.122 255.255.255.0 192.168.1.1
+  connmanctl config "$(connmanctl services | awk '/^\*/ {print $3}')" --ipv4 manual 192.168.1.122 255.255.255.0 192.168.1.1
+
+
+
+
+Remote control
+====================
+LibreELEC
+---------------
+開啟遠端控制
+  設置 => 服務 => 控制 => 允許 HTTP 遠程控制 ;; 允許異地遠程控制
+安裝 VNC 元件
+  LibreELEC Repo >> Raspberry Pi VNC
+
+Remote Device
+---------------
+安裝 VNC Client
+  安裝套件 tigervnc-viewer 或 gvncviewer
+遠端連線，可進入 Youtube 元件之 API 設定畫面
+  執行指令 vncviewer 192.168.xxx.xxx 或 gvncviewer 192.168.xxx.xxx
+進行 HTTP 遠程控制，與前項配合複製貼上 API 資料
+  開啟瀏覽器，網址 192.168.xxx.xxx:xxxx
+  在 LibreELEC 執行 VNC 遠端操作，進入輸入畫面時，會在瀏覽器跳出輸入框，即可貼上資料
+
+
+
+
+其他設定
+====================
+設置 => 佈景 => 字體 => Arial
+設置 => 區域 => 語言 => 繁中
+設置 => 媒體 => 清理資料庫
+設置 => 文件管理
+
+
+
+
+URL
+====================
+https://kodi.wiki/view/Main_Page ;; https://kodi.wiki/view/Web_interface
+【KODI应该这么玩】 - YouTube :: https://www.youtube.com/watch?v=u7dwL8wx4WI&list=PLTI5d7Gwez7pdJ_S-AV1tDrFFdwRly_e4
+
+

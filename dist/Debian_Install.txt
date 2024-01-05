@@ -1,0 +1,238 @@
+# vim:ts=4
+
+
+使用 USB 碟安裝 debian stable
+==============================
+
+Method 1: iso 2 usb
+-------------------------
+cat debian.iso /dev/sdX
+
+
+Method 2: boot.img.gz + iso
+-------------------------
+zcat boot.img.gz /dev/sdX
+	# 注意，/dev/sdX 因 boot.img.gz 的對應磁碟內容為 256 MB，故隨身碟開機分區也使用 256 MB，超過部份不會用到。
+mount /dev/sdX /mnt
+	# 複製 Debian netinst 或 businesscard.iso 或 完整的 CD/DVD iso 檔案 到 /mnt
+
+
+Method 3: syslinux + iso
+-------------------------
+安裝 syslinux 以及 mtools
+mount /dev/sdX1 /mnt
+cp vmlinuz /mnt
+cp initrd.gz /mnt
+edit syslinux.cfg
+	default vmlinuz
+	append initrd=initrd.gz [vga=788, for gui mod]
+
+
+Method 4: grub2 + iso
+http://moto.debian.tw/viewtopic.php?t=16240
+-------------------------
+首先，要有已經裝好啟動程式（boot loader）的隨身碟。本例使用 grub2。但其他 boot loader 應該也可以使用。如果要從 win 上安裝 grub，可以使用 GRUB4DOS 或是 WINGRUB，只不過設定檔及語法要改成 grub 1 的格式。
+
+下載一個 iso 檔，例如 businesscard.iso。
+debian首頁 > Getting Debuan > Smaller CDs > amd64
+
+下載 initrd.gz、vmlinuz 這兩個檔案。
+debian首頁 > Getting Debuan > Network install > Tiny CDs, USB sticks, etc. > amd64 > hd-media
+另外有一個檔案 boot.img.gz 不需要下載，該檔案是用於快速產生可開機分割區 zcat boot.img.gz > /dev/sdX
+
+將載來的 iso 存在隨身碟根目錄，本例放在 sda2。將 initrd.gz、vmlinuz 放在 sda2/debins 下。這只是個人習慣，不同位置的話設定檔要改。
+所以sda2下的結構如下：
+/businesscard.iso
+/debins/initrd.gz
+/debins/vmlinuz
+
+修改 grub2 的設定檔 /etc/default/grub.cfg，加入：
+menuentry "debian install stable" {
+   insmod ext2
+   set root='(hd0,2)'
+   echo   Loading Linux  ...
+   linux   /debins/vmlinuz quiet 
+   echo   Loading initial ramdisk ...
+   initrd   /debins/initrd.gz
+}
+
+稍微說明一下。由於用 usb 碟啟動，所以 usb 碟對 boot loader 來說是第一顆硬碟，也就是 sda。insmod ext2 是因為 sda2 的檔案系統為 ext2。root 位置，grub2 的磁碟代號有改。磁碟仍從 0 開始，但分割改成從 1 開始，推測 0 是 MBR。linux 及 initrd 就是指定那兩個檔案位置。如存在其他地方就自己改吧！echo 只是顯示文字。
+
+這樣弄完後，用 usb 碟開機。在 grub 選單選『 debian install stable 』。它會在選完語系鍵盤那些東西後搜尋光碟，也就是 iso 檔。如不放根目錄會找不到，然後就正常安裝。
+
+
+Method 5: live media + debootstrap
+http://forum.ubuntu.org.cn/viewtopic.php?f=165&t=365683
+http://www.linuxsir.org/bbs/thread382609.html
+http://tc.itkee.com/os/detail-1f09.html
+http://jeremyqing.blogspot.tw/2012/04/ubuntu-debian.html
+-------------------------
+mount /dev/sd[x][y] /path/to/mount
+
+debootstrap arch=amd64 unstable /path/to/mount ftp://opensource.nchc.org.tw/debian/
+mount -o bind /dev /path/to/mount/dev/
+mount -t devpts /dev/pts/ /path/to/mount/dev/pts/
+mount -t proc proc /path/to/mount/proc
+mount -t sysfs sysfs /path/to/mount/sys
+
+chroot /path/to/mount env -i HOME=/root TERM=$TERM /bin/bash --login LANG=C
+
+vi /etc/fstab #掛載設備
+cd /media; mkdir cdrom0; ln -s cdrom0 cdrom; cd /; ln -s media/cdrom #cdrom 相關
+
+vi /etc/network/interfaces
+vi /etc/resolv.conf
+vi /etc/hostname
+vi /etc/hosts
+vi /etc/apt/sources.list
+
+passwd #給 root 加上密碼
+
+dkpg-reconfigure tzdata # 配置時區
+dpkg-reconfigure locales # 配置locale
+dpkg-reconfigure console-data # 配置鍵盤
+
+aptitude install linux-image # 安裝 linux 內核
+
+aptitude install grub; grub-install /dev/sdb; update-grub # 安裝引導器
+
+
+
+
+Debian Install
+==============================
+
+wheezy + xfce
+-------------------------
+aptitude install xorg
+aptitude install xfce4
+startx	# 若已安裝有其他桌面環境，在 ~/.xinitrc 里添加一行：exec ck-launch-session startxfce4
+
+
+squeeze + gnome 2
+-------------------------
+方法一
+	aptitude install gdm3
+	aptitude install gnome-terminal
+	aptitude install gnome-themes
+	aptitude install gnome-themes-extra
+	/etc/init.d/gdm3 start
+方法二
+	aptitude install xorg
+	aptitude install gnome-core	#安装完整的gnome: apt-get install gnome
+	aptitude install gnome-panel
+	aptitude install gnome-terminal
+
+
+其他程式
+-------------------------
+apt-get install convmv
+convmv -f big5-eten -t utf8 -r --notest /目錄名稱	#指定目錄下 Big5 (ANSI 中文) 的中文目錄和檔名，直接改編碼轉換成對應的 UTF-8 名稱
+iconv -f big5 -t utf-8 檔案名稱 -o 轉換後另存新檔名稱
+
+aptitude install stardict
+字典下载：http://code.google.com/p/stardict-3/downloads/list
+字典包解压到：/usr/share/stardict/dict/
+
+aptitude install sysv-rc-conf
+aptitude install lightdm
+aptitude install xdm
+
+
+
+
+Debian Post Installation Configure
+==============================
+
+語系設定
+-------------------------
+方法一
+	gedit /etc/locale.gen
+	/usr/sbin/locale-gen
+方法二
+	aptitude install locales localepurge
+	選擇 en_US.UTF-8 UTF-8、en_US ISO-8859-1、zh_TW BIG5 和 zh_TW.UTF-8 UTF-8
+	cat /etc/locale.gen #檢查語系設定
+	dpkg-reconfigure locales #新增或刪除其他語系，設定的是 $LANG
+方法三
+	aptitude install locales
+	dpkg-reconfigure locales
+
+
+時區設定
+-------------------------
+方法一
+	dpkg-reconfigure tzdata
+方法二
+	ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime
+
+
+設定使用者個人的預設 Locale
+-------------------------
+nano ~/.bashrc，增加：
+	export LANGUAGE=zh_TW.UTF-8
+	export LC_ALL=zh_TW.UTF-8
+	export LANG=zh_TW.UTF-8
+
+
+更改使用者的輸入設定
+-------------------------
+建立檔案 nano ~/.inputrc，確定有下列四行：
+	set input-meta on
+	set output-meta on
+	set convert-meta off
+	set meta-flag on
+
+
+適用每個新增的帳號的設定檔，/etc/profile 和 /etc/inputrc，範例
+-------------------------
+export PS1='\u@\h[\w]:'
+umask 022
+
+# You may uncomment the following lines if you want `ls' to be colorized:
+alias ls='ls --color=auto'
+
+# Some more alias to avoid making mistakes:
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Added aliases
+alias cls='clear'
+alias dir='ls -al'
+alias lo="exit"
+alias md="mkdir"
+alias rd="rmdir"
+
+# Added for Chinese supported
+export LANGUAGE=zh_TW.UTF-8
+export LC_ALL=zh_TW.UTF-8
+export LANG=zh_TW.UTF-8
+
+
+備忘
+-------------------------
+dpkg-reconfigure xserver-xorg
+
+
+
+
+Debian Package Sources
+==============================
+# 國家高速網路與計算中心
+deb ftp://opensource.nchc.org.tw/debian/ oldstable main contrib non-free
+deb-src ftp://opensource.nchc.org.tw/debian/ oldstable main contrib non-free
+
+# 交大
+deb http://debian.nctu.edu.tw/debian/ stable main contrib non-free
+deb-src http://debian.nctu.edu.tw/debian/ stable main contrib non-free
+
+# 台大
+deb ftp://ftp.tw.debian.org/debian/ oldstable main contrib non-free
+deb-src ftp://ftp.tw.debian.org/debian/ oldstable main contrib non-free
+
+#其他
+deb http://security.debian.org/ squeeze/updates main contrib non-free
+deb [arch=amd64,i386] http://ftp.tw.debian.org/debian/ testing main contrib non-free
+deb [arch=amd64,i386] http://ftp.tw.debian.org/debian/ testing-proposed-updates main contrib non-free
+

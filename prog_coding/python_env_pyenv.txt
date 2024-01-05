@@ -1,0 +1,108 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about PyEnv
+# made by: Engells
+# date: Jan 29, 2021
+# content: Just for memo
+
+
+
+指令
+====================   
+pyenv local [x].[y].[z]     # switch to python with version x.y.z in current folder, and creat a file .python-version
+pvenv local --unset
+pyenv global [x].[y].[z]    # switch to python with version x.y.z in whole system
+pvenv global --unset
+
+pyenv versions              # list all python versions available to pyenv
+pyenv version               # show the current python version
+
+pyenv install -v [x].[y].[z]  # install python with version x.y.z to $(pyenv root)/versions
+                            # need pkgs: make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm
+                            # libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+                            # 安裝所需套件時，apt install 可加參數 --no-install-recommends
+pyenv uninstall [x].[y].[z]	# rm -rf ~/.pyenv/versions/<version>
+                            # 若只是要暫時停用 pyenv，可將 .bashrc 中 pyenv init 那行註釋掉，讓新值生效後，Python 應用程式就不受 Python 版號切換的影響
+pyenv install --list		# check python version which could be installed
+pyenv rehash
+
+pyenv --version				# 顯示 pyenv 版本
+pyenv update				# 更新 pyenv 或 cd /path/to/pyenv && git pull
+pyenv which <command>		# 顯示執行檔所在。
+pyenv whence <command>		# 列示有包含所給執行檔的所有 Python 版號。
+pyenv shell					# 設定或顯示本次 shell 使用期間所用的 Python 版號
+pyenv commands				# 列出所有 pyenv 可用的命令
+pyenv help					# 可看指定命令的較詳細資訊
+rm -rf $PYENV_ROOT			# 完全移除 pyenv
+
+
+
+
+概述
+====================
+環境
+---------------
+1. 以 git 將 pyenv 建置於 /path/to/pyenv，如 /home/plugins/python_pyenv
+2. pyenv 將不同版本的 python 放至  /path/to/pyenv/versions/[x].[y].[z]
+3. 不同版本的 python 以 python[x].[y] -m pip install --user package_name，所安裝套件位於  $HOME/.local/lib/python[x].[y]/site-packages
+4. 系統本身的 python 以 python[x].[y] -m pip install --user package_name，所安裝套件同上。由於兩者的 python 版本不同，其套件安裝目錄跟著不同
+5. 應避免用 pyenv 安裝與系統相同的 python 版本，避免 $HOME/.local/lib/python[x].[y]/site-packages 目錄的混亂
+6. 最安全的方法，以 python[x].[y] 指令取代 python[x] 來安裝套件，如 以 python3.6 指令取代 python3.5
+
+
+運作方式
+---------------
+pyenv 會在系統路徑 PATH 中安插墊片(shim)執行碼以攔截 Python 相關命令，來判斷應用所指定的 Python 版號，並傳遞命令給正確的 Python 安裝。執行 shim 時，會依以下順序來決定所用的 Python 版號：
+    1.PYENV_VERSION環境變數（若有指定的話）。可用 pyenv shell 設定當前 shell session 中的該環境變數。
+    2.目前目錄中應用指定的 .python-version 檔（若有的話）。可用 pyenv local 修改當前目錄的 .python-version 檔。
+    3.搜尋每個父層目錄，直到檔案系統的根，第一個找到的 .python-version 檔。
+    4.全局 $(pyenv root)/version 檔。可用 pyenv global 修改此檔案。若無此檔，則假定使用 "system" Python，即系統用的 Python版 。
+      換句話說，就是如果 pyenv 不在 PATH 時所執行的版號。
+
+pyenv 決定了所用的 Python 版號後，將命令傳給相對應的 Python 安裝。每個 Python 的版號是安裝在位於 $(pyenv root)/vesions 中各自的目錄之下。
+
+Environment variables 較常用的：$PYENV_VERSION、$PYENV_ROOT
+
+
+
+
+安裝
+==================== 
+apt install sqlite3 libsqlite3-dev libssl-dev libffi-dev
+git clone https://github.com/pyenv/pyenv.git /path/to/pyenv
+echo 'export PYENV_ROOT="/path/to/pyenv"' >> ~/.zshrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc or echo 'export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.zshrc ??
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+  # if command -v pyenv 1>/dev/null 2>&1; then
+  #   eval "$(pyenv init -)"
+  # fi
+pyenv update >> optional, to upgrade pyenv
+----(macOS)
+edit .zshrc
+  export LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/sqlite/lib"
+  export CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/sqlite/include"
+  export PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig /usr/local/opt/sqlite/lib/pkgconfig"
+  export PYTHON_CONFIGURE_OPTS="--enable-framework"
+  export PIPENV_VENV_IN_PROJECT=1
+brew install pyenv
+
+
+參考資料
+====================  
+https://fygul.blogspot.com/2019/09/pyenv.html
+https://fygul.blogspot.com/2019/09/pipenv.html
+
+
+
+
+pyenv-virtualenv(optional)
+====================
+pyenv-virtualenv is a pyenv plugin that manages Python virtual environments on UNIX-like systems.
+
+安裝
+----------   
+git clone https://github.com/pyenv/pyenv-virtualenv.git $.pyenv/plugins/pyenv-virtualenv
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
+
+
+

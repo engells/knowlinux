@@ -1,0 +1,126 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note knowhow about tmux and screen
+# made by: Engells
+# date: Feb 17, 2021
+# content: Just for memo
+
+
+
+常見快捷鍵
+====================
+bind-key 方向鍵				          # 切換 window
+bind-key [0...9]		          # 切換 window
+bind-key K					          # 關閉 window
+C-d 								          # 關閉 tmux panel
+bind-key [					          # 進入翻頁 scroll 模式，可按 PgUP 或 PgDown 向前或向後翻頁，按 q 鍵離開本模式。
+bind-key PgUP				          # 向上翻頁
+bind-key + ~									# 顯示 tmux messages
+bind-key + |									# 垂直分割 window
+bind-key + _									# 水平分割 window
+bind-key + alt + 方向鍵					# 調整 pane大小
+bind-key + 方向鍵								# 在 pane 間切換
+bind-key + { or }							# 調整 pane位置
+bind-key + !									# 拆開當前的 pane 至獨立window
+bind-key + j									# 合併指定的 window 成為當前 window 的 pane
+bind-key + ?									# 列出所有 tmux session 內的指令
+bind-key + s									# 選擇 tmux session
+bind-key + .									# 更改 window 編號
+bind-key + k									# 刪除 window
+bind-key + d									# 將 tmux session 放入背景執行
+bind-key + ?									# 列出所有 tmux session 內的指令
+
+
+
+
+比照 Screen 及 Tmux 快速鍵操作方式
+====================
+Tmux 原生快速鍵(prefix: Ctrl + b)
+  Panel
+    <prefix-%>      水平切割 panel
+    <prefix-">      垂直切割 panel
+    <prefix-x>      關閉 panel
+    <prefix-方向鍵>  切換 panel
+  Window
+    <prefix-c>      產生新的 window
+    <prefix-&>      關閉目前 window
+    <prefix-p>      切換至前一 window
+    <prefix-n>      切換至後一 window
+    <prefix num>	  切換至指定編號 window
+  Session
+    <prefix>d      離開目前 session
+    <prefix>D      離開指定編號 session
+
+
+
+編輯設定檔： ~/.tmux.conf，加入下列檔案內容
+	/usr/share/doc/tmux/examples/screen-keys.conf
+	/usr/share/doc/tmux/examples/vim-keys.conf
+
+	C-a ? 看說明 (C-a 代表 Crtl＋a； M 代表要先按 Esc 鍵)
+	C-a t 時鐘, 現在時間
+	C-a q 可以看到 pane 數字 - 若有 pane 比較容易懂
+
+	C-a Ctrl按著 + 上下左右, 可以調整 pane 大小
+	C-a s 橫切
+	C-a v 直切 (或 C-a %)
+	C-a C-o 調換 pane 的 位置
+	C-a 上下左右 跳到上下左右的 pane
+
+	C-a Esc 1 直的切割視窗排列 (M-1)，假設已先產生四格 pane，以下同。
+	C-a Esc 2 橫的切割視窗排列 (M-2)
+	C-a Esc 3 上面一個大的 pane + 下面三個 pane (M-3)
+	C-a Esc 4 左面一個大的 pane + 右面三個 pane (M-4)
+	C-a Esc 5 四個 pane 各 1/4 (M-5)
+
+
+
+
+Screen 快速鍵
+====================
+C-a c 或 C-a C-c 開啟新的視窗分頁，並同時切換到視窗分頁
+C-a n 或 C-a C-n 或 C-a (space) 切換到下一個視窗分頁（0->1 1->2 ...）
+C-a p 或 C-a C-p 切換到上一個視窗分頁（1->0 2->1 ...）
+C-a C-a 切換到上一個顯示過的視窗分頁（不是照順序切換）
+C-a (0,1..9) 切換到第 (0,1..9) 個視窗分頁
+C-a w 或 C-a C-w 會列出目前所開啟的視窗分頁
+	0$ tcsh 1$ tcsh 2*$ tcsh 3$ tcsh：有星號 "*" 表示目前顯示中的子視窗，之後的 tcsh 代表子視窗的 title ，預設是開啟時的 shell 名稱 
+
+C-a K 關閉所有的視窗分頁並退出 screen
+C-a ' 或 C-a " 會出現 "Switch to window:" 字樣，輸入號碼後就可切到該視窗分頁
+
+C-a C 清除目前的視窗分頁內容
+C-a d 或 C-a C-d 脫離（detach）目前的 screen ，並放到背景執行（不管開了幾個視窗分頁）
+C-a D D 強力脫離，除了放到背景執行外，並自動 logout
+
+C-a C-g 虛擬嗶聲（visual bell）的切換，可以在畫面上顯示訊息代表一般的嗶聲
+C-a H 紀錄目前視窗分頁所有顯示過的東西（檔名為 screenlog.n n 為視窗號碼）
+C-a i 或 C-a C-i 顯示目前視窗分頁資訊
+	(11,24)/(80,24)+1000 +(+)flow -ins -org +wrap +app -log -mon +r G0 [BBBB]
+
+C-a l 或 C-a C-l 重繪視窗分頁，如果有字顯示亂掉了可以用這個指令
+C-a m 或 C-a C-m 或 C-a (enter) 可以顯示最近一次顯示過的訊息
+C-a t 或 C-a C-t 顯示系統的時間及主機名稱還有負載
+C-a v 顯示版本資訊
+C-a x 或 C-a C-x 如果要暫時離開目前位置又不想先 logout ，那可以用這個來鎖住 screen
+C-a S 將營幕畫面暫停
+C-a q (C-a S 暫停) 的 回復
+C-a ? 線上求助畫面
+
+C-a [ 進入 複製/卷軸 模式（只有在目前視窗才算，其他視窗照常）基本上跟 vi 很像：
+	h, j, k, l 分別為向左，向下，向上，向右移動一格（或是一行）
+	0 移到該行最左邊
+	^ 與 $ 分別移到該行最左邊及最右邊的非空白字元
+	w 以字為單位往前移動並移到字首
+	b 以字為單位往後移動並移到字首
+	e 以字為單位往前移動並移到字尾
+	C-b 向上捲一頁
+	C-f 向下捲一頁
+	C-u 向上捲半頁
+	C-u 向下捲半頁
+	/ 與 ? 向下或向上尋找字串
+	(space) 第一次按下到第二次按下的區域會被複製到暫存區內
+	(ESC) 離開 複製/卷軸 模式
+接著按下 C-a ] 便可以把剛剛存到暫存區內的內容複製出來。 
+
+

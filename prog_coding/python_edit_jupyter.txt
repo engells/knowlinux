@@ -1,0 +1,136 @@
+#!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about Jupyter
+# made by: Engells
+# date: Jan 30, 2021
+# content: Just for memo
+
+
+
+指令
+====================
+jupyter notebook
+    # --ip=xxx.xxx.xxx.xxx; ip=0.0.0.0; ip='*'
+    # --port=8890
+    # --no-browser
+    # --allow-root
+    # pipenv run jupyter notebook --ip=172.25.3.12 --port=8890 --no-browser --allow-root 1>/dev/null 2>&1 &
+jupyter notebook list
+    # 顯示執行中的 jupyter servers 
+jupyter --path
+
+jupyter kernelspec list
+    # 查看 Jupyter 環境所配置 kernel
+jupyter kernelspec remove kernel_name
+    # 自 Jupyter 環境移除 kernel
+
+
+
+
+安裝
+====================
+安裝至虛擬環境
+---------------
+pipenv install jupyter
+    # pip3 install jupyterlab, re-install packages if out-time error happened
+pipenv install ipykernel
+    # 安裝 python kernel，R 語言的 kernel 為 irkernel
+    # 預設路徑為 /path/to/virtual/share/jupyter/kernels/kernel_name 或 /usr/local/share/jupyter/kernels/kernel_name
+    # 預設配置文件為 /path/to/預設路徑/kernel.json
+
+pipenv shell && python3 -m ipykernel install --user --name xxxx
+    # 建立 python kernel 至虛擬環境 xxxx
+pipenv run python3 -m ipykernel install --user --name xxxx --display-name "yyyy"
+    # 建立 python kernel 至虛擬環境 xxxx，並在 Jupyter Notebook 中顯示 kernel 為 yyyy
+
+
+安裝至系統主環境
+---------------
+Method 1 (Default)
+  sudo apt update && sudo apt upgrade && apt install python3 python3-pip python3-dev
+  python3 --version ; pip3 --version
+  apt install ipython && pip3 install jupyter
+  useradd -M jupyter
+  su - jupyter -c 'Jupyter Notebook --ip IP_Address --no-browser' &
+    # 執行 jupyter-notebook，注意是以 jupyter 帳號執行
+    # URL: https://wpcademy.com/how-to-install-jupyter-on-ubuntu-18-04-lts/
+    #      https://www.rosehosting.com/blog/how-to-install-jupyter-on-ubuntu-18-04/
+
+Method 2
+  sudo apt install jupyter-notebook
+    # 執行 jupyter-notebook
+
+
+set password
+---------------
+jupyter notebook --generate-config
+    # create a config file in  ~/.jupyter/jupyter_notebook_config.py
+    # run commands in python shell
+    #   from notebook.auth import passwd
+    #   passwd()
+    # add password on config file: c.NotebookApp.password = u'sha1:xxxx....'
+jupyter notebook password
+
+
+set ssl
+---------------
+openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /path/to/mykey.key -out /path/to/mycert.pem
+jupyter notebook --certfile=mycert.pem --keyfile mykey.key or edit config file
+    # c.NotebookApp.ip = 'xxx.xxx.xxx.xxx'
+    # c.NotebookApp.open_browser = False
+    # c.NotebookApp.port = 8890
+    # c.NotebookApp.certfile = u'/absolute/path/to/mycert.pem'
+    # c.NotebookApp.keyfile = u'/absolute/path/to/mykey.key'
+    # c.NotebookApp.password = u'sha1:...<your hashed password here>'
+    # c.NotebookApp.notebook_dir = ''
+
+ 
+set theme
+---------------
+pip3 install --upgrade jupyterthemes
+jt -l   # show themes available
+jt -t theme_name   # change to new theme
+jt -r   # return to default theme
+jt -t oceans16 -tf merriserif -tfs 10 -fs 12 -nf ptsans -nfs 13 -T -N -f roboto
+
+
+
+
+概論
+====================
+IPython
+---------------
+IPython 通常指的是 Python REPL shell。提供了遠比 Python shell 強大的 shell 環境。該名詞本身就是 Iteractive Python shell 的縮寫。
+
+IPython 具有強大的交互式 shell 及數據運算視覺化的特點，可方便且彈性的整合不同編輯器，擁有高效能及容易使用的平行運算功能，同時也是 Jupyter Notebook 其中的一個 kernel。
+
+
+IPython Notebook
+---------------
+IPython Notebook 是基於 IPython REPL 的 web 應用，安裝 IPython 後在終端輸入 ipython notebook 即可啟動服務。其運行結果可以單獨保存，格式為 .ipynb。現 GitHub 已提供 ipython notebook 的線上預覽。
+
+IPython Notebook 將原本的 console-based ，延伸到可互動式計算的新方向，轉成 web-based 來處理整個計算過程，包括開發、編輯、文件化及執行程式，可立即傳遞執行結果。
+
+
+Jupyter 和 Jupyter Notebook
+---------------
+Jupyter 是從 IPython 發展演變而來的專案，後來持續發展成支援多語言，包括 Python。Jupyter 實質上是把 IPython 和 Python 解釋器剝離後的產物，將逐漸替代 IPython 獨立發行。Jupyter 可以和 Python 之外的程式結合，比如 Ruby REPL 環境 IRuby 和 Julia REPL 環境 IJulia。相對的 Jypyter 也提供 Jupyter Notebook。
+
+Jupyter 由 Notebook Frontend、Jupyter Server 及 Kernel Protocol 三部分所組成。
+
+Jupyter Notebook 包含了兩個組成： Web Application 和 Notebook Documents。
+    網頁應用程序 (Web Application)：Web-based 的互動創作及應用工具，包括可以計算、數學、文檔創作及豐富的多媒體輸出。
+    筆記本文件檔 (Notebook Documents)：顯示在 Web Application 當中的內容，包括計算的輸入/輸出、文件說明/解釋、數學運算及運算式、圖片及所有豐富多媒體內容。
+
+nbviewer 是 （Jupyter）Notebook Viewer 的縮寫，用於渲染 .ipynb 文件，並支持 HTML 和 PDF 輸出。
+
+jupyterhub 類似於 git 和 GitHub，或者 docker 與 Docker Hub，jupyterhub 提供 jupyter 文檔托管服務，相對於 GitHub 的 jupyter 支持，jupyterhub 提供更多的交互支持。
+
+
+
+
+參考資料
+====================
+Jupyter Notebook 完整介紹、安裝及使用說明    https://medium.com/ai-for-k12/jupyter-notebook-%E5%AE%8C%E6%95%B4%E4%BB%8B%E7%B4%B9-%E5%AE%89%E8%A3%9D%E5%8F%8A%E4%BD%BF%E7%94%A8%E8%AA%AA%E6%98%8E-846b5432f044
+
+

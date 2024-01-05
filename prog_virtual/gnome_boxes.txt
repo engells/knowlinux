@@ -1,0 +1,46 @@
+#!/bin/bash
+# vim:ts=2
+# program: knowhow about Gnome Boxes
+# made by: Engells
+# date: Nov 12, 2023
+# content: 
+
+
+Configure
+====================
+hdd image files
+  $HOME/.local/share/gnome-boxes/images/ ; $HOME/.local/share/libvirt/images/
+  /var/lib/libvirt/images/
+vm config files 
+  $HOME/.config/gnome-boxes/ ; $HOME/.config/libvirt/qemu/
+  /etc/libvirt ; /etc/qemu
+vm session files
+  $HOME/.config/gnome-boxes/sources/'QEMU Session'
+vm cache files
+  $HOME/.cache/gnome-boxes ; $HOME/.cache/libvirt
+others
+  /var/lib/libvirt ; /var/log/libvirt
+
+
+
+Edit VM/pool/network
+====================
+virsh list --all
+virsh edit vm_name
+virsh start vm_name
+virsh dumpxml vm_name
+virsh pool-list --all
+virsh pool-edit pool_name
+virsh pool-start pool_name
+virsh pool-dumpxml pool_name
+sudo virsh net-list --all
+sudo virsh net-dumpxml net_name
+
+
+
+Refs
+====================
+使用 GNOME Boxes 将虚拟机镜像移动到另一台主机 :: https://linux.cn/article-15244-1.html
+Gnome Boxes Settings locations and VM Locations? :: https://discourse.gnome.org/t/gnome-boxes-settings-locations-and-vm-locations/5654
+
+

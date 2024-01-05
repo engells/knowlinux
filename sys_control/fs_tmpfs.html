@@ -1,0 +1,392 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <title>Tmpfs</title>
+
+  
+  
+  <link rel="stylesheet" type="text/css" href="/home/engells/mnt/MyDefaultType.css">
+
+</head><body>
+<br>
+
+<br>
+
+<h1>TmpFS</h1>
+
+<br>
+
+<h3>應用 tmpfs 節省使用硬碟</h3>
+
+<hr>簡述
+<ol>
+
+  <li>修改/etc/fstab，以tmpfs方式掛載/tmp、/var/log或其他目錄</li>
+  <li>準備兩支bash
+scripts，一支在關機時將/var/log資料備份至/var/backups/log，另一支在開機時將/var/backups/log資料回
+存至/var/log。網路上有文章不作/var/log資料之備份與回存，而是在開機時直接新建/var/log下之子目錄，但此法將損失既有之
+/var/log資料，故不採此法。</li>
+  <li>將瀏覽器cache目錄放至tmpfs，此部份參照Browser檔案。</li>
+</ol>
+
+修改 /etc/fstab<br>
+
+<ul>
+
+tmpfs&nbsp; /tmp&nbsp; tmpfs&nbsp;
+defaults,mode=1777&nbsp; 0&nbsp; 0<br>
+tmpfs&nbsp; /var/log&nbsp; tmpfs&nbsp; defaults,mode=1777&nbsp; 0&nbsp;
+0<br>
+#tmpfs&nbsp; /var/run&nbsp; tmpfs&nbsp; size=100m,mode=1777&nbsp;
+0&nbsp; 0<br>
+</ul>
+
+備份及回存var/log
+<ul>
+
+  <li>備份var/log資料<br>
+編輯/etc/init.d/z.mysave.sh，內容如下：
+    <ul>
+#!/bin/sh<br>
+rm -rf /var/backups/log/*<br>
+cd /var/log<br>
+cp -R . /var/backups/log
+    </ul>
+設定關機或重開機時備份
+    <ul>
+      <li>sudo ln -s /etc/init.d/z.mysave.sh /etc/rc0.d/K10mysave.sh<br>
+把檔連結到
+/etc/rc0.d/，關機(halt)時使用</li>
+      <li>sudo ln -s /etc/init.d/z.mysave.sh /etc/rc6.d/K10mysave.sh<br>
+把檔連結
+/etc/rc6.d/，重開機(reboot)時使用</li>
+    </ul>
+  </li>
+  <li>回存/var/log資料<br>
+編輯/etc/init.d/z.myload.sh，內容如下：
+    <ul>
+#!/bin/sh<br>
+rm -rf /var/log/*<br>
+cd /var/backups/log<br>
+cp -R . /var/log
+    </ul>
+設定開機執行
+    <ul>
+      <li>cd /etc/init.d</li>
+      <li>update-rc.d z.myload.sh defaults <br>
+設定啟動時自動執行，必要時移除在runlevel 0,1,4,6新增之link，更名在runlevel
+2,3,5新增之link，將更名後runlevel 2的link複製到runlevel 1</li>
+      <li>sudo update-rc.d -f&nbsp; z.myload.sh remove<br>
+移除原先增加之開機程序<br>
+      </li>
+      <li>update-rc.d z.myload.sh start 29 S .<br>
+設定啟動時自動執行順序，但操作結果常有錯誤。</li>
+    </ul>
+  </li>
+</ul>
+
+備註，從網路上搜尋之資料，不備份及回存/var/log，僅在開機時重建/var/log下的子目錄
+<ul>
+
+#!/bin/sh<br>
+#http://blog.philippklaus.de/2011/02/ssd-optimizations-on-linux/<br>
+# you may want to add more folders to be checked/created to this list:<br>
+for dir in apparmor apt ConsoleKit cups dist-upgrade fsck gdm installer
+news samba speech-dispatcher unattended-upgrades;<br>
+do<br>
+&nbsp; if [ ! -e /var/log/$dir ] ; then mkdir /var/log/$dir; fi<br>
+done
+</ul>
+
+停用休眠功能，未經測試
+<ul>
+
+#To disable hibernation completely, tell Policy Kit that hibernation is
+forbidden for all users:<br>
+cat &lt;&lt; EOF | sudo tee
+/etc/polkit-1/localauthority/50-local.d/02-disable-hibernation.pkla<br>
+&nbsp; [Disable hibernate/suspend for all groups]<br>
+&nbsp; Identity=unix-group:*<br>
+&nbsp; Action=org.freedesktop.upower.hibernate<br>
+&nbsp; ResultActive=no<br>
+&nbsp; ResultInactive=no<br>
+&nbsp; ResultAny=no<br>
+EOF
+</ul>
+
+<br>
+
+<br>
+
+<h3>Linux下的/dev/shm/</h3>
+
+<hr>/dev/shm/
+是linux下一個非常有用的目錄，這個目錄不在硬碟上，而是在記憶體裏。因此在linux下，就不需要大費周折去建ramdisk，直接使用
+/dev/shm/ 就可達到很好的效果。<br>
+
+<br>
+
+/dev/shm/需要注意的是容量問題，在linux下預設最大為記憶體的一半大小，使用df
+-h命令可以看到。但它並不會真正的佔用這塊記憶體，如果/dev/shm/下沒有任何檔，它佔用的記憶體實際上就是0位元組；如果它最大為1G，裏頭放
+有100M文件，那剩餘的900M仍然可為其他應用程式所使用，但它所佔用的100M記憶體，不會被系統回收，否則誰還敢往裏頭存檔呢？<br>
+
+默認的最大一半記憶體大小在某些場合可能不夠用，並且默認的inode數量很低一般都要調高些，這時可以用mount命令來管理：
+<ul>
+
+mount -o size=1500M -o nr_inodes=1000000 -o noatime,nodiratime -o
+remount /dev/shm <br>
+在2G的機器上，可將最大容量調到1.5G，並且inode數量調到1000000，這意味著大致可存入最多一百萬個小文件。<br>
+----------<br>
+mkdir /dev/shm/share<br>
+chmod 1777 /dev/shm/share<br>
+mount -- bind /dev/shm/share ~/temp
+</ul>
+
+<div class="ref">
+參考資料：<br class="ref">
+<cite class="ref">http://asram.blog.51cto.com/1442164/295620</cite>
+</div>
+
+<br>
+
+<br>
+
+<h3>Linux下修改/dev/shm tmpfs檔系統大小</h3>
+
+<hr>
+默認系統就會載入/dev/shm，也就是所謂的tmpfs，有人說跟ramdisk一樣，但不一樣。象虛擬磁片一樣，tmpfs
+可以使用RAM，但它也可以使用您的交換分區來存儲。而且傳統的虛擬磁片是個塊設備，並需要一個mkfs之類的命令才能真正地使用它，tmpfs是一
+個檔系統，而不是塊設備；您只是安裝它，它就可以使用了。<br>
+
+<br>
+
+tmpfs有以下優勢：<br>
+
+1.動態檔系統的大小。<br>
+
+2.tmpfs的另一個主要的好處是它閃電般的速度。典型的tmpfs檔系統會完全駐留在RAM中，讀寫幾乎可以是瞬間的。<br>
+
+3.tmpfs資料在重新啟動之後不會保留，因為虛擬記憶體本質上就是易失的。所以有必要做一些腳本做諸如載入，綁定的操作。<br>
+
+<br>
+
+通常使用/dev/shm作共用記憶體（shm_open，shm_unlink)。
+/dev/shm是個臨時文檔系統（tmpfs），能夠從/etc/fstab中mount。因此，支持標準的參數例如"size"，能夠用來增加或減少
+在/dev/shm上的tmpfs大小。<br>
+
+<br>
+
+調整/dev/shm的大小<br>
+
+vi /etc/fstab<br>
+
+tmpfs /dev/shm tmpfs defaults,size=4096M 0 0<br>
+
+<br>
+
+<br>
+
+<h3>Linux ramdisk與tmpfs的分析</h3>
+
+<hr><br>
+
+ramdisk<br>
+
+<ul>
+
+  <li>概念<br>
+ramdisk是使用一部分記憶體空間來類比硬碟分區，也就是說ramdisk是一個塊設備，要用mkfs格式化,才能真正使用。在內核2.0/2.2版
+本已經支持ramdisk。ramdisk設備不允許重新聲明它的記憶體空間，所以ramdisk塊通常會一直佔用空間的記
+憶體直到系統重啟。ramdisk的一個缺點是在它上面創建一個檔系統，如此會同時消耗緩衝區快取記憶體和檔系統緩存。理論上，最大可以消耗一個磁片檔的
+兩倍隨機記憶體。ramdisk的另一個缺點是它大小固定，之後不能改變。現在大多數需要RAM臨時存儲的應用程式會使用
+tmpfs檔系統而不是ramdisk設備。</li>
+  <li>ramdisk的應用
+    <ul>
+      <li>查看當前系統的ramdisk<br>
+[root@test1 ~]# ls -l /dev/ram*<br>
+lrwxrwxrwx 1 root root&nbsp;&nbsp; 4 Feb 6 13:51 /dev/ram =&gt; ram1<br>
+brw-r----- 1 root disk 1,0 Feb 6 13:50 /dev/ram0<br>
+lrwxrwxrwx 1 root root&nbsp;&nbsp; 4 Feb 6 13:51 /dev/ramdisk =&gt; ram0</li>
+      <li>ramdisk的應用實例<br>
+傳統方式，先格式化，然後載入
+        <ul>
+mkfs -t ext2 /dev/ram0<br>
+mkdir /tmp/ramdisk0<br>
+mount /dev/ram0 /tmp/ramdisk0<br>
+df -h
+        </ul>
+內核2.4及以後才支持的，以ramfs方式，下例為建立限定最大使用記憶體為2M的ramdisk
+        <ul>
+mount -t ramfs -o maxsize=2000 none /testRAM<br>
+mount -t ramfs -o size=20m ramfs ~/mnt/ramdisk <br>
+注意，ramfs原來是Linus寫出作為tmpfs前身的底層功能，並非ramdisk概念。但此處指令中使用ramfs參數，代表建立
+ramdisk。
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+tmpfs
+<ul>
+
+  <li>概念<br>
+tmpfs是一種基於記憶體的檔系統，也可以使用swap分區來存儲。tmpfs是一個檔系統，並不是塊設備，只要安裝它，就可以使用了。<br>
+tmpfs在存儲時不需要塊設備，資料完全存放在檔系統的緩存中，也可以是交換存儲。tmpfs檔系統可以在得到高速RAM硬碟優勢的同時還享有虛擬記憶
+體的靈活性。基本上tmpfs是所有版本中共用記憶體設備/dev/shm的默認檔系統。<br>
+在
+Linux內核中，虛擬記憶體資源由實體記憶體和交換分區組成，tmpfs向虛擬記憶體子系統請求頁來存儲檔，它同其他請求頁的部分一樣，不知道分配給自
+己的是實體記憶體還是交換分區存儲。<br>
+  </li>
+  <li>tmpfs的應用
+    <ul>
+      <li>/dev/shm<br>
+此裝置的類型是tmpfs，用shm_open、shm_unlink請求共用記憶體時，系統會透過/dev/shm來回應請求，此外tmpfs本身也用
+的是檔系統緩存功能。<br>
+/dev/shm容量預設是實體記憶體的一半。可用
+        <ul>
+free -m<br>
+df -h
+        </ul>
+更改/dev/shm的大小
+        <ul>
+vi /etc/fstab<br>
+/dev/shm&nbsp;&nbsp;&nbsp; tmpfs&nbsp;&nbsp;&nbsp;
+defaults,size=512M&nbsp;&nbsp;&nbsp; 0 0
+        </ul>
+      </li>
+      <li>利用tmpfs來提高磁片的讀寫<br>
+建立/mnt/disktest目錄，並以tmpfs名稱掛載到/mnt/disktest目錄，用df指令可查詢到該項資料：<br>
+mkdir /mnt/disktest<br>
+mount -t tmpfs -o size=128m tmpfs /mnt/disktest<br>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<div class="ref">
+參考資料：<br class="ref">
+<cite class="ref">http://hi.baidu.com/%C2%ED%B3%A4%D5%F72008/blog/item/744219cfa9512e32b700c85c.html</cite><br>
+<cite>http://www.lupaworld.com/56821/viewspace-142577.html</cite>
+</div>
+
+<br>
+
+<br>
+
+<h3>tmpfs應用實例：安裝eeebuntu 2.0</h3>
+
+<hr>
+<p>本來是不想寫這個東西的。但因為實在是沒什麼文章發表，只好拿我的怪咖小白來做文章。這次的訓練重點有</p>
+
+<ol>
+
+  <li>建立tmpfs來減少對ssd的使用次數</li>
+  <li>將apt-get(synaptic)抓下來及sources list丟進tmpfs裡</li>
+  <li>把小狐的快取也丟進tmpfs裡</li>
+  <li>讓我的怪咖小白能使用Smplayer及安裝相關影音解碼器</li>
+  <li>.......沒了，我能想到的只有這些</li>
+</ol>
+
+作業系統：eeebuntu 2.0 NBR&nbsp; <a href="http://www.eeebuntu.org/" target="_blank">這裡可以找到</a>。這東西是基於 ubuntu 8.10
+做的。共有三個版本，<a href="http://briian.com/?p=5993" target="_blank">重
+灌狂人裡面有介紹</a>。
+<p>訓練開始：</p>
+
+<ol>
+
+  <li>安裝時只有１個要點，不要把硬碟格式設成日誌型的，選用較舊的 ext2就行。</li>
+  <li>將幾個目錄建立成tmpfs，編輯/etc/fstab，在最底下加入這幾行：
+    <ul>
+#tmpfs<br>
+tmpfs&nbsp;&nbsp;/tmp &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; &nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;
+tmpfs&nbsp;&nbsp;&nbsp; defaults,noatime,mode=1777
+0&nbsp;&nbsp;&nbsp;&nbsp; 0<br>
+tmpfs&nbsp;&nbsp;/var/tmp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; &nbsp; tmpfs&nbsp;&nbsp;&nbsp;
+defaults,noatime,mode=1777
+0&nbsp;&nbsp;&nbsp;&nbsp;
+0<br>
+tmpfs&nbsp;&nbsp;/var/log&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; &nbsp; tmpfs&nbsp;&nbsp;&nbsp;
+defaults,noatime,mode=1777
+0&nbsp;&nbsp;&nbsp;&nbsp; 0<br>
+tmpfs&nbsp;&nbsp;/var/cache/apt/archives&nbsp;&nbsp;&nbsp;&nbsp;
+tmpfs&nbsp;&nbsp;&nbsp;
+defaults,noatime,mode=1777 0&nbsp;&nbsp;&nbsp;&nbsp; 0
+&nbsp;&lt;=這是放軟體包的<br>
+tmpfs&nbsp;&nbsp;/var/lib/apt/lists&nbsp;&nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp;&nbsp;&nbsp;
+tmpfs&nbsp;&nbsp;&nbsp; defaults,noatime,mode=1777
+0&nbsp;&nbsp;&nbsp;&nbsp; 0 &nbsp;&lt;=這是放list的
+    </ul>
+但是問題來了，&nbsp;/var/cache/apt/archives及/var/lib/apt/lists二個目錄底下又各自有一個
+partial的目錄。因為上層目錄被設成了tmpfs，這二個目錄只要每次重開機後就會消失不見，而apt-get(synaptic)在執行時又不會
+自動建立這二個目錄。<br>
+怎麼辦？只好寫成init script 讓它們開機時自動建立。（我的寫法很粗糙，一點技術性也沒有，期待熱血勇者補完） </li>
+  <li>建立一個script，每次開機時會自動建立/var/lib/apt/lists/partial 及
+/var/cache/apt/archives/partial這二個目錄的，並掛入rcS.d裡。<br>
+    <ul>
+      <li>新建一個檔案，假設為mkdir-apt-partial，貼入以下內容
+        <ul>
+#!/bin/sh<br>
+#這支script是用來建立/var/lib/apt/lists/partial 及
+/var/cache/apt/archives/partial這二個目錄的<br>
+PATH=/lib/init:/bin:/sbin<br>
+mkdir /var/lib/apt/lists/partial<br>
+chmod 777 /var/lib/apt/lists/partial<br>
+mkdir /var/cache/apt/archives/partial<br>
+chmod 777&nbsp; /var/cache/apt/archives/partial
+        </ul>
+        <span style="color: rgb(0, 255, 0);"></span><span style="color: rgb(0, 255, 0);"></span>因為我是自己用的，所以chmod的
+權限我沒有很在意。</li>
+      <li>以上存檔，設成可執行後丟進/etc/init.d 裡：<br>
+        <p class="command">sudo cp
+mkdir-apt-partial
+/etc/init.d</p>
+      </li>
+      <li>然後執行update-rc.d 把這支script掛入rcS.d
+        <p class="command">sudo
+update-rc.d
+mkdir-apt-partial start 60 S .</p>
+注意最後面有一個小點 .至於
+60&nbsp; 是這支script的執行順序是第 60 個。
+為什麼是60
+而不是其他數字？只是找一個空的數字來用而已，太前面怕還沒mount好。<br>
+到這裡應該就完成了，可以試著重新開機，看看剛剛建立的東西有沒有正常。
+基本上只要開完機後，在var/lib/apt/lists/及
+/var/cache/apt/archives裡都有看到partial這個目錄，應該就沒問題了。
+但是咧，我並不知道apt-get在何時會自動做apt-get update，所以在沒找到順序之前只能先手動做apt-get了。</li>
+    </ul>
+  </li>
+  <li>把小狐的cache丟進/tmp裡<br>
+    <ul>
+      <li>打開 Firefox 網址列輸入
+about :config，在空白的地方按右鍵-&gt;新增-&gt;字串。</li>
+      <li>字串名稱：browser.cache.disk.parent_directory</li>
+      <li>值就是 /tmp</li>
+      <li>之後重開小狐後，在/tmp裡有看到一個Cache的目錄就是成功了。</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="ref">
+參考資料：<br class="ref">
+<cite class="ref">http://allisonxu.pixnet.net/blog/post/22698958</cite>
+</div>
+
+<br>
+
+<br>
+
+</body></html>

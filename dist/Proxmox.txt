@@ -1,0 +1,15 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Arch Linux
+# made by: Engells
+# date: Oct 29, 2023
+# content: Just for memo
+
+
+使用實例
+----------
+PCI Passthrough :: https://pve.proxmox.com/wiki/PCI_Passthrough
+Proxmox VE總整理(二) - PVE基本配置(直通包括獨顯+開啟內顯GVT-G) :: https://home.gamer.com.tw/creationDetail.php?sn=5516262
+使用 PVE 安裝 Win11 :: https://2022.4inlibra.com/2022/04/install-win11-pve/
+
+

@@ -1,0 +1,126 @@
+# vim:ts=4
+
+
+SAMBA 概說
+==============================
+
+SAMBA 主要功能在於將資料夾與印表機分享給同一網域的 Win 與 Linux 電腦。所使用的通訊協定是 NetBIOS，每一台提供或取用 SAMBA 服務的電腦都要有專屬的 NetBIOS Name，該名稱不須與 /etc/hostname 相同。此外提供或取用雙方的工作群組必須相同。
+
+較新版的 SAMBA 使用 tbd 機制對分享資料夾與印表機作權限管理。因此必須以 pdbedit 增加 SAMBA 用戶及其登入密碼。此外 SAMBA 的用戶必須有在 /etc/passwd 檔案中。
+
+
+
+
+安裝 SAMBA
+==============================
+
+基本上，先安裝主程式。然後撰寫設定檔並測試通過後，啟動服務。接著，以用戶端程式檢視 SAMBA 資源，並測試運作情形及相關權限。最後加入 SAMBA 用戶及其登入密碼。即完成安裝。注意，後續每次異動設定檔，都要測試通過後，才重啟服務。
+
+切換為 root，或是 sudo -i 指令
+	sudo -s
+
+安裝 SAMBA 主程式
+	apt-get install samba samba-common smbclient cifs.utils
+		# 也可增加安裝右列套件：python-glade2 system-config-samba
+
+檢查版本
+	smbd --version
+
+設定檔
+	cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+	rm /etc/samba/smb.conf
+	touch /etc/samba/smb.conf && vi /etc/samba/smb.conf
+
+測試設定檔是否正確
+	testparm
+
+啟動 SAMBA 主機分享目錄、檔案與印表機的服務
+	servce smbd start
+
+啟動 工作群組管理服務
+	service nmbd start
+
+檢查開啟的 poer，資料傳輸的 TCP port 通常為 139 及 445；NetBIOS 名稱解析的 UDP 埠口 為 137 與 138
+	netstat -tlunp
+
+檢視 samba 資源
+	smbclient -L //127.0.1.1
+	smbclient -L [//主機或IP] [-U 使用者帳號]
+
+檢查分享目錄是否有運作，權限是否正確
+	mount -t cifs //127.0.0.1/share_name /path/to/mount
+	df
+	cd /path/to/mount
+	ll
+	touch abc
+	ll abc
+	cd; umount /path/to/mount
+
+增加 SAMBA 的使用帳號，該帳號必須存在 /etc/passwd 之中。
+	pdbedit -a -u account_name
+	# 增加的作業需要輸入供 SAMBA 專用的密碼，前述密碼不需要與 /etc/shadow 的密碼相同。 
+
+處理防火牆，如增加對 192.168.100/24 網域的 SAMBA 的使用權。
+	以指令方式操作
+		iptables -A INPUT -i br0 -s 192.168.100.0/24 -j ACCEPT
+	在 SAMBA 設定檔處理
+		vim /usr/local/virus/iptables/iptables.allow
+		# 加入底下這幾行！
+			iptables -A INPUT -i $EXTIF -p tcp -s 192.168.100.0/24 -m multiport --dport 139,445 -j ACCEPT
+			iptables -A INPUT -i $EXTIF -p udp -s 192.168.100.0/24 -m multiport --dport 137,138 -j ACCEPT
+		/usr/local/virus/iptables/iptables.rule
+
+
+重啟服務
+	service smbd restart
+
+添加 samba user 到 /etc/samba/smbpasswd。建議改為 pdbedit 機制
+	smbpasswd -a jack
+
+
+
+chmod -R 777 /path/to/share	# change access authorty of share dir
+
+click 「run」 in start menu in XP, and put the comments: \\netbios_name_of_samba_server
+
+
+
+
+SAMBA 相關檔案
+==============================
+
+/etc/init.d/nmbd
+	# 管理工作群組
+
+/etc/init.d/smbd
+	# 管理 SAMBA 主機分享的目錄、檔案與印表機
+
+/etc/samba/smb.conf
+	# SAMBA 的主要設定檔
+
+/usr/sbin/{nmbd,smbd}
+	# 伺服器功能，nmbd 提供 NetBISO name 查尋，smbd 提供權限管理。
+
+/usr/bin/smbstatus
+	# 伺服器功能，列出目前 SAMBA 連線狀況
+
+/usr/bin/pdbedit
+	# 伺服器功能，管理 SAMBA 的使用者目錄及帳號
+
+/usr/bin/testparm
+	# 伺服器功能，檢驗設定檔語法正確與否
+
+/sbin/mount.cifs
+	# 用戶端功能，提供 Linux 掛載 SAMBA 主機分享的資料夾。需安裝 cifs-utils 套件
+
+/usr/bin/smbclient
+	# 用戶端功能，查詢其他電腦所分享出來的目錄與裝置
+
+/usr/bin/nmblookup
+	# 用戶端功能，查詢 NetBISO name
+
+/usr/bin/smbtree
+	# 用戶端功能，查詢工作群組與電腦名稱的樹狀分佈圖
+
+
+

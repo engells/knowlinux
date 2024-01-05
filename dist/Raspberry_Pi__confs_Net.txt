@@ -1,0 +1,342 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Raspberry Pi Network
+# made by: Engells
+# date: Mar 15, 2021
+# content: Just for memo
+
+
+
+Quick Reference
+====================
+Raspbian
+  修改 /boot/wpa_supplicant.conf，首次開機時套用，之後相關設定轉移至 /etc/wpa_supplicant/xxxx.conf
+  修改 /etc/wpa_supplicant/wpa_supplicant.conf
+  修改 /etc/dhcpcd.conf，樹莓派預設在此檔設置固定網址
+  修改 /etc/network/interfaces，樹莓派實際上是在本檔中執行所有在 /etc/network/interfaces.d/ 目錄的檔案，預設為動態網址
+  修改 /etc/network/interfaces.d/wlana
+
+Ubuntu 20.04 on Raspberry Pi
+  在 flash sd 後修改 /path/to/system-boot/net-config，該檔在樹莓開機後掛載在 /boot/firmware 目錄
+  修改 /etc/netplan/xxxx.yaml
+  修改 /etc/wpa_supplicant/xxxx.conf
+
+
+
+
+Ubuntu Server 20.04 設置無線網路
+====================
+1. 移除無線網卡的鎖定狀態
+  a. 備置 rfkill 工具
+    sudo apt install rfkill
+
+  b. 查詢無線網卡的鎖定情形
+    rfkill list
+
+  c. 若有無線網卡被鎖，解除鎖定
+    sudo rfkill unblock wifi
+
+
+2. 配置無線網卡網址
+  a. 編輯 /etc/netplan/01_xxxx.ymal 檔案，必要時自行建立該檔
+    network:
+      version: 2
+        ethernets:
+          eth0:
+            dhcp4: no
+            dhcp6: no
+            addresses: [192.168.1.126/24]
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses: [8.8.8.8, 8.8.4.4]
+          wlan0:
+            dhcp4: no
+            dhcp6: no
+            addresses: [192.168.1.125/24]
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses: [8.8.8.8, 8.8.4.4]
+
+  b. 注意，在隱藏式 SSID AP 的環境中，無線網卡設定在 ethernets: 區段，而非 wifis: 區段。
+
+  c. 啟用無線網卡網址設定
+    sudo netplan --debug try
+    sudo netplan --debug generate
+    sudo systemctl daemon-reload
+    sudo netplan --debug apply
+
+
+3. 使用 wpa_supplicant 工具連接無線網路
+  a. 備置 wpa_supplicant 工具
+    sudo apt install wpasupplicant
+      # wpa_supplicant 處理通訊協定、加密協定及部份驅動程式。相似之軟體有 wireless-tools 套件及其建置之 iwconfig
+      # Ubuntu Server 20.04.1 已經預裝 wpa_supplicant 軟體，此外可以預置的 ip 指令替用 iwconfig
+
+  b. 將無線網路登入密碼加密
+    wpa_passphrase wifi_ESSID wifi_passwd | sudo tee /etc/wpa_supplicant/xxxx.conf
+      # wpa_supplicant 組態檔並沒有限制為 /etc/wpa_supplicant.conf 或 /etc/wpa_supplicant/wpa_supplicant.conf
+      # 手動至組態檔加入 scan_ssid=1 設定，以搜尋隱藏式 SSID AP ！！
+
+  c. 測試無線網卡是否可連上網路
+    sudo wpa_supplicant -B -c /etc/wpa_supplicant/xxxx.conf -i wlan0
+      # 參數 -B 表示背景執行，若要觀察執行過程，可取消本參數
+      # 參數 -c 表示組態檔案完整路徑及檔名
+      # 參數 -i 表示無線網卡裝置
+    ip address show
+      # 正常狀態下，可顯現無線網卡之 Access Point 及 IP
+
+
+4. 設定開機自動連結無線網路
+  a. 配置 wpa_supplicant.service
+    sudo cp /lib/systemd/system/wpa_supplicant.service /etc/systemd/system/wpa_supplicant.service
+    sudo vim /etc/systemd/system/wpa_supplicant.service
+      # 將 ExecStart=/sbin/wpa_supplicant 後續之 -u -s -O /run/wpa_supplicant 字串改為 -u -s -c /etc/wpa_supplicant/xxxx.conf -i wlan0
+      # 在 ExecStart 後加入 Restart=always
+      # 將 Alias=dbus-fi.w1.wpa_supplicant1.service 最前方加註 # 符號
+      # 將 Before= 後之字串改為 network.target systemd-networkd.service
+
+  b. 配置 unblock-wifi.service
+    sudo vim /etc/systemd/system/unblock_wifi.service
+      [Unit]
+      Description=RFKill Unblock WiFi Devices
+      Requires=wpa_supplicant.service
+      After=wpa_supplicant.service
+ 
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/sbin/rfkill unblock wifi
+      ExecStop=
+      RemainAfterExit=yes
+      
+      [Install]
+      WantedBy=multi-user.target
+
+  c. 設定開機時啟用
+    sudo systemctl enable wpa_supplicant.service unblock_wifi.service
+    sudo systemctl disable connman.service NetworkManager.service
+
+  d. 若前述設定失效，啟用 /etc/rc.local 機制
+    sudo vim /etc/systemd/system/rc-local.service
+      [Unit]
+      Description=/etc/rc.local Compatibility
+      ConditionPathExists=/etc/rc.local
+      
+      [Service]
+      Type=forking
+      ExecStart=/etc/rc.local start
+      TimeoutSec=0
+      StandardOutput=tty
+      RemainAfterExit=yes
+      SysVStartPriority=99
+      
+      [Install]
+      WantedBy=multi-user.target
+
+    sudo touch /etc/rc.local && sudo chmod 600 /etc/rc.local && sudo vim /etc/rc.local
+      sudo wpa_supplicant -B -c /etc/wpa_supplicant/xxxx.conf -i wlan0
+      exit 0
+    
+    sudo systemctl enable rc-local
+
+
+5. 指定 5 GHz Wifi
+  a. 備置 iw 工具
+    sudo apt install iw wireless-tools
+    sudo iw reg set TW
+  
+  b. 查詢 wifi AP
+    sudo iw dev wlan0 scan | grep SSID
+    iwlist wlan0 scanning or iwlist wlan0 scanning | grep -C3 "ESSID_ref"
+    iwlist wlan0 freq  # show the frequency supported by net chip
+
+  c. 修改 wpa_supplicant 組態
+    sudo systemctl stop network-manager && sudo killall wpa_supplicant
+    sudo vim /etc/wpa_supplicant/xxxx.conf
+      bssid=d8:b1:90:3e:e4:6e
+    sudo wpa_supplicant -iwlp2s0 -c/etc/wpa_supplicant.conf
+
+
+6. 參考資料
+  a. Connect to Wi-Fi From Terminal on Ubuntu 18.04/20.04 with WPA Supplicant
+      https://www.linuxbabe.com/ubuntu/connect-to-wi-fi-from-terminal-on-ubuntu-18-04-19-04-with-wpa-supplicant
+  b. Using WPA_Supplicant to Connect to WPA2 Wi-fi from Terminal on Ubuntu 16.04 Server
+      https://www.linuxbabe.com/command-line/ubuntu-server-16-04-wifi-wpa-supplicant
+  c. Archlinux documents: wpa_supplicant    https://wiki.archlinux.org/index.php/WPA_supplicant
+  d. Raspberry Pi 4 WiFi 設置分享           https://blog.bepsvpt.me/2020/05/24/raspberry-pi-4-wifi-setup/
+  e. 树莓派折腾记（一）-- 安装系统          https://mrxiuxing.com/posts/2f81a42d.html
+  f. How do I set 5GHz as preferred band?   https://askubuntu.com/questions/1080645/how-do-i-set-5ghz-as-preferred-band
+  g. Why is wpa_cli producing error “Could not connect to wpa_supplicant: wlan0 - re-trying”?
+      https://raspberrypi.stackexchange.com/questions/63399/why-is-wpa-cli-producing-error-could-not-connect-to-wpa-supplicant-wlan0-re
+
+
+
+
+Raspbian 設定無線網路固定網址
+====================
+Method 1: 
+---------------
+1.首次開機前，編輯 /path/tosd_card/boot/wpa_supplicant.conf
+  country=TW
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+  update_config=1
+
+  network={
+    ssid="SSID_NAME"
+    psk="SSID_KEY"
+    key_mgmt=WPA-PSK
+    scan_ssid=1
+    priority=2
+  }
+
+2.若無法啟用無線網路，則以有線方式連接後，編輯 /etc/wpa_supplicant/xxxx.conf
+  內容同上，可參閱 /path/to/confs_raspberry_pi/wifi.conf
+
+3.編輯 /etc/dhcpcd.conf
+  加入 wlan0 設定，格式比照 eth0 即可
+
+4.重啟網路
+  sudo reboot or sudo wpa_supplicant -c /etc/wpa_supplicant/wpa_supplicant.conf -i wlan0
+    # 必須執行上述指令，將 wlan0 套用 /etc/wpa_supplicant/wpa_supplicant.conf 組態檔
+    # sudo systemctl enable wpa_supplicant.service <= work with wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+    # 注意 /etc/wpa_supplicant/wpa_supplicant.conf 及 /etc/network/interfaces.d/xxxx 有無語法錯誤
+
+
+Method 2:
+---------------
+edit /etc/network/interfaces.d/wlana
+  auto lo
+  iface lo inet loopback
+
+  auto eth0
+  iface eth0 inet dhcp
+
+  allow-hotplug wlan0
+  auto wlan0
+  iface wlan0 inet static
+  address 192.168.1.122
+  gateway 192.168.1.1
+  netmask 255.255.255.0
+  network 192.168.1.1
+  broadcast 192.168.1.255
+  pre-up wpa_supplicant -Dwext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf -B 
+
+  wireless-power off
+  iface default inet dhcp
+
+
+
+
+Raspbian 設定有線網路固定網址
+====================
+Raspbian 8.0 (Kernel 4.9) 以上版本
+---------------
+編輯 /etc/dhcpcd.conf
+	interface eth0  #有線網路
+	static ip_address=192.168.1.124
+	static routers=192.168.1.1
+	static domain_name_servers=192.168.1.1
+	interface wlan0  #無線網路
+	static ip_address=192.168.1.122
+	static routers=192.168.1.1
+	static domain_name_servers=192.168.1.1
+
+啟用服務
+	systemctl enable dhcpcd
+	systemctl enable networking
+
+
+Raspbian 7.0 以下版本
+---------------
+編輯 /etc/network/interfaces
+	auto lo
+	iface lo inet loopback
+
+	allow-hotplug eth0
+	auto eth0
+	iface eth0 inet static
+	address 192.168.1.124
+	netmask 255.255.255.0
+	gateway 192.168.1.1
+	dns-nameservers 8.8.8.8
+	dns-search 8.8.4.4
+
+	allow-hotplug wlan0
+	auto wlan0
+	iface wlan0 inet manual
+		wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+
+	iface home inet dhcp
+	iface work inet dhcp
+	iface default inet dhcp
+
+備註
+  1. 注意 wlan0 是套用 /etc/wpa_supplicant/wpa_supplicant.conf 設定。該檔案參閱前段方法 2
+  2. wpa-roam /path/to/file.conf 適用固定網址。動態網址的設定為 wpa-conf /path/to/file.conf
+  3. 參考資料 https://kknews.cc/zh-tw/tech/m3opmnp.html
+
+
+
+
+Ubuntu on Raspberry Pi 設定固定網址網路
+====================
+edit /etc/netplan/xxxx.yaml，對於隱藏式 SSID 必須搭配 wpa_supplicant 機制
+---------------
+network:
+    version: 2
+    renderer: networkd
+    ethernets:
+        eth0:
+            dhcp4: false
+            dhcp6: no
+            addresses: [192.168.1.125/24]
+            gateway4: 192.168.1.1
+            nameservers:
+                addresses: [8.8.8.8, 8.8.4.4, 114.114.114.114]
+    wifis:
+        wlan0:
+            dhcp4: false
+            dhcp6: false
+            optional: true
+            access-points:
+                "your_ssid":
+                    password: "your_ssid_passwd"
+            addresses: [192.168.1.126/24]
+            gateway4: 192.168.1.1
+            nameservers:
+                addresses: [8.8.8.8, 8.8.4.4, 114.114.114.114]
+
+
+Active network
+---------------
+sudo netplan generate
+sudo netplan try
+sudo netplan apply
+systemctl daemon-reload
+networkctl status <interface-id>
+edit  /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  network: {config: disabled}
+
+
+修改無線網路生效了以後可能遇到開機變慢
+---------------
+edit /etc/systemd/system/network-online.target.wants/networking.service
+  TimeoutStartSec=5min ==> TimeoutStartSec=2sec
+
+edit /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+   [Service] ==> TimeoutStartSec=2sec
+
+
+WiFi 改用 5G 頻段： 因應隨身碟插入 USB 3.0 的埠後，2.4GHz 的 WiFi 就連不上或很不穩
+---------------
+sudo apt install iw
+edit /etc/default/crda
+  REGDOMAIN=TW
+sudo iw reg set TW
+
+
+參考文件
+----------------
+Raspberry Pi 4 WiFi 設置分享 :: https://blog.bepsvpt.me/2020/05/24/raspberry-pi-4-wifi-setup/
+树莓派配置 eth0 wlan0 静态 IP :: https://blog.csdn.net/mayi_xiaochaun/article/details/78634588
+
+
