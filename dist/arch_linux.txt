@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Knowhow about Arch Linux
 # made by: Engells
-# date: Dec 14, 2023
+# date: Jan 7, 2024
 # content: Just for memo
 
 
@@ -283,7 +283,7 @@ qemu-guest-agent，spice-vdagent open-vm-tools
 https://github.com/vinceliuice/grub2-themes ; https://github.com/Kangie/sddm-sugar-candy ; https://github.com/vinceliuice/McMojave-kde
 
 參數
-  $XDG_RUNTIME_DIR $DISPLAY  $DBUS_SESSION_BUS_ADDRESS env | grep DBUS
+  $XDG_RUNTIME_DIR ; $DISPLAY ; $DBUS_SESSION_BUS_ADDRESS env | grep DBUS ; $XDG_SESSION_TYPE
   Xephyr Xephyr :1 -br -ac -noreset -host-cursor -screen 1280x720 :: sudo pacman -S xorg-server-xephyr :: sudo apt install xserver-xephyr nxagent xpra
   xorg-server-xvfb(virtual framebuffer X server for X Version 11)
 

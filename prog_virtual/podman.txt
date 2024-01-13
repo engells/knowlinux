@@ -1,0 +1,153 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Podman
+# made by: Engells
+# date: Jan 10, 2024
+# content: Just for memo
+
+
+指令
+====================
+podman search rockylinux
+podman pull docker.io/rockylinux/rockylinux
+podman images
+podman ps -a       # 列出當前所有的容器
+podman logs nginx  # 檢視容器執行的日誌
+podman top nginx   # 檢視執行中容器資源使用情況
+podman stats nginx
+podman info
+----
+podman run         #創建並啓動容器  
+podman start       #啓動容器  
+podman ps          #查看容器  
+podman stop        #終止容器  
+podman restart     #重啓容器  
+podman attach      #進入容器  
+podman exec        #進入容器  
+podman export      #導出容器  
+podman import      #導入容器快照  
+podman rm          #刪除容器  
+podman logs        #查看日誌
+----
+podman search             #檢索鏡像  
+docke pull                #獲取鏡像  
+podman images             #列出鏡像  
+podman image ls           #列出鏡像  
+podman rmi                #刪除鏡像  
+podman image rm           #刪除鏡像  
+podman save               #導出鏡像  
+podman load               #導入鏡像  
+podmanfile                #定製鏡像（三個）  
+  podman build            #構建鏡像  
+  podman run              #運行鏡像  
+  podmanfile              #常用指令（四個）  
+    COPY                  #複製文件  
+    ADD                   #高級複製  
+    CMD                   #容器啓動命令  
+    ENV                   #環境變量  
+    EXPOSE                #暴露端口
+
+
+
+
+遷移容器
+====================
+將容器從一臺機器遷移到另一臺機器，
+首先，在源機器上對容器設定檢查點，並將容器打包到指定位置。
+  sudo podman container checkpoint -e /tmp/checkpoint.tar.gz
+  scp /tmp/checkpoint.tar.gz :/tmp
+其次，在目標機器上使用源機器上傳輸過來的打包檔案對容器進行恢復。
+  sudo podman container restore -i /tmp/checkpoint.tar.gz
+
+
+
+
+改變 podman 的存儲路徑
+===================
+關閉所有容器及相關服務
+  podman stop container_name
+將資料由原本存儲目錄轉移至標的目錄
+  cd /path/to/source && sudo rsync -acAHX . /path/to/target
+修改配置
+  修改 /etc/containers/storage.conf 或 $HOME/.config/containers/storage.conf
+    [storage]
+    driver = "overlay"
+    runroot = "/run/containers/storage"        # runroot 是運行路徑，亦可設為 /run/user/1000/containers/
+    graphroot = "/var/lib/containers/storage"  # graphroot 是 podman 的存儲路徑，亦可設為 $HOME/.local/share/containers/
+  確認修改
+    podman info
+  修改資料庫 $HOME/.local/share/containers/storage/libpod/bolt_state.db
+    podman 優先使用該資料庫設定，可執行 podman info --log-level=debug 確認 podman 開啟容器時重載了 graph root、static dir 和 volume path
+    可安裝 boltdbweb 程式編輯 bolt_state.db，或按 https://github.com/etcd-io/bbolt 資料使用其他程式
+
+Refs
+  改變 podman 的存儲路徑 :: https://blog.csdn.net/witton/article/details/128497746
+
+
+
+----
+修改容器参数
+  podman update --name new_container_name old_container_name # 修改容器的名称：
+  podman update --label-add key=value container_name  # 更新容器的标签
+  podman update --env-add key=value container_name  # 修改容器的环境变量
+  podman update --publish-add host_port:container_port container_name  # 更新容器的端口映射
+  podman update --cpu-shares 512 container_na  # 修改容器的资源限制
+
+Refs:
+  podman 修改容器参数 :: https://juejin.cn/s/podman%E4%BF%AE%E6%94%B9%E5%AE%B9%E5%99%A8%E5%8F%82%E6%95%B0
+
+
+
+
+組態
+====================
+設定檔
+  containers.conf  # images server 
+    /usr/share/containers/containers.conf +> /etc/containers/containers.conf +> $HOME/.config/containers/containers.conf
+  storage.conf     # images and containers storage location
+    /etc/containers/storage.conf +> $HOME/.config/containers/storage.conf
+  registries.conf  # images repository
+    /etc/containers/registries.conf +> /etc/containers/registries.d/* +> HOME/.config/containers/registries.conf
+    # [registries.search] 設定查詢的 registries：預設有 registry.access.redhat.com, registry.redhat.io, docker.io 三個伺服器。
+    # registries = ['registry.access.redhat.com', 'registry.redhat.io', 'docker.io']
+    # [registries.insecure] 設定是否使用 http 不安全連線：若需要，則將 server 列到中括號中，例如
+    # registries = ['registry.server']
+
+映像檔及容器儲存位置
+  $HOME/.local/share/containers/
+  /var/lib/containers/storage/
+    # podman inspect --format='{{.HostConfig.LogConfig.Path}}' <container-id> ;;  podman logs -l
+
+
+
+
+簡介
+====================
+podman 是一套 Red Hat 提供的容器管理工具組，這個工具組包含了數個工具：
+  podman：管理映像檔與容器本身
+  skopeo：檢查、複製、刪除與簽核映像檔
+  buildah：建立新的映像檔
+
+podman 可以在非 root 環境下執行：不同於 docker 需以 root 的身份去管理，所有的容器都是 root 的權限！而 podman 可用一般帳號身份來管理容器！也能夠管理由 docker 所建立的映像檔與容器。 不過，由於身份並非是 root，因此，如果容器需要使用到網路埠口時，就需要特別留意了。因為一般帳號不能啟動小於 1024 以下的埠口。也就是說，如果要使用 podman 管理的容器去啟動小於 1024 以下的埠口時，可能有兩個選擇：
+  使用 root 的身份去操作 podman，避過這個問題。不過，有人就是不喜歡使用 root 啟動啊！
+  用一般帳號啟動 podman，並且開啟 port 到大於 1024 的埠口，然後透過防火牆的 port mapping 功能， 指向非正規埠口即可。
+
+podman 和 docker 一樣是虛擬化技術，可在作業系統中，建立虛擬 OS 、虛擬伺服器或資料庫，不使用時，隨時能將這些 Server 或 Database 刪除，不會把作業系統弄得亂七八糟。
+與 docker 不同，podman 不需在背景執行服務 (daemonless)，避免背景服務發生問題，所有啟動的容器跟著一起掛了。此外 podman 不強制用 root 權限執行，相對比 Docker 安全許多。
+
+
+安裝 podman
+  apt install podman or pacman -S podman
+
+
+Refs
+  podman web :: https://podman.io/
+  podman :: https://docs.podman.io/en/stable/markdown/podman.1.html
+  managecontainers :: https://docs.podman.io/en/v3.1.2/managecontainers.html
+  Podman 的常用命令總結 :: https://www.readfog.com/a/1668597455567032320
+  podman/docs/tutorials/rootless :: https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md
+  podman 介紹及基本教學 :: https://www.itnotetk.com/2021/06/23/podman%E5%AE%89%E8%A3%9D%E5%8F%8A%E6%95%99%E5%AD%B8/?doing_wp_cron=1699346239.1683499813079833984375
+  podman 入門實戰 :: https://www.tw511.com/a/01/54616.html
+  專題 - 使用 podman 進行 container 管理 :: https://dic.vbird.tw/network_project/zunit12.php
+
+

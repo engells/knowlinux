@@ -1,0 +1,82 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about flatpak
+# made by: Engells
+# date: Jan 10, 2024
+# content: Just for memo
+
+
+
+Commands
+====================
+flatpak search           [應用程式名稱]                搜尋Flathub的應用程式，支援模糊搜尋
+flatpak install          [應用程式名稱]                安裝應用程式
+flatpak install          [.flatpakref]                 從 flatpakref 檔案安裝應用程式
+flatpak run              [應用程式名稱]                執行應用程式
+flatpak uninstall        [應用程式名稱]                移除應用程式
+flatpak uninstall        [應用程式名稱] --delete-data  移除應用程式並刪除資料
+flatpak uninstall --unused                             移除用不到的依賴套件
+flatpak list                                           列出安裝的軟體
+flatpak override                                       覆寫Flatpak應用程式設定，可以用來設定環境變數
+flatpak permission-reset [應用程式名稱]                重設應用程式權限
+flatpak update                                         更新全部應用程式
+flatpak remotes                                        列出遠端軟體庫
+flatpak mask             [應用程式名稱]                鎖定應用程式版本，防止應用程式自動更新
+flatpak ps                                             列出所有Flatpak行程
+flatpak kill             [應用程式名稱]                終止應用程式執行
+
+
+
+
+Install packages
+====================
+flatpak install --user flathub org.libretro.RetroArch or flatpak install --user /path/to/xxxx.flatpakref
+flatpak update --user org.libretro.RetroArch
+
+flatpak install --user flathub com.dosbox_x.DOSBox-X
+flatpak run com.dosbox_x.DOSBox-X
+
+flatpak run org.mozilla.firefox --private-window                              # 以隱私視窗引數啟動 Firefox
+flatpak --user override --env MOZ_ENABLE_WAYLAND=1 org.mozilla.firefox        # 強制 Firefox 使用 Wayland 的環境變數
+flatpak --user override --filesystem=/path/to/filesystem org.mozilla.firefox  # 允許 Firefox 存取其他硬碟檔案
+
+
+
+
+Files structure
+====================
+/var/lib/flatpak/exports/share
+  # system mode
+$HOME/.var/app/*
+  # 應用程式設定檔的統一存放位置。像 MPV、VIM 這類應用程式，就是將設定檔丟到這裡。例：$HOME/.var/app/com.dosbox_x.DOSBox-X/config/dosbox-x/xxxx.conf
+$HOME/.local/share/flatpak/exports/share/applications/*
+  # 應用程式捷徑檔，若應用程式未出現在程式清單，可將捷徑檔複製至 $HOME/.local/share/applications/
+$HOME/.local/share/flatpak/repo
+  # repository 套件庫資料位置
+
+
+
+
+簡介
+====================
+Flatpak 是 Linux 的一種軟體(套件)打包格式，可減少軟體安裝的複雜度，統一所有發行版的安裝指令，再也不用考慮個別發行版間的依賴問題。並用沙盒機制提供更好的安全性，將應用程式設定檔統一存放在固定目錄下。簡單來說，Flatpak 能為不同 Linux 發行版的使用者提供版本一致的軟體。
+
+提供 Flatpak 軟體的商店「Flathub」已上架多款熱門應用程式，開源與專有軟體皆有，例如 Google Chrome、Steam、LibreOffice、Blender、GIMP，不論是哪個 Linux 發行版都能統一下載到最新版的軟體。 
+
+
+安裝 flatpak
+  安裝套件
+    pacman -S flatpak or apt install flatpak  # $XDG_DATA_DIRS
+  建立 remote repo
+    flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  將 flatpak 二進位檔的安裝路徑加到 $HOME/.bashrc
+    PATH=$PATH:$HOME/.local/share/flatpak/exports/bin/:/var/lib/flatpak/exports/bin  # $PATH
+  建立軟連結或 alias
+    alias firefox = org.mozilla.Firefox
+
+
+Ref:
+  Linux系統如何安裝Flatpak軟體套件？使用教學 :: https://ivonblog.com/posts/linux-flatpak-introduction/
+  檔案無法開啟？調整Linux Flatpak應用程式權限 :: https://ivonblog.com/posts/flatseal-flatpak-permission/
+
+
