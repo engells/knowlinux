@@ -2,8 +2,8 @@
 # vim:ts=4
 # program: Knowhow about Android
 # made by: Engells
-# date: Mar 9, 2021
-# content: Just for memo
+# date: Jan 13, 2024
+# content: add waydroid reference
 
 
 
@@ -48,5 +48,13 @@ reboot to TWRP => run file manager => delete /system/priv-app/LineageSetupWizard
 URL
 ---------------
 How to Fix Setup Wizard has Stopped on Android :: https://geekstraw.com/how-to-fix-setup-wizard-has-stopped-on-android/
+
+
+
+
+Simulatiom
+====================
+Linux 電腦跑 Android APP ～ Ubuntu如何安裝 Waydroid :: https://ivonblog.com/posts/ubuntu-waydroid/
+
 
 
