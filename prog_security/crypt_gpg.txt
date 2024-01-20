@@ -1,7 +1,7 @@
 # vim:ts=4
 # program: Using to note the knowledge about GPG in Ubuntu
 # made by: Engells
-# date: Dec 3, 2023
+# date: Jan 20, 2023
 # content: Just for memo
 
 
@@ -76,9 +76,9 @@
 列出金鑰
   gpg --list-keys
     # 列出所有金鑰
-  gpg -k
+  gpg -k or gpg --list-public-keys
     # 列出所有公鑰  
-  gpg -K
+  gpg -K or gpg --list-secret-keys
     # 列出所有私鑰
   gpg --list-sigs
     # 列出所有金鑰以及簽名
