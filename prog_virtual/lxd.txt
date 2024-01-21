@@ -1,0 +1,64 @@
+##!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about lxd
+# made by: Engells
+# date: Jan 17, 2024
+# content: Just for memo
+
+
+
+常用指令
+====================
+lxc image list ubuntu: 22.04 architecture=x86_64
+lxc launch ubuntu:<finger_print> or lxc launch ubuntu:<finger_print> -s <pool name>
+lxc list
+lxc start <container_id>
+lxc stop <container_id> or lxc stop <container_id> --force
+lxc shell <container_id>
+lxc file push /path/to/file <container_id>/path/to/file
+lxc file pull <container_id>/path/to/file /path/to/file --recursive --verbose
+lxc info <container_id>
+----
+lxc profile copy <source> <target>
+lxc profile edit <dev or cntr>
+lxc profile assign <container_id> <device_id>
+----
+lxc storage create <pool_name> btrfs source=/dev/sd[x][y] size=xxxG
+lxc storage list
+
+Ref
+https://www.alexleo.click/tag/lxd/
+ArchLinux 安装 LXD :: https://new.negoces.top/posts/cecd6168/
+LXD Home :: https://linuxcontainers.org/lxd/
+Docker 容器应用可视化 - VNC 方式(via Xvfb) :: https://blog.csdn.net/weixin_56291477/article/details/131856950
+实验室 GPU 服务器的 LXD 虚拟化 :: https://github.com/shenuiuin/LXD_GPU_SERVER
+基于 LXD 搭建多人共用GPU服务器 :: https://juejin.cn/post/7273026558398464040
+(old) Running X11 software in LXD containers :: https://blog.simos.info/running-x11-software-in-lxd-containers/
+(old) 容易上手的LXD容器和虚拟X server :: https://www.cnblogs.com/garyw/p/14245886.html
+
+
+
+
+Install Packages
+====================
+sudo pacman -S lxd or sudo apt install lxd
+sudo systemctl enable --now lxd
+sudo usermod -a -G lxd $USER && newgrp lxd
+sudo lxd init
+
+----
+lxc remote add <remote_name> https://mirrors.bfsu.edu.cn/lxc-images/ --protocol=simplestreams --public
+lxc image list <remote_name:>
+echo "root:100000:65536" | sudo tee -a /etc/subuid /etc/subgid
+echo "$USER:100000:65536" | sudo tee -a /etc/subuid /etc/subgid
+echo "lxc.idmap = u 0 100000 65536" | sudo tee -a /etc/lxc/default.conf
+echo "lxc.idmap = g 0 100000 65536" | sudo tee -a /etc/lxc/default.conf
+sudo systemctl restart lxd
+
+----
+/var/log/lxd/c1/lxc.conf ; lxd init --preseed ; 
+
+lxd init --dump ; LXD doesn’t have config files (its stored in a database) and all changes are made via the lxc command. ;  /var/lib/lxd/database/ or /var/snap/lxd/common/lxd/database/
+lxd storage location in dir mode: /var/lib/lxd/storage-pools/default/containers/container_name/rootfs/
+
+

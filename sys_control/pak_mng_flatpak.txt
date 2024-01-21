@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Using to note the knowledge about flatpak
 # made by: Engells
-# date: Jan 10, 2024
+# date: Jan 21, 2024
 # content: Just for memo
 
 
@@ -78,5 +78,8 @@ Flatpak 是 Linux 的一種軟體(套件)打包格式，可減少軟體安裝的
 Ref:
   Linux系統如何安裝Flatpak軟體套件？使用教學 :: https://ivonblog.com/posts/linux-flatpak-introduction/
   檔案無法開啟？調整Linux Flatpak應用程式權限 :: https://ivonblog.com/posts/flatseal-flatpak-permission/
+
+Memo:
+  /path/to/flatpak/app/org.chromium.Chromium/cache or $HOME/.var/app/org.chromium.Chromium/cache
 
 
