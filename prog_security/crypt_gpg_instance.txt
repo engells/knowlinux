@@ -1,0 +1,162 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about GnuPG
+# made by: Engells
+# date: Jan 23, 2024
+# content: SSH Authentication with GnuPG and advance instance of GnuPG
+
+
+
+使用 GPG 密鑰(金鑰)進行 SSH 身份驗證
+====================
+產生 SSH 認證密鑰
+----
+在普通密鑰上執行 GPG 的 addkey 命令添加一個用於 SSH 認證的子密鑰
+  gpg --expert --edit-key 'email_address'
+    addkey > 8 > S > E > Q > 4096 > 0 > y > y
+
+列出密鑰
+  gpg --list-key --with-keygrip 'email_address'
+
+匯出 ssh 密鑰
+  gpg --export-ssh-key 'email_address' > exported_sshkey
+
+
+配置 gpg-agent
+----
+gpg-agent 與 ssh-agent 類似，為緩存 GPG 密鑰的守護程序，可以代替 ssh-agent 向 SSH 客戶端提供驗證用的密鑰，只需要在啓動 gpg-agent 時指定 --enable-ssh-support 選項即可
+
+爲了日常使用方便，採自動啓用 gpg-agent，在進入 zsh shell 時若 gpg-agent 還沒啓動則啓動之
+
+另外還需要向 gpg-agent 說明哪些密鑰可被用來做 SSH 認證。相關子密鑰有一個 40 位十六進制數字組成的 keygrip，將其填入 $HOME/.gnupg/sshcontrol 文件中。此後本機 SSH 客戶端進行公鑰認證時，就會轉而向 gpg-agent 索要 GPG 密鑰。確認新的 GPG 密鑰和 gpg-agent 能正確工作後，就可以扔掉舊的 SSH 密鑰了
+
+自動啓用 gpg-agent，https://gist.github.com/l04m33/83e66d17ae7eb713d7070d350ae1ff10
+****
+local GPG_AGENT_BIN=/usr/bin/gpg-agent                                                                                                                
+local GPG_AGENT_ENV="$HOME/.cache/gpg-agent.env"                                                                                                      
+local GPG_CONNECT_AGENT_ERR_MSG="gpg-connect-agent: no gpg-agent running in this session"                                                             
+                                                                                                                                                      
+function start_agent_withssh {                                                                                                                        
+    ${GPG_AGENT_BIN} --quiet --enable-ssh-support --daemon 2> /dev/null > "${GPG_AGENT_ENV}"                                                          
+    chmod 600 "${GPG_AGENT_ENV}"                                                                                                                      
+    . "${GPG_AGENT_ENV}" > /dev/null                                                                                                                  
+}                                                                                                                                                     
+                                                                                                                                                      
+if [[ "$(gpg-connect-agent --no-autostart --quiet /bye 2>&1)" == "$GPG_CONNECT_AGENT_ERR_MSG" ]]; then                                                
+    start_agent_withssh                                                                                                                               
+elif [[ -f "${GPG_AGENT_ENV}" ]]; then                                                                                                                
+    . "${GPG_AGENT_ENV}" > /dev/null                                                                                                                  
+fi                                                                                                                                                    
+                                                                                                                                                      
+GPG_TTY=$(tty)                                                                                                                                        
+export GPG_TTY
+
+
+概述
+----
+GPG（子）密鑰有不同的用途（usage/capability），包括認證（certify）、簽名（sign）、加密（encrypt），只有具 authenticate 用途的密鑰才可用來登錄到 SSH 服務器。在 opengpg 的代號為：「C」==「Certify」，「S」==「Sign」，「E」==「Encrypt」， 「A」==「Authenticate」
+GPG 密鑰分為主密鑰(primary key)與子密鑰(subsidiary keys or subkey)，又各自為配對之公鑰(public keys)與私鑰(secret keys)，亦即
+        primary         subsidiary 1    subsidiary 2
+public   pub             sub             sub
+secret   sec             ssb             sub
+
+Ref:
+  使用 GPG 密鑰進行 SSH 身份驗證 :: https://blog.theerrorlog.com/using-gpg-keys-for-ssh-authentication-zh.html
+
+
+
+
+GPG 密鑰的「正確」用法
+====================
+產生密鑰
+----
+啓用 gpg 「專家」模式產生一對只用於認證（Certify）操作的主密鑰
+  gpg --expert --full-gen-key
+    8 > S > E > Q > 4096 > 0 > y > y，主密鑰的類型可選擇更「新潮」的 ECC 橢圓曲線算法， 但遇上不支持 ECC 的老系統時會比較麻煩
+      pub   rsa4096 2024-01-19 [C]
+            E75360905BDCD9F8F4F051CC9E59DE47BE796C88
+      uid                      user_name <email_address>
+
+添加用於簽名（sign）和加密 （encrypt）的子密鑰
+  gpg --expert --edit-key email_address
+    addkey > 8 > E > Q > 4096 > 0 > y > y
+    addkey > 8 > S > Q > 4096 > 0 > y > y
+    save
+      sec  rsa4096/9E59DE47BE796C88
+           created: 2024-01-19  expires: never       usage: C   
+           trust: ultimate      validity: ultimate
+      ssb  rsa4096/7401319A2D7E6E2B
+           created: 2024-01-19  expires: never       usage: S   
+      ssb  rsa4096/9ECB19C2E56AF088
+           created: 2024-01-19  expires: never       usage: E   
+      [ultimate] (1). user_name <email_address>
+
+
+分離主密鑰
+----
+導出主密鑰及所有子密鑰的私鑰，將用作主密鑰的備份，實證會連同導出主密鑰及所有子密鑰的公鑰
+  gpg --export-secret-keys 'email_address' > exported_keys      
+
+導出指定子密鑰之私鑰，但不導出主密鑰之私鑰，實證會連同導出主密鑰及所有子密鑰的公鑰
+  gpg --export-secret-subkeys 7401319A2D7E6E2B! 9ECB19C2E56AF088! EE4D9C4574DBA054! > exported_subkeys
+
+移除主密鑰之私鑰
+  gpg --delete-secret-keys 'email_address'
+
+移除所有的公鑰，需在刪除私鑰後才能執行
+  gpg --delete-keys 'email_address'
+
+匯入指定子密鑰之私鑰
+  gpg --import exported_subkeys
+
+檢視密鑰情形
+  gpg -k or gpg --list-public-keys  # 列出所有公鑰  
+  gpg -K or gpg --list-secret-keys  # 列出所有私鑰，gpg --list-secret-keys --keyid-format long
+
+把密鑰信任等級從「unknown」改爲 「ultimate」
+  gpg --edit-key email_address
+    trust > 5 > y > quit
+
+
+概述
+----
+預設 gpg 密鑰為兩對密鑰（各有公鑰和私鑰）：主密鑰，用於簽名（sign）和認證（certify）操作；子密鑰，用於加密（encrypt）操作。進一步操作可將主密鑰的私鑰分開保存，保護主密鑰的私鑰部分，公鑰是公開的不需保護。實作產生三對或更多對密鑰：
+  主密鑰，只用於認證（certify）操作；
+  子密鑰 1，用於簽名（sign）操作；
+  子密鑰 2，用於加密（encrypt）操作；
+  子密鑰 3，用於認證（authenticate）操作 → 採用 gpg 密鑰作為 ssh 連線驗證使用
+
+將 exported_subkeys 文件刪除，然後將 exported_keys 文件 轉移到一個「乾淨」的U盤或存儲卡中，再鎖進保險箱，就大功告成了。由於主密鑰和日常使用的 keyring 已用物理手段隔離，即使 keyring 所在的電腦被偷或者被破壞，主密鑰也不會泄漏，因此沒人能冒用我們的身份。
+
+分離主密鑰之後的 GPG 密鑰在進行簽名/加密/解密操作時與普通密鑰並沒有區別，因爲簽名/加密等操作使用的是子密鑰。
+
+編輯密鑰和給出公鑰簽名時須用到主密鑰的私鑰，可用 gpg 命令的 --homedir 選項生成獨立的 keyring，往其中導入主密鑰，再將此 keyring 與前述生成的 exported_keys 文件保存在一起。
+
+在常用電腦上生成密鑰可能不夠安全，更好的做法是，在「乾淨」並且沒有網絡連接的電腦上——或者啓動到 live 系統——生成密鑰，再在常用電腦上導入生成的子密鑰。可保證主密鑰在分離前不會泄漏。
+
+Refs:
+  GPG 密鑰的「正確」用法 :: https://blog.theerrorlog.com/using-gpg-zh.html
+
+
+
+
+利用 GPG 簽署 git commit
+====================
+產生 SSH 認證密鑰
+  參閱前述內容
+
+查詢 SSH 認證密鑰
+  gpg --list-secret-keys
+  gpg --armor --export <Fingerprint> 
+
+為 git 設定 Fingerprint
+  git config --global user.signingkey <Fingerprint>  # 適用全域
+  git config user.signingkey <Fingerprint>           # 適用目前
+  git commit -S -m "..."
+
+Refs:
+  利用 GPG 簽署 git commit :: https://blog.puckwang.com/posts/2019/sign_git_commit_with_gpg/
+  Github Docs:: https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account
+  如何使用 GPG (GnuPG) 對 Git Commit 與 Tag 進行簽章 :: https://blog.miniasp.com/post/2020/05/04/How-to-use-GPG-sign-git-commit-and-tag-object
+
+

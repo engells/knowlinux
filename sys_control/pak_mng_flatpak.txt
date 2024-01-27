@@ -2,8 +2,8 @@
 # vim:ts=4
 # program: Using to note the knowledge about flatpak
 # made by: Engells
-# date: Jan 21, 2024
-# content: Just for memo
+# date: Jan 22, 2024
+# content: memo cache dir of chromium in flatpak
 
 
 
@@ -80,6 +80,6 @@ Ref:
   檔案無法開啟？調整Linux Flatpak應用程式權限 :: https://ivonblog.com/posts/flatseal-flatpak-permission/
 
 Memo:
-  /path/to/flatpak/app/org.chromium.Chromium/cache or $HOME/.var/app/org.chromium.Chromium/cache
+  chromium cache dir: /path/to/flatpak/app/org.chromium.Chromium/cache or $HOME/.var/app/org.chromium.Chromium/cache
 
 
