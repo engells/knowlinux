@@ -1,0 +1,97 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about pipewire
+# made by: Engells
+# date: Jan 30, 2024
+# content: How to use streaming audio with pipewire.
+
+
+
+安裝 Pipewire (host)
+  sudo pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber
+
+確保 Pipewire 服務執行 (host)
+  systemctl --user status pipewire pipewire-pulse
+  # systemctl --user enable --now pipewire pipewire-pulse
+
+在容器安裝 Pipewire (cntr)
+  sudo apt install pipewire-audio-client-libraries libspa-0.2-bluetooth libspa-0.2-jack
+  sudo apt install wireplumber pipewire-media-session-
+  sudo cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
+  sudo apt-get install --no-install-recommends pulseaudio-utils?
+
+重啟容器，確認容器中的 Pipewire 服務正在執行 (cntr)
+  systemctl --user status pipewire pipewire-pulse
+
+在宿主機上執行以下指令以連接 Docker 容器和宿主機的 Pipewire 服務 (host)
+  pactl load-module module-native-protocol-tcp port=4656 listen=<Server_IP>
+  # ‎module-cli-protocol-{unix,tcp} · ‎module-native-protocol-{unix,tcp}
+
+確認已在宿主機上連接了 Docker 容器和宿主機的 Pipewire 服務，並測試音頻是否正常工作 (cntr)
+  pactl load-module module-tunnel-sink server=tcp:<Server_IP>:4656
+  # pactl load-module module-null-sink sink_name=dummy sink_properties=device.description=Dummy for GUI only
+  aplay /usr/share/sounds/alsa/Front_Center.wav
+
+Refs:
+  PulseAudio / PipeWire streaming audio from Client to remote PulseAudio / PipeWire Server :: https://gist.github.com/savegame/58ae5966c58a71fda5d3800b335eb2f5
+  在 Fedora 容器中使用 Pipewire 音頻的問題 :: https://www.volcengine.com/theme/6445290-Z-7-1
+  Pipewire 多設備輸出 :: https://xzos.net/pipewire-send-audio-to-multiple-devices/
+  玩具烏托邦 pulseaudio 一對一聲音串流超 :: https://newtoypia.blogspot.com/2022/05/pulseaudio.html :: pactl load-module module-native-protocol-tcp
+  PulseAudio 配置簡介 :: https://zhuanlan.zhihu.com/p/661331912 :: pactl load-module module-native-protocol-tcp
+
+
+
+
+指令
+====================
+pw-cli list
+  # PipeWire command line interface
+wpctl status
+  # 查詢 WirePlumber 管制下 PipeWire 環境
+pactl info
+  # 查詢 PulseAudio sound server 環境
+
+
+
+簡述
+====================
+PipeWire 是 Linux 系統上用來處理音影片的底層多媒體框架。PipeWire 開發出來的目的是為了替代 PulseAudio，功能包括支援容器化應用的音訊輸出，和應對專業音訊場景，有相容層給 JACK 和 PulseAudio，既有的應用程式不需要改動就能使用。
+
+PipeWire 支援沙盒化的 Flatpak 應用程式、提供在 Wayland 合成器上進行螢幕截圖和螢幕錄影的安全方法、並統一處理過去由 JACK 和 PulseAudio 處理的用例。
+
+Pipewire 圖形管理工具有 Helvum 及 qpwgraph，均可以 flatpak 安裝。
+
+
+安裝
+----
+pacman -S pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber
+  # 安裝套件
+systemctl --user status pipewire.service && systemctl --user status pipewire-pulse.service
+  # 查詢相關服務是否執行，若未啟用執行指令：
+  #   systemctl --user start pipewire.service && systemctl --user start pipewire-pulse.service
+  #   systemctl --user --now enable wireplumber.service (pipewire.service 及 pipewire-pulse.service 待定)
+  # 必要時停用 PulseAudio， sudo systemctl stop pulseaudio.service
+pactl info
+  # 查詢 PulseAudio Server 是否為 PipeWire => Server Name: PulseAudio (on PipeWire [x.y.z])
+wpctl status
+  # 查詢 PipeWire Device => Sinks: ...
+  # sink（輸出設備)、source (輸入設備)、sink input（播放設備的輸入裝置，如 mplayer)、source output（錄音設備的輸出裝置，如錄音軟體）
+wpctl inspect 47
+  # 查詢特定編號之 PipeWire Device
+aplay -l
+  # 查詢 sound card => card [x] ...
+  # 必要時安裝 alsa-utils 套件，ALSA(Advanced Linux Sound Architecture) 是 Linux 核心的音效卡驅動組件，替代原先的 OSS(Open Sound System)
+cat /proc/asound/card[x]/stream0 
+
+
+Refs:
+  提高音頻輸出採樣率以充分利用聲卡 :: https://www.starx.ink/archives/increase_audio_output_bit_len_and_sample_rate_for_make_full_use_of_sound_card/
+  Arch Wiki :: https://wiki.archlinux.org/title/PipeWire
+  理解 Pulse Audio :: https://zhuanlan.zhihu.com/p/421836234
+
+----
+systemctl --user restart pipewire-pulse
+ls -l /tmp/pulse-socket => srwxrwxrwx 1 me me 0 2021-09-27 20:25:53.158629941 /tmp/pulse-socket
+--bind=/tmp/pulse-socket --setenv="PULSE_SERVER=unix:/tmp/pulse-socket"
+
+
