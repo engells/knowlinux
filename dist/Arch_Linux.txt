@@ -2,8 +2,8 @@
 # vim:ts=4
 # program: Knowhow about Arch Linux
 # made by: Engells
-# date: Jan 22, 2024
-# content: memo how to init and add pacman keyring
+# date: Feb 2, 2024
+# content: memo locations of themes and icons of plasma
 
 
 
@@ -285,6 +285,8 @@ distrobox container: arch aur packages, for stable core environment
 lxc container: ubuntu lts + google chrome, for risky internet operation
 qemu-kvm vm: win 1x, for stock shares transactions
 flatpak apps: chromium, flatseal, dosbox-x, libreoffice, pods and retroarc, for fun. easyeffects(Flatpak)
+plasma desktop theme: ~/.local/share/plasma/desktoptheme/ or /usr/share/plasma/desktoptheme/
+plasma desktop icon: ~/.local/share/icons or /usr/share/icons/hicolor/
 
 ++++++++++
 plasma setup
@@ -337,5 +339,9 @@ System Settings -> Personalization -> KDE Wallet -> Wallet references > Enable t
 ArchLinx KDE 錢包禁用與解決 WIFI 密碼輸入 :: https://huangno1.github.io/archlinux_disable_kde_wallet_and_no_password_wifi/
 
 Linux下的OpenGL——Mesa和GLX简介 :: https://blog.csdn.net/z1026544682/article/details/117331160
+  偵測系統內的顯示晶片硬體： lspci -k | grep -EA3 'VGA|3D|Display' ;; glxinfo | grep renderer ;; lscpu | egrep 'Model name|Socket|Thread|NUMA|CPU\(s\)'
+  https://dgpu-docs.intel.com/devices/hardware-table.html
+
+
 
 
