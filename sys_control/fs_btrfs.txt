@@ -1,0 +1,345 @@
+##!/bin/bash
+# vim:ts=2
+# program: knowhow about Btrfs
+# made by: Engells
+# date: Feb 9, 2024
+# content: Add repair section
+
+
+
+常用操作及指令
+====================
+du -shcx /path/to/subvolume_mountpoint
+  # 查詢 subvolume 使用空間量
+  # 參數 -s 不顯示各層子目錄用量， -c 顯示總用量， -x 不顯示掛載在其他 filesystem 或 subvolume 的目錄用量
+
+mount /dev/sd[x1][y1] /path/to/mount
+  # 掛載 btrfs 檔案系統，推測是將 Root Subvolume，也就是 btrfs 自身的 root sub( 別稱 / ) 掛載至 /path/to/mount。注意， btrfs 自身的 / 不同於作業系統的 / 目錄。
+  # 亦可使用 mount LABEL=sandbt /path/to/mount，效果相同
+
+mount -t btrfs -o ssd,noatime,discard=async,commit=120,compress=zstd:9,subvol=@ /path/to/device /path/to/mount 
+  # 掛載 subvolume，-o 選項可指定多個參數。另可以 LABEL 選項掛載 mount LABEL=btrfs_label /path/to/mount
+  # subvol= 參數不能包含 top-level 的目錄，也就是 target subvolume 掛載於 /path/to/sub_root/sub_target，參數需設為 subvol=sub_target
+  # 使用 -o compress-force=zstd:3，可強制使用透明壓縮，有 1~15 壓縮級距， 15 級壓縮率最高。要壓縮既有檔案： btrfs filesystem defragment -r /path/to/mount
+  # space_cache，似乎與 ssd 相關選項衝突，暫勿使用
+
+btrfs subvolume snapshot -r /path/to/source_subvolume_mountpoint /path/to/target snapshot_name
+  # 將 source_subvolume 快照至 /path/to/target 目錄，可指定快照名稱為 snapshot_name。快照自身亦為 subvolume。
+  # 參數 -r，產生之快照為唯讀 
+
+btrfs send /path/to/source1_snapshot_subvolume_mountpoint -p /path/to/source2_snapshot_subvolume_mountpoint | gzip > /path/to/diff.gz
+  # 將 source1_subvolume 快照與 source2_snapshot 快照的差異存入 /path/to/diff.gz
+
+btrfs filesystem show
+  # --mounted  ：查看已經掛載的 Btrfs 文件系統資料
+  # --all-devices  ：查看所有的 Btrfs 文件系統資料，預設值
+
+btrfs subvolume list /path/to/target
+  # 查詢掛載於 /path/to/target 目錄的 subvolume
+  # btrfs subvolume show /path/to/target
+
+mkfs -t btrfs -L label_name /dev/sd[x1][y1]
+  # 產生 btrfs 檔案系統
+  # btrfs filesystem label <device> <newlabel>
+
+btrfs subvolume create vol_name
+  # 產生 subvolume 。一般是先進入上層掛載點，再進行此相操作：cd /path/to/root_subvolume_mountpoint && btrfs subvolume create vol_name
+
+btrfs subvolume snapshot -r /path/to/source /path/to/target1 && btrfs send /path/to/target1 | btrfs receive /path/to/target2 \
+  btrfs subvolume snapshot /path/to/target2 /path/to/target3 && cp -av /path/to/target3 /path/to/target4
+  # 將掛載於 /path/to/source 的 subvolume 備份至掛載於 /path/to/target4 的 subvolume，此法可備份以安裝好的作業系統
+  # 簡述： 唯獨快照子卷 ＋ 推送接收子卷 ＋ 可寫快照子卷 ＋ 複製至目標子卷
+  # 若要備份或佈署至異機： btrfs send /path/to/target1 | ssh user@remote "btrfs receive /path/to/target2"
+
+btrfs property get/set/list /path/to/target
+  # to get/set/list property for given filesystem object. The object can be an inode (file or directory), subvolume or the whole filesystem.
+
+
+
+
+Volume 快照與備份
+====================
+將需備份子卷進行快照
+  btrfs subvolume snapshot -r /path/to/source_volume_mount_point /path/to/snapshot_name
+  # btrfs subvolume snapshot -r / /mnt/snapshot/bak_xxxx
+  # btrfs subvolume snapshot -r /home /mnt/snapshot/bak_yyyy
+刪除子卷內部資料
+  rm -rf /path/to/source_volume_mount_point/*
+  # rm -rf /home/*
+  # rm -rf /*
+刪除子卷
+  btrfs subvolume delete /path/to/source_volume_name
+  # btrfs subvolume delete /
+  # btrfs subvolume delete /var/lib/portables  # suto created by system system 
+  # btrfs subvolume delete /var/lib/machines   # suto created by system system
+  # btrfs subvolume delete /home
+以快照進行復原
+  btrfs subvolume snapshot /path/to/snapshot_name /path/to/source_volume_name
+  # btrfs subvolume snapshot /mnt/snapshot/bak_xxxx /
+  # btrfs subvolume snapshot /mnt/snapshot/bak_yyyy /home
+編輯 fstab，修訂 volume id
+  vim /etc/fstab
+
+Refs:
+  btrfs 文件系統快照的創建與恢復 :: https://www.notevm.com/a/6633.html
+
+
+
+
+Btrfs repair
+====================
+btrfs check  /dev/sdb2
+  # 檢查 btrfs filesystem
+sudo mount -o recovery /dev/sda2 /mnt
+  # 以恢復模式嘗試掛載 Btrfs filesystem
+sudo btrfsck --repair /dev/sdb2
+  # 修復 btrfs filesystem，此指令需小心
+sudo btrfsck --repair --init-extent-tree /dev/sda2
+  # 修復 btrfs filesystem
+
+
+
+
+Btrfs seed
+====================
+btrfstune -S /dev/sd[x1][y1]
+btrfs device add /dev/sd[x2][y2] /path/to/mount
+mount -o remount,rw /path/to/mount
+
+
+
+
+Boot
+====================
+grub2，/boot/grub/grub.cfg
+---------------
+linux   /@/boot/vmlinuz-5.4.0-56-generic root=UUID=8b506e73-09a7-49d4-9b6f-4314b0d16b4e ro rootflags=subvol=@
+initrd  /@/boot/initrd.img-5.4.0-56-generic
+
+
+fstab，/etc/fstab
+----------------
+UUID=8b506e73-09a7-49d4-9b6f-4314b0d16b4e    /               btrfs   defaults,subvol=@      0       1
+UUID=319bf608-c5ca-4643-b802-19f30a5dc496    /home           btrfs   defaults,subvol=@home  0       2
+  # enable compress => defaults,compress=zstd:6,subvol=@home
+
+
+syslinux
+---------------
+開機選單裡加上 root=LABEL=gaia rootflags=subvol=ulyana/live    # 假設 btrfs 名為 gaia， 掛載在 /mnt/gaia 底下
+編輯 /mnt/gaia/ulyana/live/etc/fstab 把 / 那一句改成： LABEL=gaia / btrfs subvol=ulyana/live    0       1
+
+
+
+
+安裝 Ubuntu 20.04 至 Btrfs
+====================
+1. 以隨身碟等開機，選擇試用 Ubuntu，用指令 gdik 分割硬碟，產生分割區：
+   ESP(200M~512M, ef00)、BIOS(2M, ef02)、SWAP(4~8G, 8300)、Btrfs(8300, /dev/sd[x][y4])、XFS(10~20G, 8300)、EXT4(8300)
+2. 安裝 Ubuntu 20.04 至 XFS 分割區，選擇繼續試用 Ubuntu。開啟終端機，chroot 至 XFS 分割區掛載目錄 /target，
+     for i in /dev /dev/pts /proc /sys /run; do sudo mount -B $i /target$i; done
+     chroot /target
+   安裝套件，必要時重新掛載 fstab： mount -a。 apt install -y --reinstall
+     btrfs-progs grub-efi-amd64-signed linux-generic linux-headers-generic linux-generic-hwe-20.04 linux-headers-generic-hwe-20.04
+3. 在 /target 之 chroot 環境，編輯下列檔案
+     /etc/default/grub，開機時顯示 grub 選單，並以文字模式顯示開機過程
+     /etc/sudoers，將用戶群組納入免密碼模式
+   更新 initramfs 並重設 grub：
+     update-initramfs -c -k all
+     grub-install /dev/sd[x]
+     update-grub
+4. 離開 chroot 環境，格式化 /dev/sd[x][y4] 為 Btrfs，掛載至 /mnt，建立 subvolume： @、@home，@ 掛載至 /mnt/os、@home 掛載至 /mnt/home。
+   用指令 rsync -avX 將 /target 所有資料複製至 /mnt/os，將 /mnt/os/home/user_name 搬移至 /mnt/home。
+   實做時，注意避免在已掛載成系統根目錄之 Btrfs 建立 subvolume。
+     mkfs.btrfs -f -L xxxx /dev/sd[x][y4] ; mkdir -p /mnt ; mount /dev/sda[x][y4] /mnt \
+       btrfs subvolume create /mnt/@ ; btrfs subvolume create /mnt/@home ; umount /mnt
+     mount /dev/sda[x][y4] /mnt -o subvol=@ ; mkdir /mnt/home ; mount /dev/sda[x][y4] /mnt/home -o subvol=@home
+     參考資料：https://zhuanlan.zhihu.com/p/388400709 <Archlinux 安装简记 Xfce + Btrfs 2021.07>
+5. 解除掛載 /mnt/home、/mnt/os、/mnt，再單獨掛載 subvolume @ 至 /mnt/os。chroot 至目錄 /mnt/os，更新 initramfs 並重設 grub：
+     update-initramfs -c -k all
+     grub-install /dev/sd[x]
+     update-grub
+6. 移除 Snaps
+     # sudo apt autoremove --purge snapd
+     snap list
+     snap remove snap-store gtk-common-themes gnome-3-34-1804 remove core18 snapd
+     umount /snap/core/xxxx
+     apt purge snapd
+     rm -rf ~/snap /snap /var/snap /var/lib/snapd
+
+
+
+
+安裝 Ubuntu 20.04 至加密 Btrfs 分區
+====================
+Config
+  user: admit
+  passwd: a...t@crypt~2..5
+  ceypt phrase: a...t@crypt~2..5
+  computer name: a...t-crypt
+  crypt name: focal
+
+Create partition table and layout
+  ESP(200M, ef00)、BIOS(2M, ef02)、SWAP(4G, 8200)、EXT4(10~20G, 8300)、Data(0700)
+
+Create luks1 partition and btrfs root filesystem
+  cryptsetup luksFormat --type=luks1 /dev/vda4
+  cryptsetup luksOpen /dev/vda4 crypt_name
+  ls /dev/mapper/
+  mkfs.btrfs /dev/mapper/crypt_name
+
+Optimize mount options for SSD or NVME drives
+  gedit /usr/lib/partman/mount.d/70btrfs
+    # line 24: options="${options:+$options,}subvol=@,ssd,noatime,space_cache,commit=120,compress=zstd"
+    # line 31: options="${options:+$options,}subvol=@home,ssd,noatime,space_cache,commit=120,compress=zstd"
+  gedit /usr/lib/partman/fstab.d/btrfs
+    # line 30: pass=0
+    # line 31: home_options="${options:+$options,}subvol=@home,ssd,noatime,space_cache,commit=120,compress=zstd"
+    # line 32: options="${options:+$options,}subvol=@,ssd,noatime,space_cache,commit=120,compress=zstd"
+    # line 36: pass=0
+    # line 37: options="${options:+$options,}subvol=@home,ssd,noatime,space_cache,commit=120,compress=zstd"
+    # line 40: pass=0
+    # line 56: echo "$home_path" "$home_mp" btrfs "$home_options" 0 0
+
+Install Ubuntu using the Ubiquity installer without the bootloader
+  ubiquity --no-bootloader
+    Select /dev/vda1, Choose Use as ‘EFI System Partition’.
+    Select /dev/vda3, Choose Use as ‘swap area’ to create a swap partition. We will encrypt this partition later in the crypttab.
+    Select /dev/mapper/crypt_name type btrfs on top, Choose Use as ‘btrfs ...’, check Format the partition and use ‘/’ as Mount point.
+    If you have other partitions, check their types and use; particularly,deactivate other EFI partitions
+
+Create a chroot environment and enter your system
+  create a chroot (change-root) environment 
+    mount -o subvol=@,ssd,noatime,space_cache,commit=120,compress=zstd /dev/mapper/crypt_name /mnt
+    for i in /dev /dev/pts /proc /sys /run; do sudo mount -B $i /mnt$i; done
+    sudo cp /etc/resolv.conf /mnt/etc/
+    sudo chroot /mnt
+    mount -av
+    btrfs subvolume list /
+
+Create crypttab
+  export UUIDVDA3=$(blkid -s UUID -o value /dev/vda4)    # this is an environmental variable
+  echo "crypt_name UUID=${UUIDVDA3} none luks" >> /etc/crypttab
+  cat /etc/crypttab
+
+Encrypted swap
+  export SWAPUUID=$(blkid -s UUID -o value /dev/vda3)
+  echo "cryptswap UUID=${SWAPUUID} /dev/urandom swap,offset=1024,cipher=aes-xts-plain64,size=512" >> /etc/crypttab
+  cat /etc/crypttab
+  sed -i "s|UUID=${SWAPUUID}|/dev/mapper/cryptswap|" /etc/fstab
+  cat /etc/fstab
+
+Add a key-file to type luks passphrase only once (optional, but recommended)
+  mkdir /etc/luks ; dd if=/dev/urandom of=/etc/luks/boot_os.keyfile bs=4096 count=1
+  chmod u=rx,go-rwx /etc/luks ; chmod u=r,go-rwx /etc/luks/boot_os.keyfile
+  cryptsetup luksAddKey /dev/vda4 /etc/luks/boot_os.keyfile ; cryptsetup luksDump /dev/vda4 | grep "Key Slot"
+    # Key Slot 0: ENABLED
+    # Key Slot 1: ENABLED
+    # Key Slot 2: DISABLED ...
+
+  echo "KEYFILE_PATTERN=/etc/luks/*.keyfile" >> /etc/cryptsetup-initramfs/conf-hook
+  echo "UMASK=0077" >> /etc/initramfs-tools/initramfs.conf
+  sed -i "s|none|/etc/luks/boot_os.keyfile|" /etc/crypttab # this replaces none with /etc/luks/boot_os.keyfile
+  cat /etc/crypttab
+
+Install the EFI bootloader
+  echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
+  apt install -y --reinstall grub-efi-amd64-signed linux-generic linux-headers-generic linux-generic-hwe-20.04 linux-headers-generic-hwe-20.04
+  update-initramfs -c -k all
+  grub-install /dev/vda ; update-grub
+  stat -L -c "%A  %n" /boot/initrd.img
+  lsinitramfs /boot/initrd.img | grep "^cryptroot/keyfiles/"
+
+Reboot, some checks, and update system.
+
+實做成功，但需注意加密磁碟分區後，即便設定開機自動解密掛載根目錄，系統亦會要求輸入解密密碼，才會出現開機選單。而且，該磁碟由其他硬碟讀取時，亦需輸入解密密碼。
+
+
+
+
+指令說明
+====================
+btrfs filesystem <subcommand> <args>
+  # df -h <path>  ：查看當前掛載 Btrfs 文件系統空間使用情況
+  # defragment [options] <file>|<dir> [<file>|<dir>...]  ：表示清除磁盤的碎片，做碎片整理的
+  # resize [<devid>:][+/-]<size>[kKmMgGtTpPeE]|[<devid>:]max <path>  ： 修改 Btrfs 文件系統的大小
+  # label [<dev>|<mountpoint>] [<newlabel>]  ：查看或修改 Btrfs 的 label
+  # show [options] [<path>|<uuid>|<device>|<label>]  ：顯示 Btrfs 文件系的一些關於設備和空間分配的附加資料
+    # --mounted  ：查看已經掛載的 Btrfs 文件系統資料
+    # --all-devices  ：查看所有的 Btrfs 文件系統資料，預設值
+  # sync <path>  ：把掛載使用的 Btrfs 文件系統在內存中的數據同步到硬盤上
+
+btrfs subvolume <subcommand> [<args>]
+  # create [-i <qgroupid>] [<dest>/] <name>  ：創建一個子卷
+  # delete [options] <subvolume> [<subvolume>...]  ：刪除一個子卷或者快照卷，若指定 -c 選項，該 Subvolume 資料將自硬碟實際移除。
+  # find-new <subvolume> <last_gen>  ：尋找 Btrfs 文件系統中最近修改過的子卷
+  # get-default <path>  ：查看 Btrfs 文件系統中那個是預設的子卷
+  # set-default [<subvolid>|<path>]  ：設置預設子卷。可應用於多重系統。
+    # btrfs subvolume set-default 0 /path/to/mount
+    # btrfs subvolume set-default 256 /path/to/mount
+  # list [options] [-G [+|-]<value>] [-C [+|-]<value>] [--sort=rootid,gen,ogen,path] <path>  ：列出 Btrfs 文件系統的所有或者指定子卷的詳細資料
+  # show [options] <path>
+  # snapshot [-r] <source> <dest>|[<dest>/] <name>  ：創建一個子卷快照，快照卷必須與原來的子卷在同一個父卷下。選項 -r  代表唯讀。
+    # btrfs subvolume snapshot /path/to/source /path/to/dest
+
+btrfs device <subcommand> <args>
+  # add [-Kf] <dev> [<dev>...] <path>  ：表示增加一個設備到 btrfs 文件系統，新的數據不會存放到新加的設備，如果想均衡向新設備中輸入數據。使用 btrfs balance 命令
+
+btrfs balance <subcommand> <args>
+  # start [options] <path>  ：開始執行均衡操作。相關選項有 -dconvert=raid5、-mconvert=raid5、 -sconvert=raid5
+  # cancel <path>  ：取消正在執行的均衡操作
+  # pause <path>  ：暫停正在執行的均衡操作，使用 balance 操作會大量耗用電腦 IO 能力，當系統服務繁忙時，可暫停 balance 
+  # resume <path>  ：繼續執行均衡操作
+  # status <path>  ：查看當前磁盤均衡資料
+
+btrfs property <subcommand> <args> ??
+  # get -ts  <path>
+  # set -ts  <path>
+
+btrfs send <path> ;; btrfs receive <path>
+
+
+mkfs.btrfs
+  # -L <label_name>  ：指定卷標名
+  # -d <type>: raid0, raid1, raid5, raid6, raid10, single  ：指定數據的存放機制
+  # -m <profile>: raid0, raid1, raid5, raid6, raid10, single , dup  ：指定元數據的存放機制
+  # -O <feature>  ：指定格式化時啓動的 feature，不是所有的內核都支持，需要內核啓動對應的某些功能
+  # -O list-all  ：列出支持的所有 feature
+
+
+
+
+概述
+====================
+用 mkfs.btrfs 建成 Btrfs 之後，是一個 pool。首先會建立 Root Subvolume，其 SubVolID 為 5（别名为 0），SubVol 為 / 。之後第一個 Subvolume 是 Default Subvolume，SubVol 為 @ 。
+Ubuntu 及 Mint 預設安裝會產生二個 Subvolume @ 、@home。
+
+可以掛載 Root Subvolume： mount -o subvol=/ /dev/sd[x][y] /path/to/target
+
+Btrfs 支持直接挂载子卷而不需要挂载父卷。
+
+利用 Snapshot 和 Default Subvolume，可以很方便的实现不同系统版本的切换。比如将系统安装在一个 Subvolume 下面，当要做什么危险操作的时候，先在 Subvolume 的基础上做一个快照 A。如果操作成功，那么什么都不用做（或者把 A 删掉），继续用原来的 Subvolume，A 不被删掉也没关系，多一个快照在那里也不占空间。如果操作失败，那么可以将 A 设置成 Default Subvolume，并将原来的 Subvolume 删除，这样就相当于系统回滚。
+
+/etc/fstab 设置
+    /path/to/device       /path/to/mount   btrfs   defaults,compress=zstd                   0    1
+    /path/to/device       /path/to/mount   btrfs   subvol=/data/libvirt,defaults,noatime    0    1
+    Btrfs root sub UUID   /path/to/mount   btrfs   subvol=/data/libvirt,defaults,noatime    0    1
+
+SSD 優化，掛載參數加上 ssd 、noatime 及 compress
+    ssd 為對 ssd 裝置之處理，不會自動啓用 TRIM/discard
+    noatime 禁止更新訪問記錄以減少寫入操作，可提高性能，預設配置爲 relatime
+    compress 啟用壓縮，lzo 壓縮法速度更快，zlib 壓縮法壓縮率更高。注意確認 SSD 主控晶片是否是非壓縮主控，若爲壓縮主控不建議加入本參數。
+
+相關套件： btrfs-progs， Ubuntu 20.04 未內建。
+
+
+Refs:
+  Btrfs 官方 :: https://btrfs.wiki.kernel.org/index.php/Main_Page
+  btrfs檔案系統詳解及使用 | itread01 ::  https://www.itread01.com/content/1542185529.html
+  linux基礎之btrfs文件系統管理與應用 | itread01 :: https://www.itread01.com/content/1552578991.html
+  Linux系統管理之btrfs管理及應用 | 台部落 :: https://www.twblogs.net/a/5b982e992b717736c62261ec
+  实战 Btrfs 文件系统之 Subvolume 与 Snapshot | 运维之美 :: https://www.hi-linux.com/posts/25994.html
+  Btrfs功能 ｜ github :: https://github.com/huataihuang/cloud-atlas-draft/blob/master/os/linux/storage/filesystem/btrfs/btrfs_startup.md
+  BTRFS 心得 | richliu's blog :: https://blog.richliu.com/2017/01/18/2070/btrfs-%E5%BF%83%E5%BE%97
+
+

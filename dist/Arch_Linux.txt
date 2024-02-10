@@ -1,0 +1,344 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Arch Linux
+# made by: Engells
+# date: Feb 2, 2024
+# content: memo locations of themes and icons of plasma
+
+
+
+pacman
+====================
+安裝套件， flag -S: sync
+  pacman -S <package>
+  pacman -Sy <package>  # 安裝套件並更新套件資料庫資訊，建議不要這樣使用，可能會造成 dependency issue
+  pacman -Su            # 更新套件版本， -u: upgrade
+  pacman -Syu <package> # 建議這樣用
+  pacman -Syu           # 更新整個 Arch Linux 系統的套件
+
+安裝不在檔案庫的 package（例如 AUR 的 package）
+  pacman -U /path/to/package/package_name-version.pkg.tar.xz
+  pacman -U http://www.example.com/repo/example.pkg.tar.xz    # 也可以從網址安裝
+
+移除套件， flag -R: remove
+  pacman -R <package>
+  pacman -Rs <package> # 移除套件及其相依套件， -s: recursive
+
+查詢套件， flag -Q: query
+  pacman -Ss <search_pattern> # -s: search
+  pacman -Q # 查詢已安裝的套件
+  pacman -Qs string # 用關鍵字查詢
+  pacman -Q | grep <package> # 也可以配合 grep 使用
+  pacman -Qi <package> # 查詢套件詳細資訊，-i: info
+  pacman -Ql <package> | less  # 查詢套件安裝的檔案列表
+  pacman -Qm # 查詢外來套件
+  pacman -Qo /path/to/package # 從路徑反查套件， -o: owner
+
+暫存
+  pacman -Scc     # 清除暫存檔以及未用到的套件資料庫資訊，會清除整個 cache 資料夾，盡量避免使用。 -cc: clean cache dir
+  pacman -Sc      # 僅清除目前未使用的暫存檔， -c: clean
+  paccache -r     # 清除暫存檔，只保留最近三個版本， sudo ls /var/cache/pacman/pkg/ | wc -l ;;  du -sh /var/cache/pacman/pkg/
+  paccache -rk 1  # 清除暫存檔，只保留最近一個版， -k flag indicates to keep num of each package in the cache
+  paccache -ruk0  # 清除未安裝套件暫存檔， -u flag indicates the uninstalled packages.
+
+其他相關
+  pactree <package> # 列出套件的依賴樹
+  pactree -r <package> # 
+
+維持現有核心版本
+  編輯 /etc/pacman.conf
+    IgnorePkg = linux # 停止更新 linux 核心，適合使用 linux-lts 的情形。
+
+GPG key 失效或錯誤
+  rm -rf /etc/pacman.d/gnupg
+  pacman-key --init
+  pacman-key --populate archlinux
+  pacman-key --populate archlinuxcn (optional)
+  pacman -Syy
+
+AUR（Arch User Repository）
+  Arch 使用者軟體倉庫 (AUR) 是由社群推動的使用者軟體庫。包含了軟體包描述單 (PKGBUILD)，可以用 makepkg 從原始碼編譯軟體包，並透過 pacman 安裝。
+  透過 AUR 可以在社群間分享、組織新進軟體包，熱門的軟體包有機會被收錄進軟體庫。1
+  簡單來說，AUR 是社群分享的軟體庫，裡面包含有軟體的 PKGBUILD，用 makepkg 編完之後，就可以使用 pacman 來管理了，它的網址在 https://aur.archlinux.org/。
+  你可以選擇手動安裝，或者使用 helper（例如 pacaur）來安裝，一般來說使用 helper 較方便。
+
+config files
+  configure: /etc/pacman.conf
+  packagr repo: /var/lib/pacman/
+  package cache: /var/cache/pacman/pkg/
+
+Ref
+  Arch Linux：套件管理工具 pacman :: https://blog.rex-tsou.com/2017/12/arch-linux%E5%A5%97%E4%BB%B6%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7-pacman/
+  The Recommended Way To Clean The Package Cache In Arch Linux :: https://ostechnix.com/recommended-way-clean-package-cache-arch-linux/
+
+
+
+
+Fcitx5
+====================
+桌面環境下自動啟動，若未自動啟動
+  cp /etc/xdg/autostart/fcitx-autostart.desktop ~/.config/autostart/
+  或編輯 $HOME/.xinitrc，加入 fcitx &，必要時在後面加一個延時 sleep 2
+
+編輯 /etc/environment 設置環境變量
+  GTK_IM_MODULE=fcitx
+  QT_IM_MODULE=fcitx
+  XMODIFIERS=@im=fcitx
+  # SDL_IM_MODULE=fcitx
+  # GLFW_IM_MODULE=ibus
+  # 備用設置檔 $HOME/.xprofile
+
+Ref
+  Fcitx5 :: https://wiki.archlinux.org/title/Fcitx5
+
+
+
+
+Install qemu-kvm ** 待確認
+====================
+Install packages
+  sudo pacman -S qemu-full virt-manager virt-viewer edk2-ovmf dnsmasq vde2 bridge-utils iptables-nft openbsd-netcat libguestfs multipath-tools lxc podman distrobox
+  # ebtables iptables ?
+
+Start libvirtd
+  sudo systemctl start libvirtd --now
+  sudo systemctl enable libvirtd
+
+Authorization
+  sudo usermod -a -G libvirt $USER
+  sudo usermod -a -G libvirt root
+  sudo usermod -a -G kvm $USER
+  sudo usermod -a -G kvm root
+  sudo vim /etc/polkit-1/rules.d/50-libvirt.rules
+    /* Allow users in kvm group to manage the libvirt
+    daemon without authentication */
+    polkit.addRule(function(action, subject) {
+        if (action.id == "org.libvirt.unix.manage" &&
+            subject.isInGroup("kvm")) {
+                return polkit.Result.YES;
+        }
+    });
+  sudo systemctl restart libvirtd
+
+Bridge device
+  vim lxcbr0.xml
+    <network>
+      <name>br10</name>
+      <forward mode='nat'>
+        <nat>
+          <port start='1024' end='65535'/>
+        </nat>
+      </forward>
+      <bridge name='lxcbr0' stp='on' delay='0'/>
+      <ip address='172.25.3.1' netmask='255.255.255.0'>
+        <dhcp>
+          <range start='172.25.3.10' end='172.25.3.240'/>
+        </dhcp>
+      </ip>
+    </network>
+  sudo virsh net-define lxcbr0.xml && sudo virsh net-start lxcbr0 && sudo virsh net-autostart lxcbr0
+
+  sudo nvim /etc/libvirt/libvirtd.conf
+    unix_sock_group = "libvirt"
+    unix_sock_ro_perms = "0777"
+    unix_sock_rw_perms = "0770"
+
+Nested virtulization (optional)
+  sudo modprobe -r kvm_intel
+  sudo modprobe kvm_intel nested=1
+  echo "options kvm-intel nested=1" | sudo tee /etc/modprobe.d/kvm-intel.conf
+  # verify nested virtualization
+  # systool -m kvm_intel -v | grep nested ;; cat /sys/module/kvm_intel/parameters/nested
+
+
+Refs:
+  Arch Linux QEMU-KVM :: https://gist.github.com/tatumroaquin/c6464e1ccaef40fd098a4f31db61ab22
+  在 Arch Linux 上安裝 QEMU/KVM 和 Virt Manager 虛擬機軟體 :: https://ivonblog.com/posts/archlinux-qemu-virt-manager/
+  Linux Containers :: https://wiki.archlinux.org/title/Linux_Containers
+
+
+
+
+Enable wifi
+====================
+sudo modprobe -r ideapad_laptop  # 禁用 ideapod_laptop
+sudo tee /etc/modprobe.d/ideapad.conf <<< "blacklist ideapad_laptop" # 永久生效
+rfkill list  # 查看狀態，如果發現 Wireless LAN 的 Soft blocked 和 Hard blocked 都是 no 就行了，無線網路也能連結了。
+
+
+
+
+ZFS support
+====================
+Archzfs repo
+  import gpg key
+    curl --fail-early --fail -L https://archzfs.com/archzfs.gpg | sudo pacman-key -a - --gpgdir /etc/pacman.d/gnupg
+    sudo pacman-key --lsign-key --gpgdir /etc/pacman.d/gnupg DDF7DB817396A49B2A2723F7403BD972F75D9D76
+  add archzfs reop
+    [ -f /etc/pacman.d/mirrorlist-archzfs ] || sudo touch /etc/pacman.d/mirrorlist-archzfs
+    sudo echo "## See https://github.com/archzfs/archzfs/wiki"     > /etc/pacman.d/mirrorlist-archzfs
+    sudo echo "## United States"                                  >> /etc/pacman.d/mirrorlist-archzfs
+    sudo echo "Server = https://zxcvfdsa.com/archzfs/$repo/$arch" >> /etc/pacman.d/mirrorlist-archzfs
+  edit /etc/pacman.conf
+    IgnorePkg = linux-lts
+    [archzfs]
+    #SigLevel = Optional TrustAll
+    #Server = https://zxcvfdsa.com/archzfs/$repo/$arch
+    #Server = https://archzfs.com/$repo/$arch
+    Include = /etc/pacman.d/mirrorlist-archzfs
+  install packages
+    sudo pacman -Syy && sudo pacman -S zfs-linux-lts zfs-utils
+    # 若使用環境為 linux，則安裝套件為 zfs-linux zfs-utils
+
+
+Arch Linux AUR
+  with yay
+    yay -S zfs-linux zfs-linux-lts
+  without yay
+    git clone https://aur.archlinux.org/zfs-dkms.git ;; cd zfs-dkms ;; makepkg --skipgpgcheck
+    git clone https://aur.archlinux.org/zfs-utils.git ;; cd zfs-utils ;; makepkg --skipgpgcheck
+    # https://aur.archlinux.org/zfs-utils.git
+
+Refs:
+  Arch Linux Root on ZFS :: https://openzfs.github.io/openzfs-docs/Getting%20Started/Arch%20Linux/Root%20on%20ZFS.html#
+  使用archzfs软件仓库在arch linux上部署ZFS :: https://cloud-atlas.readthedocs.io/zh-cn/latest/linux/storage/zfs/install/archlinux_archzfs.html
+  Home·archzfs/archzfs Wiki·GitHub :: https://github.com/archzfs/archzfs/wiki
+  Arch Linux Root on ZFS from Scratch Tutorial :: https://www.youtube.com/watch?v=CcSjnqreUcQ
+  Install Arch Linux on ZFS :: https://wiki.archlinux.org/title/Install_Arch_Linux_on_ZFS
+
+
+
+
+Arch Linux Installation
+====================
+Scripts ref to kt_lib_install_arch.sh
+
+Environment:
+  /dev/nvme0n1p1: EFI partition
+  /dev/nvme0n1p2: Btrfs partition
+    os/arch: os root subvol
+    homes/arch: home subvol
+    pkgs/arch: pacman packages subvol
+  tmpfs
+    tmpfs    /tmp        tmpfs    defaults,noatime,mode=1777    0   0
+    tmpfs    /var/tmp    tmpfs    defaults,noatime,mode=1777    0   0
+    tmpfs    /var/log    tmpfs    defaults,noexec,mode=1777     0   0
+  desktop environment
+    xorg:   archlinux-keyring linux-headers xorg xorg-server xdg-user-dirs
+    mmedia: pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber neofetch smplayer
+    utils:  nvtop usbutils gdisk flatpak pacman-contrib git p7zip unrar xz bluez bluez-utils bluedevil glances lm_sensors \
+            ecryptfs-utils cryptsetup device-mapper util-linux(#kpartx)
+    plasma: plasma-desktop plasma-wayland-session plasma-nm plasma-pa dolphin konsole kate kscreen okular ark systemsettings kde-gtk-config breeze-gtk sddm
+              # kdeplasma-addons gwenview?
+    net:    firefox firefox-i18n-zh-tw noto-fonts-cjk noto-fonts-emoji
+    im:     fcitx5-im fcitx5-chewing fcitx5-chinese-addons fcitx5-qt fcitx5-gtk fcitx5-configtool  # kcm-fcitx?
+
+  desktop alternative
+    plasma 標準套件: plasma-meta kde-applications plasma-wayland-session packagekit-qt5
+    plasma 選用套件: kvantum-qt5 kvantum-theme-materia materia-gtk-theme materia-kde kwrite kcalc spectacle krunner partitionmanager
+    cinnamon 簡化安裝: cinnamon sddm gnome-terminal xed geeqie file-roller
+    gnome 簡化套件:    gnome-shell gnome-tweaks gnome-control-center gnome-shell-extensions gnome-backgrounds gnome-menus nautilus gedit gnome-terminal gnome-usage \
+                       adwaita-icon-theme arc-gtk-theme seahorse xdg-user-dirs-gtk fwupd
+    gnome 選用套件:    gnome gnome-multi-writer gnome-nettool
+
+    # pacman -S --needed openssh fakeroot :: linux-lts-headers :: libreoffice-still libreoffice-still-zh-tw :: power-profiles-daemon
+    #  realvnc-vnc-viewer :: remmina libvncserver spice-gtk freerdp
+    systemctl enable sddm.service ;; systemctl enable sshd.service
+    exit ;; umount /mnt/boot ;; umount /mnt ;; shutdown now 
+
+    optimus-manager: GPU offloading and power management with Nvidia cards
+
+
+Post installation
+  install yay
+    sudo pacman -S --needed git base-devel
+    git clone https://aur.archlinux.org/yay-bin.git
+    cd yay-bin
+    makepkg -si
+    sudo vim /etc/makepkg.conf => 找到 MAKEFLAGS="-j2" 這行，取消註解，再將後面改成 "-j$(nproc)"。設定編譯 AUR 套件時啟用全部 CPU。
+    sudo vim /etc/pacman.conf => 取消註解 Color 和 ParallelDownloads，開啟顏色和平行下載套件。再自行新增 ILoveCandy 參數開啟 pacman 的彩蛋。
+    yay -S xxxx
+
+
+Refs:
+  Arch Linux Installation guide :: https://wiki.archlinux.org/title/Installation_guide_(%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87)
+  Arch Linux with KDE Plasma Installation Guide (UEFI & MBR) :: https://github.com/XxAcielxX/arch-plasma-install
+  Install GNOME Desktop in Arch Linux :: https://www.debugpoint.com/gnome-arch-linux-install/ :: https://www.youtube.com/watch?v=6DmG5PMs9aA
+  Arch Linux Install File System BTRFS :: https://kb.adamsdesk.com/operating_system/arch_linux_install_file_system_btrfs/
+  Arch Linux 安裝教學 :: https://ivonblog.com/posts/install-archlinux/
+  用 Gentoo 二個月之後，默默換回了 Arch Linux :: https://ivonblog.com/posts/from-gentoo-to-arch/
+  Archlinux 安裝 :: https://huangno1.github.io/categories/archlinux/
+  讓 Arch Linux 安裝更簡單：archinstall :: https://ivonblog.com/posts/archinstall-script/
+  Guide to Set up Full Wayland with Arch Linux :: https://www.debugpoint.com/wayland-arch-linux/
+  kde美化--kvantum篇 :: https://blog.firerain.me/article/4
+  Archlinux 安裝 Part 3 - 基本軟體包安裝與 Mac 風界面設計 :: https://huangno1.github.io/archlinux_install_part3_install_some_software_and_mac_style/
+  Jguer/yay :: https://github.com/Jguer/yay
+
+
+
+
+概述
+====================
+工作環境
+Environment = core environment(kernel + cli shell + mini plasma desktop) + platform for qemu-kvm, lxc, lxd, podman, distrobox and flatpak
+distrobox container: arch aur packages, for stable core environment
+lxc container: ubuntu lts + google chrome, for risky internet operation
+qemu-kvm vm: win 1x, for stock shares transactions
+flatpak apps: chromium, flatseal, dosbox-x, libreoffice, pods and retroarc, for fun. easyeffects(Flatpak)
+plasma desktop theme: ~/.local/share/plasma/desktoptheme/ or /usr/share/plasma/desktoptheme/
+plasma desktop icon: ~/.local/share/icons or /usr/share/icons/hicolor/
+
+++++++++++
+plasma setup
+左移「關閉、最大、最小」圖示：any app => app title bar => right click => More Actions => Configure Special Window Manager... => Windows Decorations => Titlebar Buttoms
+視窗透明化：any app => app title bar => right click => More Actions => Configure Special Window Settings... => Add Property... => Active opacity
+
+
+++++++++++
+/etc/sddm.conf.d/autologin.conf <= /usr/lib/sddm/sddm.conf.d/default.conf
+[Autologin]
+User=john
+Session=plasma
+
+qemu-guest-agent，spice-vdagent open-vm-tools
+https://github.com/vinceliuice/grub2-themes ; https://github.com/Kangie/sddm-sugar-candy ; https://github.com/vinceliuice/McMojave-kde
+
+參數
+  $XDG_RUNTIME_DIR ; $DISPLAY ; $DBUS_SESSION_BUS_ADDRESS env | grep DBUS ; $XDG_SESSION_TYPE
+
+debug sound
+  systemctl status --user wireplumber pipewire{,-pulse}
+  sudo fuser -v /dev/snd/*
+  sudo dmesg | greo iE 'snd|sof'
+  pactl info
+  inxi -Fxz (pacman -S inxi)
+  systemctl restart --user pipewire.socket pipewire-pulse.socket pipewire pipewire-session-manager
+  pulseaudio pulseaudio-jack alsa-utils
+  /usr/share/pipewire/* => /etc/pipewire/ 或  ~/.config/pipewire/
+  pw-cli ls
+
+/usr/share/kbd/keymaps/**/*.map.gz :: 
+
+X = Σ servers = Σ screens(logical) = Σ monitors(physical + vnc simulate device) :: /etc/X11/xinit
+DISPLAY=remote_ip:x_server_id.screen_id, DISPLAY=172.26.3.138:0.0
+快速理解 X server, DISPLAY 與 X11 Forwarding :: https://blog.csdn.net/weixin_41973774/article/details/132511452
+
+
+yay -S package 時選擇不要匯入 gpg keys 可成功安裝，若選擇匯入則安裝失敗
+pacman-key --init && pacman-key --populate => work
+# pacman-key --refresh-keys
+# rm -R /etc/pacman.d/gnupg/
+# rm -R /root/.gnupg/  # only if the directory exists
+# gpg --keyserver keyserver.ubuntu.com --recv-key <key name>
+# gpg --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 --recv 27EDEAF22F3ABCEB50DB9A125CC908FDB71E12C2
+# gpg --receive-keys keyIDs
+
+kwallet
+sudo pacma -Syy && sudo pacman -S kwalletmanager
+System Settings -> Personalization -> KDE Wallet -> Wallet references > Enable the KDE wallet subsystem => cancel
+ArchLinx KDE 錢包禁用與解決 WIFI 密碼輸入 :: https://huangno1.github.io/archlinux_disable_kde_wallet_and_no_password_wifi/
+
+Linux下的OpenGL——Mesa和GLX简介 :: https://blog.csdn.net/z1026544682/article/details/117331160
+  偵測系統內的顯示晶片硬體： lspci -k | grep -EA3 'VGA|3D|Display' ;; glxinfo | grep renderer ;; lscpu | egrep 'Model name|Socket|Thread|NUMA|CPU\(s\)'
+  https://dgpu-docs.intel.com/devices/hardware-table.html
+
