@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Knowhow about Podman
 # made by: Engells
-# date: Jan 10, 2024
+# date: Feb 15, 2024
 # content: Just for memo
 
 
@@ -149,5 +149,5 @@ Refs
   podman 介紹及基本教學 :: https://www.itnotetk.com/2021/06/23/podman%E5%AE%89%E8%A3%9D%E5%8F%8A%E6%95%99%E5%AD%B8/?doing_wp_cron=1699346239.1683499813079833984375
   podman 入門實戰 :: https://www.tw511.com/a/01/54616.html
   專題 - 使用 podman 進行 container 管理 :: https://dic.vbird.tw/network_project/zunit12.php
-
+  遷移容器映像(Container Image)到另一台主機 :: https://blog.miniasp.com/post/2023/01/02/How-to-Move-Container-Image-to-another-Docker-Engine
 

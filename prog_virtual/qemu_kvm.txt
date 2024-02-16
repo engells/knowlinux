@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: knowhow about QEMU
 # made by: Engells
-# date: Jan 20, 2024
+# date: Feb 12, 2024
 # content: connection type: QEMU/KVM or QEMU/KVM user session
 
 
@@ -170,7 +170,7 @@ virtio 介面裝置
     PCI SCSI： /path/to/iso/Balloon
 
 copy & paste from the host
-  Linux VM: sudo apt install spice-vdagent
+  Linux VM(with X11 Env.): sudo pacman -S spice-vdagent or sudo apt install spice-vdagent
   Win VM: https://www.spice-space.org/download/binaries/spice-guest-tools/
 
 

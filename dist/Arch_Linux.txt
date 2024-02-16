@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Knowhow about Arch Linux
 # made by: Engells
-# date: Feb 2, 2024
+# date: Feb 15, 2024
 # content: memo locations of themes and icons of plasma
 
 
@@ -70,6 +70,22 @@ config files
 Ref
   Arch Linux：套件管理工具 pacman :: https://blog.rex-tsou.com/2017/12/arch-linux%E5%A5%97%E4%BB%B6%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7-pacman/
   The Recommended Way To Clean The Package Cache In Arch Linux :: https://ostechnix.com/recommended-way-clean-package-cache-arch-linux/
+
+
+
+
+Konsole
+====================
+konsole --workdir {{path/to/directory}}
+  # 在特定目錄中開啟新的 Konsole
+konsole --noclose -e {{命令}}
+  # 運行特定命令，退出視窗後不要關閉視窗
+konsole --new-tab
+  # 打開新標簽頁
+konsole --background-mode
+  # 在後台打開 Konsole，按下 Ctrl+Shift+F12 (默認) 時顯示在最前面
+konsole --fallback-profile
+  # 使用緊急備冗配置文件打開 Konsole
 
 
 
@@ -324,19 +340,6 @@ DISPLAY=remote_ip:x_server_id.screen_id, DISPLAY=172.26.3.138:0.0
 快速理解 X server, DISPLAY 與 X11 Forwarding :: https://blog.csdn.net/weixin_41973774/article/details/132511452
 
 
-yay -S package 時選擇不要匯入 gpg keys 可成功安裝，若選擇匯入則安裝失敗
-pacman-key --init && pacman-key --populate => work
-# pacman-key --refresh-keys
-# rm -R /etc/pacman.d/gnupg/
-# rm -R /root/.gnupg/  # only if the directory exists
-# gpg --keyserver keyserver.ubuntu.com --recv-key <key name>
-# gpg --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 --recv 27EDEAF22F3ABCEB50DB9A125CC908FDB71E12C2
-# gpg --receive-keys keyIDs
-
-kwallet
-sudo pacma -Syy && sudo pacman -S kwalletmanager
-System Settings -> Personalization -> KDE Wallet -> Wallet references > Enable the KDE wallet subsystem => cancel
-ArchLinx KDE 錢包禁用與解決 WIFI 密碼輸入 :: https://huangno1.github.io/archlinux_disable_kde_wallet_and_no_password_wifi/
 
 Linux下的OpenGL——Mesa和GLX简介 :: https://blog.csdn.net/z1026544682/article/details/117331160
   偵測系統內的顯示晶片硬體： lspci -k | grep -EA3 'VGA|3D|Display' ;; glxinfo | grep renderer ;; lscpu | egrep 'Model name|Socket|Thread|NUMA|CPU\(s\)'
