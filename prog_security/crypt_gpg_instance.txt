@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Knowhow about GnuPG
 # made by: Engells
-# date: Jan 23, 2024
+# date: Feb 17, 2024
 # content: SSH Authentication with GnuPG and advance instance of GnuPG
 
 
@@ -32,23 +32,23 @@ gpg-agent 與 ssh-agent 類似，為緩存 GPG 密鑰的守護程序，可以代
 
 自動啓用 gpg-agent，https://gist.github.com/l04m33/83e66d17ae7eb713d7070d350ae1ff10
 ****
-local GPG_AGENT_BIN=/usr/bin/gpg-agent                                                                                                                
-local GPG_AGENT_ENV="$HOME/.cache/gpg-agent.env"                                                                                                      
-local GPG_CONNECT_AGENT_ERR_MSG="gpg-connect-agent: no gpg-agent running in this session"                                                             
-                                                                                                                                                      
-function start_agent_withssh {                                                                                                                        
-    ${GPG_AGENT_BIN} --quiet --enable-ssh-support --daemon 2> /dev/null > "${GPG_AGENT_ENV}"                                                          
-    chmod 600 "${GPG_AGENT_ENV}"                                                                                                                      
-    . "${GPG_AGENT_ENV}" > /dev/null                                                                                                                  
-}                                                                                                                                                     
-                                                                                                                                                      
-if [[ "$(gpg-connect-agent --no-autostart --quiet /bye 2>&1)" == "$GPG_CONNECT_AGENT_ERR_MSG" ]]; then                                                
-    start_agent_withssh                                                                                                                               
-elif [[ -f "${GPG_AGENT_ENV}" ]]; then                                                                                                                
-    . "${GPG_AGENT_ENV}" > /dev/null                                                                                                                  
-fi                                                                                                                                                    
-                                                                                                                                                      
-GPG_TTY=$(tty)                                                                                                                                        
+local GPG_AGENT_BIN=/usr/bin/gpg-agent
+local GPG_AGENT_ENV="$HOME/.cache/gpg-agent.env"
+local GPG_CONNECT_AGENT_ERR_MSG="gpg-connect-agent: no gpg-agent running in this session"
+
+function start_agent_withssh {
+    ${GPG_AGENT_BIN} --quiet --enable-ssh-support --daemon 2> /dev/null > "${GPG_AGENT_ENV}"
+    chmod 600 "${GPG_AGENT_ENV}"
+    . "${GPG_AGENT_ENV}" > /dev/null
+}
+
+if [[ "$(gpg-connect-agent --no-autostart --quiet /bye 2>&1)" == "$GPG_CONNECT_AGENT_ERR_MSG" ]]; then
+    start_agent_withssh
+elif [[ -f "${GPG_AGENT_ENV}" ]]; then
+    . "${GPG_AGENT_ENV}" > /dev/null
+fi
+
+GPG_TTY=$(tty)
 export GPG_TTY
 
 
@@ -58,7 +58,7 @@ GPG（子）密鑰有不同的用途（usage/capability），包括認證（cert
 GPG 密鑰分為主密鑰(primary key)與子密鑰(subsidiary keys or subkey)，又各自為配對之公鑰(public keys)與私鑰(secret keys)，亦即
         primary         subsidiary 1    subsidiary 2
 public   pub             sub             sub
-secret   sec             ssb             sub
+secret   sec             ssb             ssb
 
 Ref:
   使用 GPG 密鑰進行 SSH 身份驗證 :: https://blog.theerrorlog.com/using-gpg-keys-for-ssh-authentication-zh.html
@@ -94,10 +94,10 @@ GPG 密鑰的「正確」用法
 
 分離主密鑰
 ----
-導出主密鑰及所有子密鑰的私鑰，將用作主密鑰的備份，實證會連同導出主密鑰及所有子密鑰的公鑰
+導出主密鑰及所有子密鑰的私鑰，將用作主密鑰的備份，實作會連同導出主密鑰及所有子密鑰的公鑰
   gpg --export-secret-keys 'email_address' > exported_keys      
 
-導出指定子密鑰之私鑰，但不導出主密鑰之私鑰，實證會連同導出主密鑰及所有子密鑰的公鑰
+導出指定子密鑰之私鑰，但不導出主密鑰之私鑰，實作會連同導出主密鑰及所有子密鑰的公鑰
   gpg --export-secret-subkeys 7401319A2D7E6E2B! 9ECB19C2E56AF088! EE4D9C4574DBA054! > exported_subkeys
 
 移除主密鑰之私鑰
@@ -159,4 +159,12 @@ Refs:
   Github Docs:: https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account
   如何使用 GPG (GnuPG) 對 Git Commit 與 Tag 進行簽章 :: https://blog.miniasp.com/post/2020/05/04/How-to-use-GPG-sign-git-commit-and-tag-object
 
+
+
+
+備份暨練習
+====================
+以 gpg --symmetric 或 gpg -c 指令產生下列檔案，可以 gpg --decrypt 或 gpg -d 解密後使用 gpg --import 指令匯入 $HOME/.gnupg/trustdb.gpg
+  crypt_gpg_instance_all_keys.gpg
+  crypt_gpg_instance_all_keys.gpg
 
