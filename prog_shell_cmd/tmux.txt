@@ -1,0 +1,132 @@
+# #!/bin/bash
+# vim:ts=2
+# program: Using to note knowhow about tmux
+# made by: Engells
+# date: Feb 22, 2024
+# content: Just for memo
+
+
+
+實例作業環境
+====================
+mkdir $HOME/.config/tmux
+ln -s /path/to/shell_tmux_conf   $HOME/.config/tmux/tmux.conf
+ln -s /path/to/shell_tmux_conf_* $HOME/.config/tmux/tmux_conf_*
+
+
+
+
+tmux 指令
+====================
+tmux or tmux new -s session_name           # 新增 session
+tmux attach or tmux attach -t session-id   # 連回 session
+tmux rename-session -t 0 session_name      # 將 session 0 命名為 session_name
+tmux detach                                # 暫時斷開 session
+tmux ls                                    # 列出所有 session
+tmux kill-session -t session-id            # 刪除 session
+tmux kill-server                           # 刪除 tmux server
+
+tmux split-window                          # 垂直分割畫面
+tmux split-window -h -l 40%                # 水平分割畫面，下方高度為終端機高度之 40%
+
+tmux new-window -t session_name:0 -n 'window_name0' '/usr/bin/irssi' # 在 session_name 建立編號第 0 號 window，並執行 /usr/bin/irssi 指令
+tmux select-window -t session_name:1       # 選擇 session_name 編號第 1 號 window
+tmux kill-window -t session_name:1         # 刪除 session_name 編號第 1 號 window
+tmux select-pane -t 1                      # 選擇編號第 1 號 panel
+
+
+
+
+安裝 tpm(Tmux Plugin Manager) 套件管理工具
+====================
+下載套件
+  git clone https://github.com/tmux-plugins/tpm $HOME/.local/share/tmux/plugins/tpm
+
+修改 $HOME/.config/tmux/tmux.conf 檔案，加入下列內容
+  # set plugin path
+  setenv -g TMUX_PLUGIN_MANAGER_PATH '$HOME/.local/share/tmux/plugins'
+  # List of plugins
+  set -g @plugin 'tmux-plugins/tpm'
+  set -g @plugin 'tmux-plugins/tmux-sensible'
+  ...
+  # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+  run -b '$HOME/.local/share/tmux/plugins/tpm/tpm'
+
+重新載入 tmux 組態檔
+  tmux source-file $HOME/.config/tmux/tmux.conf or $HOME/.tmux.conf
+
+參考資料
+  tpm — 套件管理工具 ，讓你的 tmux 更好用 :: https://medium.com/starbugs/tpm-...
+  nord 佈景安裝 set -g @plugin "arcticicestudio/nord-tmux"
+
+
+
+
+tmux 搭配 tmuxifier
+====================
+建立 tmuxifier
+  git clone https://github.com/jimeh/tmuxifier.git $HOME/.local/share/tmuxifier
+
+配置 tmuxifier
+  編輯 /path/to/{.bashrc or .zshrc or .profile} 加入設定，讓 tmuxifier 指令自動列入 $PATH 環境變數。
+    [[ -s "$HOME/.local/share/tmuxifier/init.sh" ]] && source "$HOME/.local/hare/tmuxifier/init.sh"
+    export EDITOR=vim
+
+建立 tmuxifier 的視窗分割設定
+  tmuxifier new-window window_layout_name
+    window_root "/path/to/somewhere"   指定某專案的路徑作為 Shell 的 Working Directory
+    new_window "Example"               設定標題
+    split_h 50                         建立水平分割 50% 寬度
+    split_v 50                         建立垂直分割 50% 高度
+    run_cmd "vim" 0                    分別在編號 0~2 三個 panel 跑指令
+    run_cmd "date" 1
+    run_cmd "htop" 2
+    select_pane 0                      將游標切換到 panel  0
+    send_keys "iI Love Vim"            對作業中 panel 模仿鍵盤操作，送出編輯或操作指令，此例是對 viim 傳送 iI Love Vim 鍵盤操作
+
+載入視窗分割設定
+  執行 tmux 指令後，再執行 tmuxifier load-window window_layout_name 指令
+  視窗分割檔案：${tmuxifier_dir}/layouts
+
+解決顏色錯誤
+  編輯 $HOME/.config/bash/.bashrc，加入下列內容：
+    export PATH="${tmuxifier_dir}/bin:$PATH"
+    export TMUXIFIER_TMUX_OPTS="-2" => 強制使用 256 色
+    eval "$(tmuxifier init -)"
+  編輯 $HOME/.config/tmux/tmux.conf
+    set -g default-terminal "screen-256color"
+
+參考資料
+  https://aranhase.github.io/2014/08/11/vim_tmux_tmuxifier_setup_with_konsole.html
+
+
+
+
+設定檔
+====================
+打開終端想自動運行 tmux 的 session "default"，編輯 $HOME/.config/bash/.bashrc
+  if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
+    tmux attach -t default &> /dev/null || tmux new -s default
+  fi
+
+在設定檔使用判斷式
+  run-shell "tmux setenv -g TMUX_VERSION $(tmux -V | cut -c 6-)"
+  if-shell -b '[[ "$TMUX_VERSION" < "2.6" ]]' \
+    "bind w choose-tree -u"
+
+  if '[ `echo "$(tmux -V | grep -o "[2-9]\.[0-9]\+") >= 2.8" | bc` -eq 1 ]' bind -N "Enable mouse mode" m
+
+參考資料
+  ubuntu 20.04 安裝 Tmux :: https://name.longwin.com.tw/twcn.php
+
+
+
+
+Tmux 簡介
+====================
+tmux = Terminal Multiplexer = Σ sessions = Σ windows = Σ panes => each pane run a terminal instance
+
+執行 tmux 指令會建立一個新的 tmux session，終端機畫面底部多了一條狀態列。狀態列是 tmux 很重要的部分。除了顯示當前的視窗（在左邊）它同時也會顯示一些關於系統的資訊像是時間（在右邊）。狀態列還可以依照需求客製，例如：顯示行事曆，電量等等。
+
+設定檔 $HOME/.tmux.conf 或 $HOME/.config/ymux/tmux.conf，參考設定檔：/usr/share/doc/tmux/examples/screen-keys.conf，/usr/share/doc/tmux/examples/vim-keys.conf
+

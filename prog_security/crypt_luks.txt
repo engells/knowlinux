@@ -1,0 +1,246 @@
+# vim:ts=4
+# program: Using to note the knowledge about LUKS （Linux Unified Key Setup）in Ubuntu
+# made by: Engells
+# date: Dec 6, 2023
+# content: Just for memo
+
+
+
+
+實例應用
+====================
+簡明步驟
+  應用一
+    以 dd 產生映像檔 => 以 cryptsetup 加密映像檔 => 以 losetup 掛載映像檔 => 以 cryptsetup 開啟加密映像檔 => 格式化加密分割區 => 掛載 mount 加密分割區
+  應用二
+    以 dd 產生映像檔 => 以 losetup 掛載映像檔 => 以 gdisk 分割 => 以 kpartx 映射分割區 => 以 cryptsetup 加密分割區 => 以 cryptsetup 開啟加密分割區 => 格式化加密分割區 => 掛載 mount 加密分割區
+  應用三
+    以 dd 產生映像檔 => 以 cryptsetup 加密映像檔 => 以 losetup 掛載加密映像檔 => 以 cryptsetup 開啟加密映像檔 => 以 gdisk 分割 => 以 kpartx 映射分割區 => 格式化加密分割區 => 掛載 mount 加密分割區
+
+詳細步驟
+  應用一
+    dd if=/dev/zero of=/...xxx.img bs=1M count=200 status=progress                # 以 dd 產生映像檔
+    cryptsetup luksFormat /...xxx.img /...key.enc --type luks2                    # 以 cryptsetup 加密映像檔
+    sudo losetup /dev/loop[x] /...xxx.img                                         # 以 losetup 掛載
+    sudo cryptsetup open -d /...key.enc /dev/loop[x] zzz                          # 以 cryptsetup 開啟加密映像檔
+    sudo mkfs.ext4 /dev/mapper/zzz                                                # 格式化加密分割區
+    sudo mount /dev/mapper/zzz /...mount_poimt                                    # 掛載 mount 加密分割區
+  應用二
+    dd if=/dev/zero of=/...xxx.img bs=1M count=200 status=progress                # 以 dd 產生映像檔
+    sudo losetup /dev/loop[x] /...xxx.img                                         # 以 losetup 掛載
+    sudo gdisk /dev/loop[x]                                                       # 以 gdisk 分割
+    sudo kpartx -av /dev/loop[x]                                                  # 以 kpartx 映射分割區
+    sudo cryptssetup luksFormat /dev/mapper/loop[x]p[y] /...key.enc --type luks2  # 以 cryptsetup 加密分割區
+    sudo cryptssetup open -d /...key.enc /dev/mapper/loop[x]p[y] zzz              # 以 cryptsetup 開啟加密分割區
+    sudo mkfs.ext4 /dev/mapper/zzz                                                # 格式化加密分割區
+    sudo mount /dev/mapper/zzz /...mount_poimt                                    # 掛載 mount 加密分割區
+  應用三
+    dd if=/dev/zero of=/...xxx.img bs=1M count=200 status=progress                # 以 dd 產生映像檔
+    sudo cryptsetup luksFormat /...xxx.img /...key.enc --type luks2               # 以 cryptsetup 加密映像檔
+    sudo losetup /dev/loop[x] /...xxx.img                                         # 以 losetup 掛載加密映像檔
+    sudo cryptssetup open -d /...key.enc /dev/loop[x] zzz                         # 以 cryptsetup 開啟加密映像檔
+    sudo gdisk /dev/mapper/zzz                                                    # 以 gdisk 分割
+    sudo kpartx -av /dev/mapper/zzz                                               # 以 kpartx 映射分割區
+    sudo mkfs.ext4 /dev/mapper/zzz[y]                                             # 格式化加密分割區
+    sudo mount /dev/mapper/zzz[y] /...mount_point                                 # 掛載 mount 加密分割區
+
+
+
+
+相關指令
+====================
+cryptsetup luksFormat /dev/sd[x][y] or cryptsetup luksFormat /dev/sd[x][y] /path/to/key_file
+cryptsetup --type=luks2 --verbose --verify-passphrase -c aes-cbc-plain luksFormat /dev/sd[x][y]
+  # 選項 --type=luks2，以 luks2 方式加密
+  # 將 /dev/sd[x][y] 裝置予以加密，出现要输入 yes 的地方要大寫输入，後續過程中會要求輸入加密之密碼
+  # 可對 image file 予以加密
+
+cryptsetup open --type luks /dev/sd[x][y] crypt_name or cryptsetup luksOpen /dev/sd[x][y] crypt_name
+cryptsetup open --type luks -d /path/to/key_file /dev/sd[x][y] crypt_name or cryptsetup luksOpen -d /path/to/key_file /dev/sd[x][y] crypt_name
+  # 将分割區射成 crypt_name 裝置，位於 /dev/mapper 目錄下，需以 root 權限操作
+  # 必要時需建立 filesystem，再掛載加密分割區
+  # 實做可直接 cryptsetup open /path/to/image_file，效果等同 losetup -f /path/to/image_file && cryptsetup open /dev/loop[x]
+
+cryptsetup close crypt_name or cryptsetup luksClose crypt_name
+  # 卸除加密分割區，注意要先自掛載點卸載
+
+cryptsetup luksDump /dev/sd[x][y]
+  # 查詢密碼設置情形
+
+echo "passphrase" > /root/crypasswd
+  # 在 /root/crypasswd 儲存加密密碼，此步驟不是必要，若執行需在掛載加密分割區之前作業
+
+dd if=/dev/urandom of=/path/to/key_file bs=1 count=4096 status=progress
+  # 產生檔案，作為加密的密碼。Linux 隨機產生文字檔或二進制檔 :: https://shengyu7697.github.io/linux-generate-random-files/
+  # dd if=/dev/urandom of=/root/enc.key bs=1k count=4
+  # base64 /dev/urandom | head -c "$((1024*1024*4))" > 4m.txt
+  # mx=320 ; my=240 ; head -c "$((3*mx*my))" /dev/urandom | convert -depth 8 -size "${mx}x${my}" RGB:- random.png
+
+cryptsetup luksAddKey /dev/sd[x][y] /path/to/key_file
+  # 增加加密密碼，cryptsetup luksAddKey /dev/sd[x][y] /root/crypasswd
+  # 直接在裝置增加密碼，不透過密碼檔 cryptsetup luksAddKey -d /...key.enc /...xxx.img
+
+cryptsetup luksAddKey /dev/sd[x][y] /path/to/key_file
+  # 增加加密的密碼(檔案) cryptsetup luksAddKey /dev/sd[x][y] /root/enc.key
+  # 開機掛載加密分割區
+  # vim /etc/crypttab  => crypt_name        /dev/sd[x][y]       /path/to/keyfile   luks
+  # vim /etc/fstab     => /dev/mapper/name  /luks               ext4               _netdev  0  0
+
+cryptsetup luksRemoveKey /dev/sd[x][y]
+  # 移除加密的密碼(字串)
+
+cryptsetup luksRemoveKey -d /path/to/key_file /dev/sd[x][y]
+  # 移除加密的密碼(檔案)。cryptsetup luksRemoveKey -d /root/enc.key /dev/sdd
+
+cryptsetup OPTIONS action action-specific-options device dmname
+  # 語法結構
+
+
+
+
+備份標頭
+====================
+將 LUKS 加密磁碟的標頭資訊備份至檔案
+  cryptsetup luksHeaderBackup /dev/sd[x][y] --header-backup-file back_file_name.img
+
+測試標頭資訊是否可以正常使用(應用場景為加密磁碟的 header 損毀時，以備份之 header 救援)
+  cryptsetup -v --header back_file_name.img open --type luks2 /dev/sd[x][y] crypt_name
+  mount /dev/mapper/myEncDisk /mnt/myEncDisk
+  umount /mnt/myEncDisk
+  cryptsetup close crypt_name
+
+復原 LUKS 加密磁碟標頭
+  cryptsetup luksHeaderRestore /dev/sd[x][y] --header-backup-file back_file_name.img
+
+
+
+
+建立加密設備
+====================
+安裝模組
+  sudo apt-get install cryptsetup
+    # 安裝後會出現 /dev/mapper/control 邏輯裝置
+
+初次建立加密設備，以 AES 加密方式釋例(若採用 luks 加密，本步驟可省略？)
+  啟用 AES 核心模組(僅適用該模組未啟用的情形)
+    sudo modprobe aes
+      # 以 cat /proc/crypto 或 lsmod | grep 'aes' 檢驗是否成功載入
+
+啟用 dm-crypt 核心模組(若採用 luks 加密，本步驟需先執行)
+  sudo modprobe dm-crypt
+    # 加載後會用 device-mapper 自動注冊。再次檢驗的話，device-mapper 已能識別 dm-crypt，並且把 crypt 添加為可用的對象
+    # 以 sudo dmsetup targets 指令檢驗，出現下列訊息
+    #  crypt            v1.11.0
+    #  striped          v1.4.0
+    #  linear           v1.1.0
+    #  error            v1.0.1
+    # 亦可 lsmod | grep 'dm_crypt' 指令檢驗
+
+建立加密用硬碟映像檔
+  dd if=/dev/zero of=/path/to/image_file.img bs=1M count=100 status=progress
+
+將映像檔格式化為 luks 格式(選用步驟)
+  sudo cryptsetup --type=luks2 luksFormat /path/to/image_file.img or sudo cryptsetup --type=luks2 luksFormat /path/to/image_file.img /path/to/key_fi;e
+    # Enter LUKS passphrase: 
+    # Verify passphrase:
+
+建立 loop 裝置與映像檔的映射
+  sudo losetup /dev/loop[x] /path/to/file_name.img
+
+將 loop 裝置整體加密
+  sudo cryptsetup luksOpen /dev/loop[x] crypt_name 或
+  sudo cryptsetup -y create crypt_name /dev/loop[x]
+    # 若先前有用 cryptsetup luksFormat 加密，會出現 Enter passphrase for /dev/loop[x]，否則會要求輸入加密密碼如下：
+    # Enter any passphrase：輸入加密密碼
+    # 可以 sudo dmsetup ls 指令檢驗，若成功加密會出現類似訊息：crypt_name  (221, 0)
+    # 或以 cryptsetup -v status crypt_name 檢驗
+    # 此步驟可改為先在 loop 裝置建立分割表，再對各個分割磁區加密，不同分割磁區可採不同加密方式。
+
+以隨機數字先填充 loop 裝置
+  sudo dd if=/dev/urandom of=/dev/mapper/crypt_name
+
+格式化 loop 裝置(承接 loop 裝置整體加密模式)
+  不建立分割表方式
+    sudo mkfs.ext4 /dev/mapper/crypt_name
+  建立分割表方式
+    sudo gdisk /dev/mapper/crypt_name
+      # 按標準分割實體硬碟方式分割映像檔對應的 loop 裝置
+    suod kpartx -av /dev/mapper/crypt_name
+      # 此步驟將產生 /dev/mapper/crypt_name[1,2...] 等裝置
+    sudo mkfs.ext4 /dev/mapper/crypt_name[1]
+
+掛載 loop 裝置
+  mkdir /path/to/mount && sudo mount /dev/mapper/crypt_name /path/to/mount
+    # 以 df -h /path/to/mount 檢視 loop 裝置
+
+卸載 loop 裝置
+  sudo umount /path/to/mount
+
+移除 loop 裝置之加密映射
+  sudo cryptsetup luksClose crypt_name 或 sudo cryptsetup remove crypt_name
+
+移除 loop 裝置映射
+  sudo losetup -d /dev/loop[x]
+
+重新掛載
+  sudo losetup /dev/loop[x] /path/to/file_name.img
+  sudo cryptsetup -y create crypt_name /dev/loop[x]
+  sudo mount /dev/mapper/crypt_name /path/to/mount
+
+變更加密密碼
+  sudo cryptsetup luksDump /dev/loop[x]
+  sudo cryptsetup luksAddKey /dev/loop[x]
+    # 輸入新的加密密碼，並重複輸入作為確認
+  sudo cryptsetup luksRemoveKey /dev/loop[x]
+    # 移除舊的加密密碼
+
+
+
+
+開機自動掛載加密分割區
+==============================
+編輯 /etc/crypttab 加入
+  crypt_name  /dev/sd[x][y]  /path/to/file  luks
+  swap    /dev/sd[x][y]  /dev/urandom  swap,cipher=aes-cbc-essiv:sha256
+    # 第一攔為加密名稱、第二攔為加密裝置、第三攔為存放加密密碼的檔案，第四攔為掛載選項。
+    # 若第三攔為「none」或留空，也就是 null，則開機過程中會要求輸入加密密碼
+    # 第二項為加密 SWAP 分割區之用，加密方式為 AES SHA 256 位元加密法。此法的金鑰在開機時產生，關機時失效。可降低電腦被竊損失
+    # 此外，加為 SWAP 的分割區若為 LUKS 分割區，則不能用隨機金鑰加密及解密。
+
+將密碼存入 /path/to/file
+  echo -n "$passphrase" > /root/key
+
+修改 /root/key 權限
+  chmod 700 /root/key
+
+增加加密密碼
+  cryptsetup luksAddKey /dev/sd[x][y] /root/key
+
+/etc/fstab
+  /dev/mapper/crypt_name  /path/to/mount  ext4  defaults  0  0
+  /dev/mapper/swap    none      swap  defaults  0  0
+    # 若採 UUID 形式的 fstab，可用 blkid /dev/mapper/crypt_name 查詢加密分割區的 UUID
+
+也可建立加密的 tmp 檔案系統，會採用 ext2 格式，詳細設置方式待查。
+
+
+
+
+dm-crypt 概說
+====================
+dm-crypt/LUKS 是 kernel 內建支援的加密技術，可對實體或邏輯的 block device 予以加密。與其它建立加密文件系統的方法相比，dm-crypt 技術速度更快，易用性更強。除此之外，適用面也很廣，能夠運行在各種塊設備上，包括 RAID和 LVM 在內。
+
+dm-crypt/LUKS 技術架構在 kernel 2.6 以上版本的 device-mapper 機制之上。device-mapper 機制是在實際的塊設備之上添加虛擬層，以方便開發人員實現鏡像、快照、級聯和加密等處理。此外，dm-crypt 兼容 cryptloop 系統。
+
+對於隨身碟等移動式裝置，dm-crypt/LUKS 可以提供良好的防護，但需注意的是，dm-crypt/LUKS 對同一個裝置只支援 8 組加密密碼，會限制使用人數。且 dm-crypt/LUKS 技術不適用在目錄或檔案加密。若使用 LUKS2 加密，則可以設置 32 組密碼（key-slot）
+
+推測 ecryptfs，dm-crypt/LUKS 也會以「加密密碼」來對「加密金鑰」作加密，不同的是 dm-crypt/LUKS 將加密後的「加密金鑰」嵌入分割區。如此，就可將裝置攜帶到他處使用。其解密過程為：加密密碼 → 加密金鑰 → 檔案系統(FS)
+
+dm-crypt 在 Ubuntu 18.04 已移出套件庫，但 LUKS 技術仍保留。
+
+Refs:
+  Linux 以 Cryptsetup、LUKS 加密 USB 隨身碟教學與範例 :: https://officeguide.cc/linux-cryptsetup-luks-usb-stick-tutorial-examples/
+  Linux 以 Cryptsetup 與 LUKS 加密磁碟教學與範例 :: https://officeguide.cc/linux-hard-disk-encryption-with-luks-cryptsetup-command-tutorial-examples/
+  ArchWiki: dm-crypt/Device encryption :: https://wiki.archlinux.org/title/dm-crypt/Device_encryption
+
+

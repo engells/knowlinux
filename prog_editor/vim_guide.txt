@@ -1,0 +1,130 @@
+# #!/bin/bash
+# vim:ts=2
+# program: Using to note the knowledge about vim
+# made by: Engells
+# date: Feb 23, 2024
+# content: Add a section of Working Environment
+
+
+
+Working Environment
+====================
+建立 $HOME/.config/vim 作為組態目錄
+  mkdir -p $HOME/.config/vim/{confs,colors,sessions,pack/plugins/start,pack/plugins/opt}
+    # confs    : 組態檔目錄
+    # colors   : 佈景主題目錄
+    # sessions : 工作狀態目錄
+    # pack     : 預設 plugin 目錄
+  ln -s $HOME/.config/vim $HOME/.vim
+
+組態結構
+  表層結構：$HOME/.vim/vimrc + $HOME/.vim/confs/{exrc_shared,exrc_vim_kmap}
+  底質結構：$HOME/.vim/ -> $HOME/.config/vim/... -> $HOME/.config/zz_dot_files/...
+
+
+
+
+Session
+====================
+:mksession ~/.vim/sessions/foo.vim
+:source ~/.vim/sessions/foo.vim or vim -S ~/.vim/sessions/foo.vim
+:help viminfo
+
+
+
+
+Themes
+====================
+在 vimrc 檔案中寫入下列指令
+  colorscheme theme_name
+
+在 Vim 裡下指令：:so % 或 :so ~/.vimrc 或 :so /path/to/佈景設定檔，即可更新佈景
+
+佈景來源
+  Ubuntu Bionic   /usr/share/vim/vim80/color
+  Distinguished   https://github.com/Lokaltog/vim-distinguished
+  Jellybeans      https://github.com/nanotech/jellybeans.vim
+  Vividchalk      https://github.com/tpope/vim-vividchalk
+  Candy           http://www.vim.org/scripts/script.php?script_id=282
+  Solarized       https://github.com/altercation/vim-colors-solarized
+  material-theme  https://raw.githubusercontent.com/jdkanani/vim-material-theme/master/colors/material-theme.vim
+
+
+URL
+  Vim 的顏色設定：http://aknow-work.blogspot.tw/2013/05/vim-color.html
+  Path: /usr/share/vim/vimxx/colors/, ~/vim/colors/
+
+
+
+
+執行模式
+====================
+普通模式 (Normal-mode)
+  一般，啟動編輯器之後就處於普通模式
+
+可視模式 (Visual-mode)
+  與普通模式相似，只是游標移動會擴展高亮的區域。而其它非移動命令會作用于高亮的區域。
+  在普通模式下，可以通過 v 或 V 或 CTRL-V 進入。
+  如果沒有關閉 ‘showmode’ 選項，視窗底部會出現「—VISUAL—」 字樣。
+
+選擇模式 (Select-mode)
+  與 Windows 下其它編輯器的選擇模式很像。選中字元後，輸入一個可顯示字元，會刪掉所有先前選中的所有字元，並進入插入模式。
+  在普通模式下按 gh 進入，或在 gvim 中用滑鼠拖選區域。
+  視窗底部會出現 「—SELECT—」 字樣。
+
+插入模式 (Insert-mode)
+  輸入的內容會插入到緩衝區。
+  普通模式下按 i 或 a 進入插入模式。
+  視窗底部會出現 「—INSERT—」 字樣。
+
+命令列模式 (Cmdline-mode)
+  命令列模式可以在視窗底部輸入一行命令。可以用 <:> 執行命令，用 <?> 和 </> 來查找。<.>重複上一個命令。
+
+Ex 模式 (Ex-mode)
+  與命令列模式類似，只是執行完一條命令後，會繼續停留在 Ex 模式。在普通模式下，按 Q 進入 Ex 模式。
+
+
+
+
+概述
+====================
+組態
+----------
+變數
+  $VIM="/usr/share/vim/
+  $VIMRUNTIME="/usr/share/vim/vim73"
+
+預設的應用程式層級的設定檔
+  $VIM/vimrc    --> /etc/vim/vimrc
+  $VIM/gvimrc   --> /etc/vim/gvimrc
+
+使用者層級的設定檔
+  $HOME/.vimrc
+  $HOME/.gvimrc
+
+將設定檔切分成數個檔案
+  利用 source 指令可讓 vim 載入外部設定檔
+    for dotFile in split(glob('/path/to/*.vim'), '\n')
+      exe 'source' dotFile
+    endfor
+  vim 內部指令 :echo split(glob('/path/to/*.vim'), '\n')，可查詢外部設定檔完整路徑暨檔名
+
+
+預設目錄結構
+  1. 指令 :help vimfiles，可以查詢 vim 預設目錄結
+  2. $HOME/.vim/autoload/，執行 vim 時，自動執行該目錄底下的 xxxx.vim 檔案
+  3. $HOME/.vim/ftplugin/，編輯不同類型(html、css、python等)檔案時，執行該目錄底下對應的 xxxx.vim 檔案
+  4. $HOME/.vim/plugin/，執行 vim 時，該目錄底下的 xxxx.vim 檔案作為 .vimrc 的補充檔案執行
+  5. $HOME/.vim/colors，該目錄為 vim 的佈景主題檔案所在
+
+查詢預載配置 :scriptnames     => 顯示已載入配置檔，包括 *rc *vim
+
+查詢作業路徑 :set runtimepath => 顯示路徑內容, vim 自各路徑執行 *vim 檔案
+
+
+Refs
+  提高 Vim 使用效率的 12 個技巧 :: http://blog.jobbole.com/87481/
+  vim 配置文件結構 :: https://www.xiebruce.top/1840.html
+  vim 筆記 :: https://www.quchao.me/3789/
+  Update your vimrc to Vim9 script :: https://favadi.com/update-your-vimrc-to-vim9-script/
+
