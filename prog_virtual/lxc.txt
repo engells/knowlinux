@@ -55,7 +55,7 @@ Package install
   sudo apt update && sudo apt install google-chrome-stable
   sudo apt --fix-broken install libnotify4 libxss1 libsecret-1-0 libsecret-common
   wget https://github.com/agalwood/Motrix/releases/download/v1.8.19/Motrix_1.8.19_amd64.deb && sudo dpkg -i Motrix_1.8.19_amd64.deb
-  sudo apt update && sudo apt install -y openjdk-18-jre
+  sudo apt update && sudo apt install openjdk-18-jre --no-install-suggests --no-install-recommends
   chmod +x JDownloader2Setup_unix_nojre.sh ; ./JDownloader2Setup_unix_nojre.sh
   # https://gist.github.com/leosuncin/50367b3c905fe8699b13bd85ad26071b
   # https://linuxconfig.org/ubuntu-debian-jdownloader-installation-howto
