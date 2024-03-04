@@ -2,7 +2,7 @@
 # vim:ts=2
 # program: knowhow about DOSBox
 # made by: Engells
-# date: Feb 4, 2022
+# date: Mar 3, 2024
 # content:
 
 
@@ -75,8 +75,8 @@ xms on/off ; ems on/off
 
 設定檔
 ==============================
-Active dosbox, then run commands: config -writeconf .dosboxrc
-We can find the file as ~/.dosbox/dosbox-x.xx.conf or ~/dosboxrc
+Active dosbox, then run commands: config -writeconf .dosboxrc, We can find the file as ~/.dosbox/dosbox-x.xx.conf or ~/dosboxrc
+Or run cmd: dosbox -conf /path/to/****.conf
 [Mixer]
 	prebuffer=50
 [autoexec]
