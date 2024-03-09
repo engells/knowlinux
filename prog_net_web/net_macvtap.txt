@@ -1,0 +1,72 @@
+# #!/bin/bash
+# vim:ts=4
+# program: Knowhow about virtual network
+# made by: Engells
+# date: Mar 7, 2024
+# content:
+
+
+
+TUN 設備
+----------
+TUN 設備是一種虛擬網絡設備，通過此設備，程序可以模擬網絡行爲。
+
+先來看看物理設備是如何工作的：https://pic1.xuehuaimg.com/proxy/csdn/https://img-blog.csdn.net/20151105104015263
+　所有物理網卡收到的包會交給內核的 Network Stack 處理，然後通過 Socket API 通知給用戶程序。
+　eth0(NIC Device) <==> Network Stack(Kernel Space) <==> Socket API(User Space)
+
+下面看看 TUN 的工作方式：https://pic1.xuehuaimg.com/proxy/csdn/https://img-blog.csdn.net/20151105104100106
+　普通的網卡通過網線收發數據包，但是 TUN 設備通過一個文件收發數據包。所有對這個文件的寫操作會通過 TUN 設備轉換成一個數據包送給內核；當內核發送一個包給 TUN 設備時，通過讀這個文件可以拿到包的內容。
+　APP(User Space) <==> /dev/tnuX <==> tunX(Kernel Space) <==> Network Stack(Kernel Space) <==> Socket API(User Space)
+
+如果使用 TUN 設備搭建一個基於 UDP 的 VPN，那麼整個處理過程就是這樣：.../https://img-blog.csdn.net/20151105104258999
+　eth0(NIC Device) <==> Network Stack(Kernel Space) <==> Socket API(User Space) <==>
+　APP(User Space) <==> /dev/tnuX <==> tunX(Kernel Space) <==> Network Stack(Kernel Space) <==> Socket API(User Space)
+　數據包會通過內核網絡棧兩次。但是經過 APP 的處理後，數據包可能已經加密，並且原有的 ip 頭被封裝在 udp 內部，所以第二次通過網絡棧內核看到的是截然不同的網絡包。
+
+
+
+
+TAP 設備
+----------
+TAP 設備與 TUN 設備工作方式完全相同，區別在於：
+　TUN 設備的 /dev/tunX 文件收發的是 IP 層數據包，只能工作在 IP 層，無法與物理網卡做 bridge，但是可以通過三層交換（如 ip_forward）與物理網卡連通。
+　TAP 設備的 /dev/tapX 文件收發的是 MAC 層數據包，擁有 MAC 層功能，可以與物理網卡做 bridge，支持 MAC 層廣播
+　eth0(NIC Device) <==> Network Stack(Kernel Space) <==> Socket API(User Space) <==>
+　APP(User Space) <==> /dev/tapX <==> tapX(Kernel Space) <==> Network Stack(Kernel Space) <==> Socket API(User Space)
+
+
+
+
+MACVLAN
+----------
+有時需要一塊物理網卡綁定多個 IP 以及多個 MAC 地址，綁定多個 IP 很容易，但這些 IP 會共享物理網卡的 MAC 地址，可能無法滿足需求，所以有了 MACVLAN 設備，其工作方式如下：https://pic1.xuehuaimg.com/proxy/csdn/https://img-blog.csdn.net/20151105104404253
+　eth0(NIC Device) <==> macvlan0 <==> Network Stack(Kernel Space) <==> Socket API(User Space)
+　MACVLAN 會根據收到包的目的 MAC 地址判斷這個包需要交給哪個虛擬網卡。
+
+單獨使用 MACVLAN 好像毫無意義，但是配合之前介紹的 network namespace 使用，可以構建這樣的網絡：.../https://img-blog.csdn.net/20151105104451010
+　eth0(NIC Device) <==> Network Stack(Kernel Space) <==> Socket API(Host namepace) ＋
+　eth0(NIC Device) <==> macvlan0 <==> Network Stack(Kernel Space) <==> Socket API(VM namepace)
+　由於 macvlan 與 eth0 處於不同的 namespace，擁有不同的 network stack，這樣使用可以不需要建立 bridge 在 virtual namespace 裏面使用網絡。
+
+
+
+
+MACVTAP
+----------
+MACVTAP 是對 MACVLAN的改進，把 MACVLAN 與 TAP 設備的特點綜合一下，使用 MACVLAN 的方式收發數據包，但收到的數據包不交給 network stack 處理，而是生成 /dev/tapX 文件，並由該文件處理數據包：https://pic1.xuehuaimg.com/proxy/csdn/https://img-blog.csdn.net/20151105104545824
+　eth0(NIC Device) <==> Network Stack(Kernel Space) <==> Socket API(Host namepace) ＋
+　eth0(NIC Device) <==> macvlan0 <==> /dev/tapX <==> APP(VM namepace)
+
+由於 MACVLAN 是工作在 MAC 層的，所以 MACVTAP 也只能工作在 MAC 層，不會有 MACVTUN 這樣的設備。
+
+
+
+
+Refs
+----------
+網絡虛擬化技術（一）: Linux網絡虛擬化 :: https://www.twblogs.net/a/5b7c19e42b71770a43d9545e
+網絡虛擬化技術（二）: TUN/TAP MACVLAN MACVTAP :: https://www.twblogs.net/a/5b7c19e32b71770a43d9545c
+虛擬機網路 macvlan 與 macvtap :: https://blog.csdn.net/m0_52857523/article/details/119902971
+macvtap 使用教程 :: https://juejin.cn/post/6844903903457181704
+
