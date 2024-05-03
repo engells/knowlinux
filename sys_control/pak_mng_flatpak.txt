@@ -11,18 +11,18 @@ Commands
 ====================
 flatpak search           [應用程式名稱]                搜尋Flathub的應用程式，支援模糊搜尋
 flatpak install          [應用程式名稱]                安裝應用程式
-flatpak install          [.flatpakref]                 從 flatpakref 檔案安裝應用程式
+flatpak install          [.flatpakref]               從 flatpakref 檔案安裝應用程式
 flatpak run              [應用程式名稱]                執行應用程式
 flatpak uninstall        [應用程式名稱]                移除應用程式
 flatpak uninstall        [應用程式名稱] --delete-data  移除應用程式並刪除資料
-flatpak uninstall --unused                             移除用不到的依賴套件
-flatpak list                                           列出安裝的軟體
-flatpak override                                       覆寫Flatpak應用程式設定，可以用來設定環境變數
+flatpak uninstall --unused                           移除用不到的依賴套件
+flatpak list                                         列出安裝的軟體
+flatpak override                                     覆寫Flatpak應用程式設定，可以用來設定環境變數
 flatpak permission-reset [應用程式名稱]                重設應用程式權限
-flatpak update                                         更新全部應用程式
-flatpak remotes                                        列出遠端軟體庫
+flatpak update                                       更新全部應用程式
+flatpak remotes                                      列出遠端軟體庫
 flatpak mask             [應用程式名稱]                鎖定應用程式版本，防止應用程式自動更新
-flatpak ps                                             列出所有Flatpak行程
+flatpak ps                                           列出所有Flatpak行程
 flatpak kill             [應用程式名稱]                終止應用程式執行
 
 

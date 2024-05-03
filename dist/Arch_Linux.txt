@@ -2,8 +2,8 @@
 # vim:ts=4
 # program: Knowhow about Arch Linux
 # made by: Engells
-# date: Feb 15, 2024
-# content: memo locations of themes and icons of plasma
+# date: Mar 24, 2024
+# content: Add pacman query expressions
 
 
 
@@ -26,7 +26,10 @@ pacman
 
 查詢套件， flag -Q: query
   pacman -Ss <search_pattern> # -s: search
-  pacman -Q # 查詢已安裝的套件
+  pacman -Qq   # -Q query 查詢本機已安裝的套件，-q --quiet 省略版本號
+  pacman -Qqe  # -e --explicit explicitly
+  pacman -Qqd  # -d --deps depends，查詢因相依性而自動安裝的套件
+  pacman -Qqdt # -t --unrequired，不需要的套件
   pacman -Qs string # 用關鍵字查詢
   pacman -Q | grep <package> # 也可以配合 grep 使用
   pacman -Qi <package> # 查詢套件詳細資訊，-i: info
@@ -321,6 +324,11 @@ https://github.com/vinceliuice/grub2-themes ; https://github.com/Kangie/sddm-sug
 
 參數
   $XDG_RUNTIME_DIR ; $DISPLAY ; $DBUS_SESSION_BUS_ADDRESS env | grep DBUS ; $XDG_SESSION_TYPE
+  $XDG_CONFIG_HOME　設定檔放置的目錄，應為~/.config
+  $XDG_CACHE_HOME 　快取存放路徑，應為~/.cache
+  $XDG_DATA_HOME　  使用者資料存放路徑，跟設定檔不同，使用者資料應該是偏資料庫那一類的。路徑應為~/.local/share
+  $XDG_STATE_HOME
+
 
 debug sound
   systemctl status --user wireplumber pipewire{,-pulse}
