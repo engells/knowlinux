@@ -272,15 +272,14 @@ libvirt 網路機制
 直接以硬碟分割區開機
 ====================
 系統裝有 QEMU 模擬器，可以不必重開機，直接這樣測試：
-	qemu -usb /dev/sdz
+  qemu -usb /dev/sdz
 
 假設 grub 的相關檔案已先裝入 /dev/sdz4 且 /dev/sdz4 已掛載在 /mnt/sdz4 底下
-	gunzip bootcd-i486-7.0.iso.gz
-	mount -o loop bootcd-i486-7.0.iso /mnt/ttylinux
-	cd /mnt/ttylinux
-	mkdir /mnt/sdz4/boot/ttylinux
-	cp -a . /mnt/sdz4/boot/ttylinux    #不要用 cp -a /mnt/ttylinux/* /mnt/sdz4 之類的指令，這樣會漏掉隱藏檔。
-	cd -
-	umount /mnt/ttylinux
-
+  gunzip bootcd-i486-7.0.iso.gz
+  mount -o loop bootcd-i486-7.0.iso /mnt/ttylinux
+  cd /mnt/ttylinux
+  mkdir /mnt/sdz4/boot/ttylinux
+  cp -a . /mnt/sdz4/boot/ttylinux    #不要用 cp -a /mnt/ttylinux/* /mnt/sdz4 之類的指令，這樣會漏掉隱藏檔。
+  cd -
+  umount /mnt/ttylinux
 

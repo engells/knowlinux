@@ -2,7 +2,7 @@
 # vim:ts=2
 # program: knowhow about libvirt
 # made by: Engells
-# date: Jul 15, 2022
+# date: May 20, 2024
 # content:
 
 
@@ -14,6 +14,35 @@ qemu-img convert [-c] [-e] [-f format] filename [-O output_format] output_filena
   # -c: ​壓​縮​
 qemu-img info [-f format] filename
 qemu-img create [-6] [-e] [-b base_image] [-f format] filename [size]
+
+
+
+
+virsh net-xxx / KVM 網路
+====================
+sudo virsh net-info --network default
+  # 查詢 default 橋接器
+
+sudo virsh net-edit --network default
+  # 編輯 default 橋接器
+
+sudo virsh net-destroy --network default
+  # 停用 default 橋接器
+
+sudo virsh net-start --network default
+  # 啟用 default 橋接器
+
+sudo virsh net-define new-nat.xml
+sudo virsh net-list --all
+sudo virsh net-autostart --network new-nat
+sudo virsh net-start --network new-nat
+
+sudo virsh attach-device --domain [VM_Name] --file new-nic.xml [ --persistent / --config / --live ]
+sudo virsh attach-device --domain [VM_Name] --file nic-internal.xml [--persistent / --config / --live ]
+
+
+url
+  KVM 網路設定教學 :: https://notes.wadeism.net/post/kvm-network-setup/
 
 
 
