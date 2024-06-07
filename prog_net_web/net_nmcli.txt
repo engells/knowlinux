@@ -1,0 +1,44 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about Network Manager
+# made by: Engells
+# date: Jun 2, 2024
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+Commands
+====================
+nmcli dev
+ # 查詢所有網路裝置
+nmcli con
+ # 查詢所有連線設定
+nmcli -f name,uuid,type,device,state con
+ # 查詢所有連線設定，顯示指定欄位
+
+
+
+
+建立 bridge 連線
+====================
+nmcli con mod Wired_connection_1 con-name cnn_wire0
+ # 將連線 Wired connection 1 更名為 eth0-con
+nmcli con add con-name cnn_br0 type bridge ifname lxcbr0 stp no
+ # 建立 bridge 裝置稱名為 lxcbr0，對應連線為 cnn_br0
+nmcli con add con-name cnn_br0_enp[x]s[y] type bridge-slave ifname enp[x]s[y] master lxcbr0
+ # 將 enp[x]s[y] 綁定成為 lxcbr0 的 slave，對應之新連線名稱為 cnn_br0_enp[x]s[y]
+nmcli con down cnn_wire0 ; nmcli con up cnn_br0
+ # 虛擬機提升至跟 host 相同的網段，採用 cnn_br0 連線
+nmcli con down cnn_br0 ; nmcli con up cnn_wire0
+ # 採用 cnn_wire0 直接連網
+
+
+
+
+Brief
+====================
+連線設定組態位置: /etc/NetworkManager/system-connection
+
+Refs
+  建立 bridge 連線， nmcli 版 :: https://newtoypia.blogspot.com/2024/05/bridge-nmcli.html
+

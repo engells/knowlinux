@@ -1,0 +1,34 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about nmap
+# made by: Engells
+# date: Jun 2, 2024
+# content: Add brief section
+
+
+
+
+How to Find What Devices are Connected to Network
+====================
+Step 1: Install nmap
+  sudo apt-get install nmap
+
+Step 2: Get IP range of the network
+  ip address show or ip addr
+
+Step 3: Scan to find devices connected to your network
+  sudo nmap -sn xxx.xxx.xxx.0/24
+
+
+
+
+Brief
+====================
+nmap 是一種免費且開源的系統及網路掃描工具，他除了在滲透測試裡面擔任網路網路偵蒐的任務，也常被網路管理人員作為 network inventory, managing service upgrade schedules的工具。
+
+
+
+Ref URL
+ Nmap 入門教學 :: https://medium.com/%E7%92%BF%E7%9A%84%E7%AD%86%E8%A8%98%E6%9C%AC/nmap-%E5%85%A5%E9%96%80%E6%95%99%E5%AD%B8-36ed094d6ef8
+ How to Find What Devices are Connected to Network in Linux :: https://itsfoss.com/how-to-find-what-devices-are-connected-to-network-in-ubuntu/
+
