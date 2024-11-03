@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: knowhow about QEMU Passthrough
 # made by: Engells
-# date: Jan 9, 2024
+# date: Nov 2, 2024
 # content: 
 
 
@@ -40,7 +40,7 @@ PCI VGA/GPU passthrough via OVMF
   edit /etc/default/grub
     GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on iommu=pt"
   sudo update-grub && sudo reboot
-  lspci -nnk or lspci -nn | grep -i nvidia or dmesg | grep -e DMAR -e IOMMU
+  lspci -nnk or lspci -nn | grep -i nvidia or dmesg | grep -e DMAR -e IOMMU or lspci -v | grep -A1 -e VGA -e 3D
   edit /etc/default/grub
     GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on iommu=pt video=efifb:off rd.driver.pre=vfio-pci vfio-pci.ids=xxxx:xxxx,xxxx:xxxx pcie_acs_override=downstream"
     # 部份文件編輯 /etc/modprobe.d/vfio.conf，寫入 options vfio-pci ids=xxxx:xxxx,xxxx:xxxx，實作在 Linux Mint 21.2 Kernel 6.5 環境下，前述作法有效
