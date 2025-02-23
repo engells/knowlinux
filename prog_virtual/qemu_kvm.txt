@@ -2,8 +2,8 @@
 # vim:ts=4
 # program: knowhow about QEMU
 # made by: Engells
-# date: Feb 12, 2024
-# content: connection type: QEMU/KVM or QEMU/KVM user session
+# date: Feb 17, 2025
+# content: virt-sparsify command in extra/guestfs-tools
 
 
 
@@ -79,7 +79,7 @@ Linux guest
     qemu-img convert -O qcow2 original_image.qcow2_backup original_image.qcow2
 
   alternative method in host
-    virt-sparsify --in-place disk.qcow2  # this method needn't run commands in guest
+    virt-sparsify --in-place disk.qcow2  # this method needn't run commands in guest, extra/guestfs-tools packages
 
 Windows guest
   commands run in windows guest
