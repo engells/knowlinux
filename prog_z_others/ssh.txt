@@ -2,8 +2,8 @@
 # vim:ts=4
 # program:Using to note the knowledge about SSH
 # made by: Engells
-# date: Jan 19, 2024
-# content: 內容並未最佳化，單純作為書摘使用
+# date: Mar 8, 2025
+# content: 更新產生金鑰指令參數
 
 
 
@@ -24,11 +24,11 @@ ssh -v -X user_name@remote_computer_ip nautilus --new-window
 以金鑰使用 SSH
 ====================
 本機端產生金鑰
-	ssh-keygen -t rsa -b 4096
+	ssh-keygen -t ed25519 -b 4096 -f /path/to/file
 		# 可從 linux shell 或 git bash for Windows 執行該指令
 		# 產生 id_rsa、id_rsa.pub 兩個檔案，id_rsa 檔案為私鑰，id_rsa.pub 檔案為公鑰
 		# Linux 系統裏檔案位置在 ~/.ssh，Windows 系統裏檔案位置在 path\to\usrs\xxxx\.ssh
-		# 亦可使用 -t ed25519，該演算法較新
+		# 亦可使用 -t rsa，注意該演算法較舊，除非有相容性要求不建議使用
 
 將公鑰送至執行服務的伺服器
 	ssh-copy-id -i ~/.ssh/id_rsa.pub user_name@machine
