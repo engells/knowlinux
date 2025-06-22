@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: knowhow about QEMU
 # made by: Engells
-# date: Feb 17, 2025
+# date: June 20, 2025
 # content: virt-sparsify command in extra/guestfs-tools
 
 
@@ -42,7 +42,7 @@ virsh dumpxml vm-name > /path/to/xm_file.xml
   # export virtual machine information to a xml file
 
 qemu-img create [-f fmt] [-o options] filename [size]
-  # qemu-img create -f qcow2 -b base.qcow2 overlay.qcow2 ;; qemu-img commit base.qcow2
+  # qemu-img create -f qcow2 -b base.qcow2 -F qcow2 overlay.qcow2 ;; qemu-img commit base.qcow2
   # 若對 overlay.qcow 作 qemu-img convert，會連同 base.qcow2 內容轉換至新檔
 
 qemu-img info --backing-chain /path/to/overlay_img
@@ -76,7 +76,7 @@ Linux guest
     dd if=/dev/zero of=/mytempfile
     rm -f /mytempfile
   commands run in host
-    qemu-img convert -O qcow2 original_image.qcow2_backup original_image.qcow2
+    qemu-img convert image_source.qcow2 -O qcow2 image_output.qcow2
 
   alternative method in host
     virt-sparsify --in-place disk.qcow2  # this method needn't run commands in guest, extra/guestfs-tools packages
@@ -89,7 +89,7 @@ Windows guest
     turn off the VM and make sure guest is using VirtIO for the disk, select Discard mode: unmap
     boot into guest, and from an elevated prompt run: Optimize-Volume -DriveLetter C -ReTrim -Verbose
   commands run in host
-    qemu-img convert -O qcow2 original_image.qcow2_backup original_image.qcow2
+    qemu-img convert image_source.qcow2 -O qcow2 image_output.qcow2
 
 url
   Reducing (sparsifying) qcow2 image of Win10 :: https://www.preining.info/blog/2021/09/reducing-sparsifying-qcow2-image-of-windows10
