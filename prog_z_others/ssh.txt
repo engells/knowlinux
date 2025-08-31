@@ -1,0 +1,76 @@
+##!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about SSH
+# made by: Engells
+# date: Aug 28, 2025
+# content: 更新產生金鑰指令參數
+
+
+
+SSH X forwarding
+====================
+ssh -v -X user_name@remote_computer_ip
+ssh -YC4c user_name@remote_computer_ip
+ssh -v -X user_name@remote_computer_ip nautilus --new-window
+
+設定 remote_computer
+    編輯 /etc/ssh/sshd_config 加一句 X11UseLocalhost no，再重新啟動服務： systemctl restart sshd
+    # 不確定參數：ForwardX11 yes、ForwardX11Trusted yes、AllowTcpForwarding yes、X11Forwarding yes、AllowAgentForwarding yes、X11DisplayOffset 10
+    編輯 root 的 .bashrc 裡面設定 export XAUTHORITY=/home/user_name/.Xauthority
+
+
+
+
+以金鑰使用 SSH
+====================
+本機端產生金鑰
+  ssh-keygen -t ed25519 -b 4096 -f /path/to/file
+    # 可從 linux shell 或 git bash for Windows 執行該指令
+    # 產生 id_rsa、id_rsa.pub 兩個檔案，id_rsa 檔案為私鑰，id_rsa.pub 檔案為公鑰
+    # Linux 系統裏檔案位置在 ~/.ssh，Windows 系統裏檔案位置在 path\to\usrs\xxxx\.ssh
+    # 亦可使用 -t rsa，注意該演算法較舊，除非有相容性要求不建議使用
+
+將公鑰送至執行服務的伺服器
+  ssh-copy-id -i ~/.ssh/id_rsa.pub -p xx user_name@machine
+
+回到伺服器端，開啟 SSH 設定檔 /etc/ssh/sshd_config，將以下一行的注解取消，改成：
+  AuthorizedKeysFile %h/.ssh/authorized_keys
+
+重新啟動 SSH 伺服器:
+  systemctl restart sshd
+
+
+
+
+SSH 安全性設定
+====================
+編輯 /etc/ssh/sshd_config.d/xxxx.conf
+  PermitRootLogin no
+    # 禁止以 root 帳號登入
+  AllowUsers admit
+  AllowGroups admit
+    # 只准特定帳號或群組登入 SSH
+  PermitEmptyPasswords no
+    # 若帳號是空密碼, 禁止登入
+  Protocol 2
+    # 只開啟 Protocol 2 版本
+  Port 62
+    # SSH 預設埠號是 22，改成其他的埠號。
+  PasswordAuthentication no
+    # 使用金鑰登入，原設定為 optional
+  AuthorizedKeysFile %h/.ssh/authorized_keys
+
+
+
+
+安裝 openssh-server
+====================
+sudo apt update
+sudo apt install openssh-server
+sudo systemctl status ssh
+sudo systemctl stop ssh
+sudo systemctl start ssh
+sudo systemctl enable ssh
+sudo systemctl disable ssh
+
+
