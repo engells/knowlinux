@@ -1,0 +1,155 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about uv
+# made by: Engells
+# date: Aug 31, 2025
+# content: Add parameter --link-mode=copy to make sure pkgs locate in .venv folder.
+
+
+
+Commands
+====================
+uv run -p x.xx xxxx.py    # uv run --python x.xx xxxx.py
+uv init --python x.xx     # 建立專案初始環境
+uv venv                   # 手動建立 .venv 虛擬環境
+uv add pkg_name==x.xx     # 安裝指定版本套件；--link-mode=copy，將套件複製至虛擬環境；--dev，套件僅用於開發環境，不納入正式環境
+uv remove pkg_name        # 移除套件
+uv tree                   # 列出套件相依關係圖
+uv tool install pkg_name  # 安裝工具用途套件
+
+
+
+
+Project
+====================
+建立專案目錄，在該目錄下建立專案
+  mkdir /path/to/project && cd /path/to/project && uv init
+建立虛擬環境
+  uv venv --python x.xx.x
+啟用虛擬環境
+  source source .venv/bin/activate
+離開虛擬環境
+  deactivate
+
+
+專案目錄結構如下：
+  .
+  ├── .git
+  ├── .venv              # 專案所使用之 python 及 packages
+  │   ├── bin
+  │   ├── lib
+  │   └── pyvenv.cfg
+  ├── .python-version
+  ├── README.md
+  ├── main.py            # 預設建立之 script，可刪除
+  ├── pyproject.toml     # metadata
+  └── uv.lock            # 套件相依性管理
+
+若使用 uv sync 指令後，建議搭配 source .venv/bin/activate 指令重啟專案。
+
+
+相關指令：
+  uv init    # Create a new Python project.
+  uv venv    # Create a virtual environment. --link-mode=copy: copy pkgs from the wheel into the site-packages directory
+  uv add     # Add a dependency to the project. --link-mode=copy
+  uv remove  # Remove a dependency from the project.
+  uv sync    # Sync the project's dependencies with the environment.
+  uv lock    # Create a lockfile for the project's dependencies.
+  uv run     # Run a command in the project environment.
+  uv tree    # View the dependency tree for the project.
+  uv build   # Build the project into distribution archives.
+  uv publish #  Publish the project to a package index.
+
+Ref:
+  guide on projects :: https://docs.astral.sh/uv/guides/projects/
+
+
+
+
+Python versions
+====================
+uv 可建立不同版本的 python，然後以 uv run -p x.xx xxxx.py 指令執行指定版本的 python。uv 執行 python，基本上的順序如下：
+  1.目前資料夾下的 .python-version 檔內設定的版本。
+  2.目前啟用的虛擬環境。
+  3.目前資料夾下的 .venv 資料夾內設定的虛擬環境。
+  4.uv 自己安裝的 python。
+  5.系統環境變數設定的 python 環境。
+
+
+相關指令：
+  uv python install    # Install Python versions.
+  uv python list       # View available Python versions.
+  uv python find       # Find an installed Python version.
+  uv python pin        # Pin the current project to use a specific Python version.
+  uv python uninstall  # Uninstall a Python version.
+  uv python upgrade    # upgrade all uv-managed Python versions
+
+Ref:
+  guide on installing Python :: https://docs.astral.sh/uv/guides/install-python/
+
+
+
+
+Tools
+====================
+Running and installing tools published to Python package indexes, e.g., ruff or black.
+
+相關指令：
+  uvx / uv tool run    # Run a tool in a temporary environment.
+  uv tool install      # Install a tool user-wide.
+  uv tool uninstall    # Uninstall a tool.
+  uv tool list         # List installed tools.
+  uv tool update-shell # Update the shell to include tool executables.
+
+Ref:
+  guide on tools :: https://docs.astral.sh/uv/guides/tools/
+
+
+
+
+Utility
+====================
+Managing and inspecting uv's state, such as the cache, storage directories, or performing a self-update:
+
+相關指令：
+  uv cache clean # Remove cache entries.
+  uv cache prune # Remove outdated cache entries.
+  uv cache dir   # Show the uv cache directory path.
+  uv tool dir    # Show the uv tool directory path.
+  uv python dir  # Show the uv installed Python versions path.
+  uv self update # Update uv to the latest version.
+
+
+
+
+簡介
+====================
+uv 是由 Astral 團隊開發的一款現代化的 Python 套件管理暨打包（packing）工具。乍聽之下，它做的事和 Poetry 大小同異——確實如此，只是更加包山包海，並且是用 Rust 寫的。就像同為 Astral 出品的 Ruff，它們的共同目標都是成為該領域的「唯一選擇」XD，具有以下幾個核心特點：
+  高效能：uv 在套件安裝與依賴解析方面比傳統工具快上 10 到 100 倍。
+  整合式工具：結合了打包、套件管理、虛擬環境管理、Python 版本管理等功能。其中 Python 版本管理是 uv 的一大特色，意味著不必再搭配 pyeuv 等工具。
+  跨平台支援：支援 macOS、Linux 和 Windows，適用於多種開發環境。雖然是 Rust 寫的，但無須擔心環境設定與安裝問題。
+
+安裝 uv
+  curl -LsSf https://astral.sh/uv/install.sh | sh  # specific version: curl -LsSf https://astral.sh/uv/0.8.13/install.sh | sh
+  brew install uv
+
+安裝後環境設定
+  echo 'eval "$(uv generate-shell-completion zsh)"' >> ~/.zshrc
+  echo 'eval "$(uvx --generate-shell-completion zsh)"' >> ~/.zshrc
+
+移除 uv
+  uv cache clean && rm -r "$(uv python dir)" && rm -r "$(uv tool dir)"
+  rm ~/.local/bin/uv ~/.local/bin/uvx
+  brew uninstall uv
+
+組態
+  $HOME/.local/bin/uv
+  $HOME/.local/share/uv/tools
+  $HOME/.cache/uv or $XDG_CACHE_HOME/uv
+  $HOME/.config/uv/uv.toml or $XDG_CONFIG_HOME/uv/uv.toml
+
+
+Ref:
+  Python 套件管理器 uv 介紹——與 Poetry 比較 :: https://blog.kyomind.tw/introducing-uv/
+  使用 uv 管理 Python 環境 :: https://dev.to/codemee/shi-yong-uv-guan-li-python-huan-jing-53hg
+  uv :: https://docs.astral.sh/uv/ :: https://docs.astral.sh/uv/getting-started/features/
