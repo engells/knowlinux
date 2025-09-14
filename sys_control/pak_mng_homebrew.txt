@@ -1,0 +1,135 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about homebrew
+# made by: Engells
+# date: Aug 28, 2025
+# content: knowhow about homebrew
+
+
+
+Commands
+====================
+# 安裝套件
+brew search <formulae>    # 尋找有無某套件
+brew install <formulae>   # 安裝套件
+brew uninstall <formulae> # 移除套件
+
+# 列出所有安裝的套件
+brew list
+
+# update local packages
+brew outdated            # find out what is outdated
+brew update              # 更新 brew 本身和 formulae
+brew upgrade             # 更新 brew 內的所有套件
+brew upgrade <formulae>  # 更新 brew 內的特定套件
+
+# 移除舊版本（Homebrew 預設不會自動移除舊版本）
+brew cleanup [formulae]  # remove everything or specific formula of old versions
+brew cleanup -n          # see what would be cleaned up
+
+# 診斷 brew 的問題
+brew doctor
+
+# brew tap：適用於安裝不在 homebrew 的第三方套件（會增加 homebrew 的 formulae）
+brew tap                 # list tapped repositories
+brew tap <tap-name>      # add tap
+brew untap <tap-name>    # remove a tap
+
+# services
+brew services
+brew services list                   # 看有哪些服務
+brew services start [service_name]   # 開啟某個服務
+
+
+
+
+Homebrew-cask 安裝與使用
+====================
+Homebrew Cask 是 Homebrew 的擴充，原本的 Homebrew 是管理 Command Line 軟體，而 Cask 是管理 GUI 軟體的部分。Homebrew Cask 的安裝腳本稱為 cask ，與 Homebrew 的 formula 相等。在安裝 Homebrew 時就會一起安裝 Homebrew Cask ，指令也與 Homebrew 相同。
+
+安裝軟體
+  brew install --cask google-chrome firefox   # 一次安裝多個 app
+  brew list --cask                            # 列出所有透過 cask 安裝的 App
+
+移除軟體
+  brew uninstall google-chrome --cask
+
+搜尋軟體
+  brew cask search <軟體名> --cask     # 顯示某 app 能否透過 cask 安裝
+  brew cask info google-chrome --cask # 顯示關於某 APP 的詳細資料
+
+更新軟體
+  brew outdated --cask                # 列出所有並非最新版的軟體
+  brew upgrade --cask                 # 更新所有軟體
+
+透過 homebrew 安裝的字體
+  brew install --cask font-jetbrains-mono
+  brew install --cask font-roboto-mono
+  brew install --cask font-maple-mono     # Maple Mono (https://github.com/subframe7536/maple-font)
+  brew install --cask font-maple-mono-nf
+
+Ref:
+  homebrew-cask usage@Github :: https://github.com/Homebrew/homebrew-cask/blob/master/USAGE.md
+  brew-cask-fonts@homebrew :: https://formulae.brew.sh/cask-font/
+
+
+
+
+透過 Homebrew-services 啟動資料庫等服務
+====================
+brew services list
+brew install postgresql
+brew services start postgresql
+
+Ref:
+  Homebrew-Services@Github :: https://github.com/Homebrew/homebrew-services
+  brew 和 brew cask 指令的差別 @ StackExchange :: https://apple.stackexchange.com/questions/125468/what-is-the-difference-between-brew-and-brew-cask?newreg=135aa4d32b8a44edaa934ccde78cfb31
+
+
+
+
+簡介
+====================
+Homebrew 是免費、開放原始碼的軟體包管理工具。使用 Homebrew，可以輕鬆地在 Apple OS，Linux OS 和 Pi OS 上安裝軟體。之所以被稱為 Homebrew，是因為它是「自製的」，也就是由業餘愛好者和發燒友開發，而不是大公司或官方開發商開發。 Homebrew 由 Max Howell 開發，隨著時間的推移，在 Ruby on Rails 社區中變得流行起來。
+
+Homebrew 的目標是簡化安裝、更新和管理軟體的流程，允許用戶安裝 macOS App Store 或 Linux 儲存庫中可能沒有的應用程序，如命令列工具、庫和其他軟體。透過 Homebrew 安裝的軟體通常是開源的。 Homebrew 支援與不同程式語言、框架、資料庫系統和實用程式相關的各種類型的開發和生產力工具。
+
+Homebrew 有四個關鍵組件：
+Formulae
+  Formulae 是 Ruby 腳本，定義如何安裝、升級和設定軟體。每個 Formulae 都包含有關軟體的信息，包括其來源、依賴項和安裝說明。Homebrew 核心儲存庫包含數千個公式。
+Casks
+  Homebrew cask 用於管理具有圖形介面的 macOS 應用程式。 Casks 可安裝 Google Chrome、VLC 或 Visual Studio Code 等應用程式。可將 casks 視為 Homebrew 管理 macOS 應用程式的方式，類似於它處理命令列實用程式的方式。
+Taps
+  Taps 是使用者建立的附加儲存庫。它們擴展了 Homebrew 的功能，允許用戶維護不屬於 Homebrew 官方核心儲存庫的配方和桶的集合。例如，透過新增 GitHub URL 來存取其他儲存庫。
+  brew tap user/repository
+Bottles
+  Bottles 是軟體包的預編譯二進位。當可用時，它們會跳過編譯過程並允許您更快地安裝軟體，從而節省時間。
+
+安裝 homrbrew
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew --version
+  # 宜預裝套件 curl git
+
+安裝後套件補充
+  sudo apt-get install build-essential procps file
+  sudo pacman -S base-devel procps-ng file
+  brew install gcc
+
+安裝後環境設定
+  test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  echo >> ~/.bashrc
+  echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.bashrc
+
+移除 homebrew
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+
+組態
+  /home/linuxbrew/.linuxbrew/bin    # homebrew 安裝檔案後，連結至此目錄，搭配 $PATH 變數以供使用
+  /home/linuxbrew/.linuxbrew/Cellr  # homebrew 安裝檔案後，檔案實際所在處
+
+Ref:
+  Homebrew 筆記 :: https://pjchender.dev/app/homebrew/
+  Homebrew - 套件管理工具 :: https://ithelp.ithome.com.tw/m/articles/10265718
+  什麼是 Homebrew？介紹和重要命令 :: https://blog.fileformat.com/zh-hant/software/what-is-homebrew/
+
+

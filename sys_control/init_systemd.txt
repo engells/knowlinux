@@ -2,22 +2,22 @@
 # vim:ts=4
 # program: Using to note the knowledge about systemd
 # made by: Engells
-# date: Dec 30, 2022
-# content: Just for memo
+# date: Sep 11, 2025
+# content: Add systemd.networkd
 
 
 
 常用指令
 ====================
-systemctl start xxxx			# run the xxxx service immeditely
-systemctl stop xxxx.service		# stop the xxxx service immeditely
-systemctl kill xxxx.service		# kill the xxxx service immeditely
-systemctl restart xxxx.service	# restart the xxxx service immeditely
-systemctl enable xxxx			# run the xxxx service when booting
-systemctl disable xxxx			# not run the xxxx service when booting
-systemctl reload xxxx.service	# reload the xxxx service config file
-systemctl daemon-reload			# reload all modified config files
-systemctl status xxxx			# view the status of xxxx service
+systemctl start xxxx            # run the xxxx service immeditely
+systemctl stop xxxx.service     # stop the xxxx service immeditely
+systemctl kill xxxx.service     # kill the xxxx service immeditely
+systemctl restart xxxx.service  # restart the xxxx service immeditely
+systemctl enable xxxx           # run the xxxx service when booting
+systemctl disable xxxx          # not run the xxxx service when booting
+systemctl reload xxxx.service   # reload the xxxx service config file
+systemctl daemon-reload         # reload all modified config files
+systemctl status xxxx           # view the status of xxxx service
 systemctl is-active xxxx
 systemctl is-enabled xxxx
 systemctl show xxxx.service
@@ -35,20 +35,67 @@ systemctl list-units
 
 
 
+Systemd-networkd
+====================
+Bridge + NIC
+----------
+Edit /etc/systemd/network/10-br0.netdev
+  [NetDev]
+  Name=br0
+  Kind=bridge
+
+Edit /etc/systemd/network/20-br0.network
+  [Match]
+  Name=br0
+
+  [Network]
+  Address=xxx.xxx.xxx.xxx/24
+  Gateway=xxx.xxx.xxx.1
+  # DNS config => /etc/resolv.conf
+
+Edit /etc/systemd/network/30-enp<x>s<y>.network
+  [Match]
+  Name=enp<x>s<y>
+
+  [Network]
+  Bridge=br0
+
+sudo systemctl enable --now systemd.networkd
+
+
+NIC only
+----------
+Edit /etc/systemd/network/20-enp<x>s<y>.network
+  [Match]
+  Name=enp<x>s<y>
+
+  [Network]
+  DHCP=yes
+
+  [DHCP]
+  RouteMetric=0
+
+
+sudo systemctl enable --now systemd.networkd systemd-resolved
+  # 若以 /etc/resolv.conf 指定 nameserver，則不需使用 systemd-resolved 服務
+
+
+
+
 自行定義開機及關機自動執行程式
 ====================
 開機自動執行程式
-	撰寫 /ktws/scripts/confs_sys/rc_local，複製為 /etc/rc.local
-	撰寫 /ktws/scripts/confs_sys/rc_local_service，複製為 /lib/systemd/system/rc.local.service，執行 sudo systemctl enable rc.local.service
-	系統將視為傳統的 rc.local 處理
+  撰寫 /ktws/scripts/confs_sys/rc_local，複製為 /etc/rc.local
+  撰寫 /ktws/scripts/confs_sys/rc_local_service，複製為 /lib/systemd/system/rc.local.service，執行 sudo systemctl enable rc.local.service
+  系統將視為傳統的 rc.local 處理
 
 關機自動執行程式
-	撰寫 /ktws/scripts/confs_sys/z_mysave_service，複製為 /lib/systemd/system/z.mysave.service，執行 sudo systemctl enable z.mysave.service
-	結果如下：
-		Created symlink /etc/systemd/system/z.mysave.service → /lib/systemd/system/z.mysave.service.
-		Created symlink /etc/systemd/system/halt.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
-		Created symlink /etc/systemd/system/reboot.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
-		Created symlink /etc/systemd/system/shutdown.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
+  撰寫 /ktws/scripts/confs_sys/z_mysave_service，複製為 /lib/systemd/system/z.mysave.service，執行 sudo systemctl enable z.mysave.service
+  結果如下：
+    Created symlink /etc/systemd/system/z.mysave.service → /lib/systemd/system/z.mysave.service.
+    Created symlink /etc/systemd/system/halt.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
+    Created symlink /etc/systemd/system/reboot.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
+    Created symlink /etc/systemd/system/shutdown.target.wants/z.mysave.service → /lib/systemd/system/z.mysave.service.
 
 
 
@@ -56,38 +103,39 @@ systemctl list-units
 開機機制
 ====================
 機制變更
-	boot script: /etc/init.d + /etc/rc[x].d => /etc/systemd/system + /lib/systemd/system
-	boot config: /etc/inittab + /etc/sysconfig => /etc/systemd + /lib/systemd
+  boot script: /etc/init.d + /etc/rc[x].d => /etc/systemd/system + /lib/systemd/system
+  boot config: /etc/inittab + /etc/sysconfig => /etc/systemd + /lib/systemd
 
 開機順序
-	init
-		init => /etc/rcS.d => /etc/rc[x].d => /etc/rc.local
-	systemd
-		/lib/systemd/system/default.target => /lib/systemd/system/graphical.target =>
-		/lib/systemd/system/multi-user.target + /etc/systemd/system/multi-user.target.wants/ =>
-		/lib/systemd/system/basic.target + /etc/systemd/system/basic.target.wants =>
-		/lib/systemd/system/sysinit.target 
-		/lib/systemd/system/local-fs.target + /etc/fstab and /etc/inittab(not in Ubuntu 18.04)
+  init
+    init => /etc/rcS.d => /etc/rc[x].d => /etc/rc.local
+  systemd
+    /lib/systemd/system/default.target => /lib/systemd/system/graphical.target =>
+    /lib/systemd/system/multi-user.target + /etc/systemd/system/multi-user.target.wants/ =>
+    /lib/systemd/system/basic.target + /etc/systemd/system/basic.target.wants =>
+    /lib/systemd/system/sysinit.target
+    /lib/systemd/system/local-fs.target + /etc/fstab and /etc/inittab(not in Ubuntu 18.04)
 
 開機時 systemd 執行 /etc/systemd/system 配置檔案
+
 執行 sudo systemctl enable httpd，相當於在 /etc/systemd/system 建立 link 至 /lib/systemd/system (或 /usr/lib/systemd/system)
 
-systemctl list-unit-files --type=target				# list current target unit in system
-systemctl list-dependencies xxxx.target				# list units in xxxx.target
-systemctl get-default								# list the default target while booting
+systemctl list-unit-files --type=target             # list current target unit in system
+systemctl list-dependencies xxxx.target             # list units in xxxx.target
+systemctl get-default                               # list the default target while booting
 systemctl set-default multi-user.target
-systemctl isolate									# 預設切換 target 時，不結束前 target 的進程，本指令轉為結束前 target 的進程
-systemctl isolate xxxx.target						# 結束前 target 所有不屬於 xxxx.target 的進程
+systemctl isolate                                   # 預設切換 target 時，不結束前 target 的進程，本指令轉為結束前 target 的進程
+systemctl isolate xxxx.target                       # 結束前 target 所有不屬於 xxxx.target 的進程
 
 Target(/etc/systemd/system/) 與 RunLevel 的對應關係
-    Traditional runlevel      New target name     Symbolically linked to...
-    Runlevel 0           |    runlevel0.target -> poweroff.target
-    Runlevel 1           |    runlevel1.target -> rescue.target
-    Runlevel 2           |    runlevel2.target -> multi-user.target
-    Runlevel 3           |    runlevel3.target -> multi-user.target
-    Runlevel 4           |    runlevel4.target -> multi-user.target
-    Runlevel 5           |    runlevel5.target -> graphical.target
-    Runlevel 6           |    runlevel6.target -> reboot.target
+  Traditional runlevel      New target name     Symbolically linked to...
+  Runlevel 0           |    runlevel0.target -> poweroff.target
+  Runlevel 1           |    runlevel1.target -> rescue.target
+  Runlevel 2           |    runlevel2.target -> multi-user.target
+  Runlevel 3           |    runlevel3.target -> multi-user.target
+  Runlevel 4           |    runlevel4.target -> multi-user.target
+  Runlevel 5           |    runlevel5.target -> graphical.target
+  Runlevel 6           |    runlevel6.target -> reboot.target
 
 
 
@@ -96,52 +144,52 @@ Service 組態檔案
 ====================
 systemctl cat xxxx.service
 
-[Unit]	# 啟動順序
+[Unit]    # 啟動順序
 Description=OpenSSH server daemon
 Documentation=man:sshd(8) man:sshd_config(5)
-After=network.target sshd-keygen.service		# 在 network 等服務後執行
-Before=yyyy.service								# 在 yyyy 等服務前執行
-Wants=zzzz0.service								# 與 zzzz0.service 為弱相依，zzzz0.service 執行失敗不影響本服務啟動
-Requires=zzzz1.service							# 與 zzzz1.service 為強相依，zzzz1.service 執行失敗不影響本服務不啟動
-	# After 與 Before 只設定執行順序，不處理相依性。Wants 與 Reauires 只設定相依性，不處理執行順序。
-BindsTo=zzzz2.service							# 如 zzzz2.service 結束，本服務與其連帶結束
-Conflicts=zzzz3.service							# 若 zzzz3.service 已執行，本服務不能執行
-Condition...									# 需滿足條件，否則本服務不能執行
-Assert...										# 需滿足條件，否則本服務回報啟動失敗
+After=network.target sshd-keygen.service      # 在 network 等服務後執行
+Before=yyyy.service                           # 在 yyyy 等服務前執行
+Wants=zzzz0.service                           # 與 zzzz0.service 為弱相依，zzzz0.service 執行失敗不影響本服務啟動
+Requires=zzzz1.service                        # 與 zzzz1.service 為強相依，zzzz1.service 執行失敗不影響本服務不啟動
+    # After 與 Before 只設定執行順序，不處理相依性。Wants 與 Reauires 只設定相依性，不處理執行順序。
+BindsTo=zzzz2.service                         # 如 zzzz2.service 結束，本服務與其連帶結束
+Conflicts=zzzz3.service                       # 若 zzzz3.service 已執行，本服務不能執行
+Condition...                                  # 需滿足條件，否則本服務不能執行
+Assert...                                     # 需滿足條件，否則本服務回報啟動失敗
 
 
-[Service]	# 啟動執行方式，只有 Service 類型 unit 才有
-EnvironmentFile=/etc/sysconfig/sshd				# 環境參數
-ExecStart=/usr/sbin/sshd -D $OPTIONS			# 啟動時執行，若 ExecStart=-，表示指定之指令(sshd)執行錯誤，不影響其他指令執行。
-ExecReload=/bin/kill -HUP $MAINPID				# 重啟時執行
-ExecStop=										# 停止時執行
-ExecStartPre=									# 啟動前執行
-ExecStartPost=									# 啟動後執行
-ExecStopPost=									# 停止後執行
+[Service]    # 啟動執行方式，只有 Service 類型 unit 才有
+EnvironmentFile=/etc/sysconfig/sshd           # 環境參數
+ExecStart=/usr/sbin/sshd -D $OPTIONS          # 啟動時執行，若 ExecStart=-，表示指定之指令(sshd)執行錯誤，不影響其他指令執行。
+ExecReload=/bin/kill -HUP $MAINPID            # 重啟時執行
+ExecStop=                                     # 停止時執行
+ExecStartPre=                                 # 啟動前執行
+ExecStartPost=                                # 啟動後執行
+ExecStopPost=                                 # 停止後執行
 Type=simple
-	# simple（默认值）：ExecStart 字段启动的进程为主进程
-	# forking：ExecStart 字段将以 fork() 方式启动，此时父进程将会退出，子进程将成为主进程
-	# oneshot：类似 simple，但只执行一次，Systemd 会等它执行完，才启动其他服务
-	# dbus：类似 simple，但会等待 D-Bus 信号后启动
-	# notify：类似 simple，启动结束后会发出通知信号，然后 Systemd 再启动其他服务
-	# idle：类似 simple，但是要等到其他任务都执行完，才会启动该服务。一种使用场合是为让该服务的输出，不与其他服务的输出相混合
-RemainAfterExit=yes								# 進程結束後，服務仍在背景執行
+  # simple（默认值）：ExecStart 字段启动的进程为主进程
+  # forking：ExecStart 字段将以 fork() 方式启动，此时父进程将会退出，子进程将成为主进程
+  # oneshot：类似 simple，但只执行一次，Systemd 会等它执行完，才启动其他服务
+  # dbus：类似 simple，但会等待 D-Bus 信号后启动
+  # notify：类似 simple，启动结束后会发出通知信号，然后 Systemd 再启动其他服务
+  # idle：类似 simple，但是要等到其他任务都执行完，才会启动该服务。一种使用场合是为让该服务的输出，不与其他服务的输出相混合
+RemainAfterExit=yes                           # 進程結束後，服務仍在背景執行
 KillMode=process
-	# control-group（默认值）：結束所有的子進程
-	# process：只結束主進程
-	# mixed：主進程收到 SIGTERM 訊號，子進程收到 SIGKILL 訊號
-	# none：沒有進程被進程，只執行服務的 stop 指令
+  # control-group（默认值）：結束所有的子進程
+  # process：只結束主進程
+  # mixed：主進程收到 SIGTERM 訊號，子進程收到 SIGKILL 訊號
+  # none：沒有進程被進程，只執行服務的 stop 指令
 Restart=on-failure
-	# no（默认值）：不重啟本服務
-	# on-success：正常退出時(exit0)，重啟本服務
-	# on-failure：非正常退出時(非 exit0)，重啟本服務
-	# on-abnormal：只有被訊號終止和逾時，重啟本服務
-	# on-abort：只有在收到沒有捕捉到的訊號終止時，重啟本服務
-	# on-watchdog：逾時退出時，重啟本服務
-	# always：無論任何原因退出，均重啟本服務
+  # no（默认值）：不重啟本服務
+  # on-success：正常退出時(exit0)，重啟本服務
+  # on-failure：非正常退出時(非 exit0)，重啟本服務
+  # on-abnormal：只有被訊號終止和逾時，重啟本服務
+  # on-abort：只有在收到沒有捕捉到的訊號終止時，重啟本服務
+  # on-watchdog：逾時退出時，重啟本服務
+  # always：無論任何原因退出，均重啟本服務
 RestartSec=42s
 
-[Install]	# 開機啟動方式
+[Install]    # 開機啟動方式
 WantedBy=multi-user.target
 
 
@@ -154,10 +202,10 @@ systemctl cat multi-user.target
 [Unit]
 Description=Multi-User System
 Documentation=man:systemd.special(7)
-Requires=basic.target								# 要求與 basic.target 一起執行
-Conflicts=rescue.service rescue.target				# 若 rescue.service 等已在執行，本 target 不能執行
-After=basic.target rescue.service rescue.target		# 在 basic.target 等之後執行
-AllowIsolate=yes									# 允許以 systemctl isolate 指令切換至 multi-user.target
+Requires=basic.target                             # 要求與 basic.target 一起執行
+Conflicts=rescue.service rescue.target            # 若 rescue.service 等已在執行，本 target 不能執行
+After=basic.target rescue.service rescue.target   # 在 basic.target 等之後執行
+AllowIsolate=yes                                  # 允許以 systemctl isolate 指令切換至 multi-user.target
 
 
 
@@ -166,18 +214,18 @@ AllowIsolate=yes									# 允許以 systemctl isolate 指令切換至 multi-use
 ====================
 config file: /etc/systemd/journald.conf
 
-sudo journalctl										# show booting journal
-sudo journalctl -k									# show booting kernel journal						
+sudo journalctl                                   # show booting journal
+sudo journalctl -k                                # show booting kernel journal
 sudo journalctl -b
-sudo journalctl -b -0								# show current booting journal
-sudo journalctl -b -1								# show last booting journal
+sudo journalctl -b -0                             # show current booting journal
+sudo journalctl -b -1                             # show last booting journal
 sudo journalctl --since="2012-10-30 18:17:16"
 sudo journalctl --since "20 min ago"
 sudo journalctl --since yesterday
 sudo journalctl --since "2015-01-10" --until "2015-01-11 03:00"
 sudo journalctl --since 09:00 --until "1 hour ago"
 sudo journalctl -n
-sudo journalctl -n 20								# show last 20 lines of current booting journal
+sudo journalctl -n 20                             # show last 20 lines of current booting journal
 sudo journalctl -f
 sudo journalctl /usr/lib/systemd/systemd
 sudo journalctl _PID=1
@@ -187,10 +235,10 @@ sudo journalctl -u nginx.service
 sudo journalctl -u nginx.service --since today
 sudo journalctl -u nginx.service -f
 journalctl -u nginx.service -u php-fpm.service --since today
-sudo journalctl -b -u nginx.service -o json			# show output with JSON single line model
-sudo journalctl -b -u nginx.service -o json-pretty	# show output with JSON multi lines model
+sudo journalctl -b -u nginx.service -o json         # show output with JSON single line model
+sudo journalctl -b -u nginx.service -o json-pretty  # show output with JSON multi lines model
 sudo journalctl --disk-usage
-sudo journalctl --vacuum-size=1G					# set size of journal
+sudo journalctl --vacuum-size=1G                    # set size of journal
 sudo journalctl --vacuum-time=1years
 
 
@@ -199,18 +247,18 @@ sudo journalctl --vacuum-time=1years
 ====================
 systemctl reboot
 systemctl poweroff
-systemctl halt					# stop CPU
+systemctl halt                    # stop CPU
 sudo systemctl suspend
-systemctl hibernate				# winter sleep status
+systemctl hibernate               # winter sleep status
 systemctl hybrid-sleep
-systemctl rescue				# rescue status, only for single-user model
+systemctl rescue                  # rescue status, only for single-user model
 
-systemd-analyze					# analysis total boot time
-systemd-analyze blame			# analysis each servive start time
+systemd-analyze                   # analysis total boot time
+systemd-analyze blame             # analysis each servive start time
 systemd-analyze critical-chain
-systemd-analyze critical-chain xxxx.service		# show the critical-chain of xxxx start
+systemd-analyze critical-chain xxxx.service        # show the critical-chain of xxxx start
 
-systemctl status				# show system status
+systemctl status                  # show system status
 sysystemctl status xxxx.service
 systemctl -H user@rhel7.example.com status xxxx.service
 systemctl is-active application.service
@@ -219,7 +267,7 @@ systemctl is-enabled application.service
 systemctl list-dependencies application.service
 systemctl list-dependencies --all application.service
 
-systemctl list-units            # list all active service
+systemctl list-units              # list all active service
 systemctl list-unit-files
 systemctl list-unit-files --type=service
 systemctl cat xxxx.service
@@ -227,22 +275,22 @@ systemctl list-units --all
 systemctl list-units --all --state=inactive
 systemctl list-units --type=service
 
-hostnamectl						# show hostname
-hostnamectl set-hostname xxxx	# set hostname
+hostnamectl                       # show hostname
+hostnamectl set-hostname xxxx     # set hostname
 
-localectl						# show locale status
-localectl set-locale LANG=en_US.utf8			# set locale to en_US.utf8
+localectl                         # show locale status
+localectl set-locale LANG=en_US.utf8            # set locale to en_US.utf8
 localectl set-keymap en_US
 
-timedatectl						# show time zone
-timedatectl list-timezones 		# show available time zone
+timedatectl                        # show time zone
+timedatectl list-timezones         # show available time zone
 timedatectl set-timezone Asia/Taipei
 timedatectl set-time YYYY-MM-DD
 timedatectl set-time HH:MM:SS
 
-loginctl list-sessions			# show current sessions
-loginctl list-users				# show data of current login user
-loginctl show-user xxxx			# show data of user xxxx
+loginctl list-sessions            # show current sessions
+loginctl list-users               # show data of current login user
+loginctl show-user xxxx           # show data of user xxxx
 
 
 
@@ -250,40 +298,36 @@ loginctl show-user xxxx			# show data of user xxxx
 概說
 ====================
 Systemd = Σ Units
-	Service unit：系统服务
-	Target unit：多个 Unit 构成的一个组
-	Device Unit：硬件设备
-	Mount Unit：文件系统的挂载点
-	Automount Unit：自动挂载点
-	Path Unit：文件或路径
-	Scope Unit：不是由 Systemd 启动的外部进程
-	Slice Unit：进程组
-	Snapshot Unit：Systemd 快照，可以切回某个快照
-	Socket Unit：进程间通信的 socket
- 	Swap Unit：swap 文件
-	Timer Unit：定时器
+  Service unit：系统服务
+  Target unit：多个 Unit 构成的一个组
+  Device Unit：硬件设备
+  Mount Unit：文件系统的挂载点
+  Automount Unit：自动挂载点
+  Path Unit：文件或路径
+  Scope Unit：不是由 Systemd 启动的外部进程
+  Slice Unit：进程组
+  Snapshot Unit：Systemd 快照，可以切回某个快照
+  Socket Unit：进程间通信的 socket
+  Swap Unit：swap 文件
+  Timer Unit：定时器
 
 systemctl list-unit-files
-	UNIT FILE				STATE
-	chronyd.service			enabled
-	clamd@.service			static
-	clamd@scan.service		disabled
-		enabled：已建立启动链接
-		disabled：没建立启动链接
-		static：该配置文件没有[Install]部分（无法执行），只能作为其他配置文件的依赖
-		masked：该配置文件被禁止建立启动链接
+  UNIT FILE                STATE
+  chronyd.service            enabled
+  clamd@.service            static
+  clamd@scan.service        disabled
+    enabled：已建立启动链接
+    disabled：没建立启动链接
+    static：该配置文件没有[Install]部分（无法执行），只能作为其他配置文件的依赖
+    masked：该配置文件被禁止建立启动链接
 
 相關目錄
-	/etc/systemd/system
-	/lib/systemd/system
-	/usr/lib/sysyemd
+  /etc/systemd/system
+  /lib/systemd/system
+  /usr/lib/sysyemd
 
-
-
-URL
-====================
-http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html
-http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html
-https://blog.gtwang.org/linux/linux-basic-systemctl-systemd-service-unit-tutorial-examples/
-
+Ref
+  http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html
+  http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html
+  https://blog.gtwang.org/linux/linux-basic-systemctl-systemd-service-unit-tutorial-examples/
 
