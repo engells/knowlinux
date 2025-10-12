@@ -27,7 +27,7 @@ Project
 建立虛擬環境
   uv venv --python x.xx.x
 啟用虛擬環境
-  source source .venv/bin/activate
+  source .venv/bin/activate
 離開虛擬環境
   deactivate
 
