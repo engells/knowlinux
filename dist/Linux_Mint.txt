@@ -1,0 +1,49 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Linux Mint
+# made by: Engells
+# date: Oct 23, 2025
+# content: Just for memo
+
+
+
+Install new kernel
+====================
+linux-modules-extra-5.15.0-87-generic
+sudo apt install linux-generic-hwe-22.04-edge
+sudo dpkg --purge linux-image-5.4.0-48-generic
+/etc/default/locale ;; sudo locale-gen zh_TW.UTF-8 ;; sudo dpkg-reconfigure localepurge ;; sudo locale-gen --purge <locales>
+
+
+
+fcitx5
+====================
+Set font size:
+  fcitx5-configtool => addons(t) => UI => Classic User Interface => settings icon => Fonts:
+
+themes:
+  dracula
+   https://github.com/drbbr/fcitx5-dracula-theme 
+   vim ~/.config/fcitx5/conf/classicui.conf
+
+
+
+Install MS Edge
+====================
+sudo apt install software-properties-common apt-transport-https wget
+wget -q https://packages.microsoft.com/keys/microsoft.asc && gpg -o /etc/apt/trusted.gpg.d/packages.edge.gpg --dearmor microsoft.asc
+  # wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list'
+sudo apt update
+sudo apt install microsoft-edge-stable
+  # 中文環境及 X11 via ssh, 詳見 lxc 檔案
+start msedge microsoft-edge-stable  microsoft-edge-stable 1>/dev/null 2>/dev/null &
+ln -s /path/to/new/cache/location $HOME/.config/microsoft-edge/Default/Cache
+  # optional, 已有 $HOME/.cache/Microsoft 及 $HOME/.cache/microsoft-edge
+
+
+
+apt certificate
+====================
+/etc/apt/trusted.gpg.d/
+

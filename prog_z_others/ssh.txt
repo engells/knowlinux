@@ -2,8 +2,8 @@
 # vim:ts=4
 # program:Using to note the knowledge about SSH
 # made by: Engells
-# date: Oct 11, 2025
-# content: 加入多重金鑰使用方式
+# date: Oct 25, 2025
+# content: 伺服器設定檔定義金鑰檔案位置
 
 
 
@@ -90,7 +90,7 @@ ssh -v -X user_name@remote_computer_ip nautilus --new-window
     # 如果沒有設定金鑰密碼，或是不願有 agent daemon 在背景跑，寧願每次輸入密碼的，可以跳過這個步驟。
 
 嘗試使用 ssh 連線
-  ssh -T git@gh.aaa.my
+  ssh -T git@gh.aaa.my or ssh git@gh.aaa.my
     # 連線網域值使用 $HOME/.ssh/config 設定的 Host 參數值，連線時 SSH 會自動映射網域至 HostName 參數值
     # 初次連線確認 logged in as Hi_AAA 表示 domain: git@gh.aaa.my 在 github 對應到 Hi_AAA 帳號，與預想要設定的使用者一樣就是成功了
     # 如果出現的不是預想的使用者名稱，則可能是設定檔或中間的過程有打字錯誤
@@ -125,9 +125,11 @@ SSH 安全性設定
     # 只開啟 Protocol 2 版本
   Port 62
     # SSH 預設埠號是 22，改成其他的埠號。
+  PubkeyAuthentication yes
   PasswordAuthentication no
     # 使用金鑰登入，原設定為 optional
-  AuthorizedKeysFile %h/.ssh/authorized_keys
+  AuthorizedKeysFile .ssh/authorized_keys
+    # 舊式設定 %h/.ssh/authorized_keys，新式絕對路徑 %d/.ssh/authorized_keys
 
 
 

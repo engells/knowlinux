@@ -52,13 +52,13 @@ Build chinese environment
 Package install
   sudo apt install fontconfig xauth dbus dbus-x11  # libcanberra-gtk-module libcanberra-gtk3-module
   sudo apt install gnupg
-  wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmour -o /etc/apt/keyrings/packages.chrome.gpg
-  sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/packages.chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list'
+  wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/packages.chrome.gpg
+  sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list'
   sudo apt update && sudo apt install google-chrome-stable
   sudo apt --fix-broken install libnotify4 libxss1 libsecret-1-0 libsecret-common
   # install Firefox via Mozilla Repo
   # wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O - | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-  # echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee /etc/apt/sources.list.d/mozilla.list
+  # echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee /etc/apt/sources.list.d/mozilla.list ## wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O /etc/apt/keyrings/packages.xxxx.gpg
   # nano /etc/apt/preferences.d/mozilla
   # Package: firefox*
   # Pin: origin packages.mozilla.org
