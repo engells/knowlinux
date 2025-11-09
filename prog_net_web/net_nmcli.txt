@@ -1,0 +1,122 @@
+##!/bin/bash
+# vim:ts=4
+# program: Using to note the knowledge about Network Manager
+# made by: Engells
+# date: Nov 3, 2025
+# content: Add wired and wireless connection sections
+
+
+
+Commands
+====================
+nmcli general status
+ # 查詢網路狀態
+nmcli device or nmcli device status
+ # 查詢所有網路裝置
+nmcli connection or nmcli connection show
+ # 查詢所有連線設定
+nmcli -f name,uuid,type,device,state con
+ # 查詢所有連線設定，顯示指定欄位
+nmcli connection modify 'xxxx'
+ # 修改連線屬性值
+nmcli radio wifi [on|off]
+ # 啟動/關閉 wifi
+nmcli device wifi show-password
+ # 查詢連線的 SSID 等相關資料
+
+
+
+
+建立有線網路連線
+====================
+nmcli connection add type ethernet con-name xxxx ifname eeee \
+ ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.dns 8.8.8.8 8.8.4
+ # 建立有線網路連線，取名 xxxx
+sudo nmcli connection up xxxx
+ # 啟用網路連線 xxxx
+
+
+
+
+建立無線網路分享連線
+====================
+nmcli connection add type wifi con-name xxxx ifname wlan0 ssid **** autoconnect no wifi.hidden yes \
+ ipv4.addresses 10.172.192.1/24 ipv4.method shared \
+ 802-11-wireless.mode ap 802-11-wireless.band bg 802-11-wireless.channel 7 \
+ 802-11-wireless-security.key-mgmt wpa-psk 802-11-wireless-security.psk "~~~~"
+ # 建立無線網路連線，取名 xxxx
+ # nmcli device wifi hotspot ifname wlan0 ssid **** password ~~~~ band a channel 149 con-name xxxx
+nmcli connection up Hotspot
+ # 啟用網路連線 xxxx
+ # 停用 hotspot, nmcli device disconnect wlan0
+ # 停用 hotspot 並以 client 身份連線, nmcli device up wlan0
+
+Refs
+ NetWorkManagerだけでラズパイをWi-Fiアクセスポイント化する方法 :: https://pilink.jp/wifi-ap_pl-r4/
+
+
+
+
+建立 bridge 連線
+====================
+nmcli connection mod Wired_connection_1 con-name cnn_wire0
+ # 將連線 Wired connection 1 更名為 eth0-con
+nmcli connection add con-name cnn_br0 type bridge ifname lxcbr0 stp no
+ # 建立 bridge 裝置稱名為 lxcbr0，對應連線為 cnn_br0
+nmcli connection add con-name cnn_br0_enp[x]s[y] type bridge-slave ifname enp[x]s[y] master lxcbr0
+ # 將 enp[x]s[y] 綁定成為 lxcbr0 的 slave，對應之新連線名稱為 cnn_br0_enp[x]s[y]
+nmcli connection down cnn_wire0 ; nmcli con up cnn_br0
+ # 虛擬機提升至跟 host 相同的網段，採用 cnn_br0 連線
+nmcli connection down cnn_br0 ; nmcli con up cnn_wire0
+ # 採用 cnn_wire0 直接連網
+
+
+
+
+Brief
+====================
+連線設定組態位置: /etc/NetworkManager/system-connection
+
+Refs
+ 建立 bridge 連線， nmcli 版 :: https://newtoypia.blogspot.com/2024/05/bridge-nmcli.html
+ NetworkManager配置网桥(bridge)虚拟网络(vlan) 笔记250711 :: https://blog.csdn.net/kfepiza/article/details/149281318
+-
+
+物理接口 enp3s0 => VLAN 接口 vlan10 => 网桥 br0 => 虚拟机/容器
+
+创建 VLAN 接口
+nmcli connection add type vlancon-name vlan10 dev enp3s0 id 10 ifname vlan10
+
+创建网桥接口
+nmcli connection add type bridge con-name br0 ifname br0
+nmcli connection modify br0 dridge.stp yes
+nmcli connection modify br0 bridge.priority 4096
+
+添加 VLAN10 作为网桥从属
+nmcli connection add type bridge-slave con-name br-vlan10 ifname vlan10 master br0
+bridge link show br0
+
+配置 IP 地址
+sudo nmcli con modify br0 ipv4.addresses '192.168.10.100/24
+sudo nmcli con modify br0 ipv4.gateway '192.168.10.1'
+sudo nmcli con modify br0 ipv4.dns '8.8.8.8'
+sudo nmcli con modify br0 ipv4.method manual
+sudo nmcli con modify br0 ipv4.method auto
+
+激活所有连接
+sudo nmcli con down "Wired connection 1"
+sudo nmcli con up vlan10
+sudo nmcli con up br-vlan10
+sudo nmcli con up br0
+
+--
+
+network-manager  網路管理工具
+wpasupplicant    WIFI無線網路WPA 加解密工具
+wireless-tools   WIFI無線網路配置工具，包括iwlist, iwconfig等工具
+
+wifi-sec.proto rsn makes it WPA2/3.
+wifi-sec.group ccmp should be a security improvement.
+wifi-sec.pairwise ccmp seems compulsory in my case.
+
+sudo iwlist wlan0 scan
