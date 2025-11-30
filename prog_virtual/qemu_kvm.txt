@@ -1,0 +1,282 @@
+##/bin/bash
+# vim:ts=4
+# program: knowhow about QEMU
+# made by: Engells
+# date: Sep 11, 2025
+# content: Add qemu guest agent, spice guest tools and virt viewer.
+
+
+
+常用指令
+====================
+qemu-system-i386 -hda /path/to/img_file_name -cdrom /path/to/dos_iso_file_name -boot d -m 32 -L .
+  # 以光碟映像檔開機，安裝 DOS 至虛擬硬碟
+
+qemu-system-x86_64 -enable-kvm -hda /path/to/img_file_name -boot c -m 32 -L .
+  # 以虛擬硬碟開機
+
+qemu-system-arm、qemu-system-aarc64
+  # 模擬 arm 32 位元及 64 位元平台
+
+Ctl+Alt+2
+  # 進入中控台，可執行指令
+  〔change floppy0 file_name〕切換軟碟映像檔
+  〔eject floppy0 〕抽出軟碟映像檔
+
+Ctl+Alt+2
+  # 回到虛擬機主畫面
+
+virsh < net-list ; net-create netdomain.xml ; [net-start | net-destroy | net-undefine ] netdomain >
+  # 開啟、關閉或取消 網路界面 (netdomain)
+
+qemu-img create [-f fmt] [-o options] filename [size]
+  # qemu-img create -f qcow2 -b base.qcow2 overlay.qcow2 ;; qemu-img commit base.qcow2
+  # 若對 overlay.qcow 作 qemu-img convert，會連同 base.qcow2 內容轉換至新檔
+
+qemu-img info --backing-chain /path/to/overlay_img
+  ＃ 查詢 overlay 虛擬磁碟或快照等映像檔的上層繼承譜系
+
+
+
+
+使用實體硬碟
+====================
+在 /etc/libvirt/qemu/<vm_name>.xml 組態檔的 <device> section 增加：
+  <disk type='block' device='disk'>
+   <driver name='qemu' type='raw'/>
+   <source dev='/dev/md/storage'/>
+   <target dev='vdb' bus='virtio'/>
+  </disk>
+執行指令  virsh define /etc/libvirt/qemu/guest_name.xml，使上述修改生效。實做可行。
+
+注意：
+  將整個硬碟映射至虛擬機，應先將該實體硬碟的 MBR 備份，以預防在虛擬機操作時變更到實體硬碟原本的 boot-loader
+  # dd if=/dev/sda of=sda.mbr bs=446 count=1
+  另參 virsh attach-disk 指令
+
+
+
+
+縮小硬碟映像檔
+====================
+Linux guest
+  commands run in linux guest
+    dd if=/dev/zero of=/mytempfile
+    rm -f /mytempfile
+  commands run in host
+    qemu-img convert -c -p -O qcow2 original_image.qcow2_backup original_image.qcow2
+
+  alternative method in host
+    virt-sparsify --in-place disk.qcow2  # this method needn't run commands in guest, extra/guestfs-tools packages
+
+Windows guest
+  commands run in windows guest
+    download: http://technet.microsoft.com/en-gb/sysinternals/bb897443.aspx
+    c:\sdelete.exe -z c:
+  commands run in windows 10 guest
+    turn off the VM and make sure guest is using VirtIO for the disk, select Discard mode: unmap
+    boot into guest, and from an elevated prompt run: Optimize-Volume -DriveLetter C -ReTrim -Verbose
+  commands run in host
+    qemu-img convert -O qcow2 original_image.qcow2_backup original_image.qcow2
+
+url
+  Reducing (sparsifying) qcow2 image of Win10 :: https://www.preining.info/blog/2021/09/reducing-sparsifying-qcow2-image-of-windows10
+  Reclaim disk space from a sparse image file :: https://www.jamescoyle.net/how-to/323-reclaim-disk-space-from-a-sparse-image-file-qcow2-vmdk
+  How to resize a qcow2 disk image on Linux :: https://linuxconfig.org/how-to-resize-a-qcow2-disk-image-on-linux
+
+
+
+
+在 Host 掛載碟映像檔
+====================
+Method 1: qemu-nbd
+  install package
+    sudo install qemu-utils
+  mount qcow2 file
+    sudo modprobe nbd max_part=8
+    sudo qemu-nbd -c /dev/nbd0 /path/to/qcow2_image
+    sudo mount /dev/nbd0p1 /path/to/mount_point
+  umount qcow2 file
+    sudo umount /mnt
+    sudo qemu-nbd -d /dev/nbd0
+    sudo modprobe -r nbd
+
+Method 2: libguestfs
+  install package
+    sudo apt install libguestfs-tools
+  mount qcow2 file
+    sudo guestmount -a /path/to/qcow2_image -m /dev/sda[x] /path/to/mount_point
+  umount qcow2 file
+    sudo guestunmount /mnt
+
+Method 3: loopback
+  mount qcow2 file
+    losetup -fv -P /path/to/qcow2_image  # will create /dev/loop[x]p[y] or losetup /dev/loop[x] /path/to/qcow2_image
+    mount /dev/loop0p1 /path/to/mount
+  umount qcow2 file
+    umount /path/to/mount
+    losetup -d /dev/loop[x][y]
+
+Method 4: kpartx, could work with loopback
+  mount qcow2 file
+    kpartx -av /path/to/qcow2_image  # will crtate /dev/mapper/loop[x]
+  umount qcow2 file
+    kpartx -d /path/to/qcow2_imag
+
+
+url
+  Arch Linux Wiki QEMU :: https://wiki.archlinuxcn.org/zh-tw/QEMU
+  How to mount qcow2 disk image on Linux :: https://www.xmodulo.com/mount-qcow2-disk-image-linux.html
+
+
+
+
+設定 storage pool
+====================
+常用類型
+  dir
+  physical disk: 將整個硬碟作為 pool，此時該硬碟各分割區即為 volume，可分由虛擬機掛載
+  filesysten:    將備有 file system 的分割區作為 pool，該分割區根目錄底下之目錄及檔案即為 volume
+
+url:
+  libvirt storage pool management :: https://libvirt.org/storage.html#disk-pool
+
+
+
+
+在虛擬機加入新硬體及驅動程式
+====================
+qxl 顯示卡
+  在虛擬機安裝 spice-guest-tools，下載位置：https://www.spice-space.org/download/windows/spice-guest-tools/
+
+virtio 介面裝置
+  下載 virtio 驅動程式後，掛載於虛擬機，安裝驅動程式
+    下載位置： https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/
+    Hard Disk： /path/to/iso/viostor
+    NIC： /path/to/iso/NetKVM
+    PCI： /path/to/iso/vioserial
+    PCI SCSI： /path/to/iso/Balloon
+
+copy & paste from the host
+  Host: sudo pacman -S virt-viewer # https://virt-manager.org/download.html
+  Linux VM(with X11 Env.):
+    Debian VM:
+      sudo apt install qemu-guest-agent && sudo systemctl start qemu-guest-agent && sudo systemctl enable qemu-guest-agent
+      sudo apt install spice-vdagent && sudo systemctl start spice-vdagent && sudo systemctl enable spice-vdagent
+    Arch VM:
+      sudo pacman -S qemu-guest-agent && sudo systemctl start qemu-guest-agent && sudo systemctl enable qemu-guest-agent
+      sudo pacman -S spice-vdagent && sudo systemctl start spice-vdagent && sudo systemctl enable spice-vdagent
+  Win VM: https://www.spice-space.org/download/binaries/spice-guest-tools/
+
+
+
+
+組態設定
+====================
+虛擬機資料：/etc/libvirt/qemu/ or $HOME/.config/libvirt/qemu or $HOME/.local/share/libvirt/
+儲存區資料：/etc/libvirt/qemu/storage or $HOME/.config/libvirt/storage
+網路資料：/etc/libvirt/qemu/networks
+
+
+示例 /etc/libvirt/qemu/networks/default.xml
+--------------------
+<network>
+  <name>default</name>
+  <uuid>d77a80ea-c1cf-44d1-9157-a71ce0f46b0a</uuid>
+  <forward mode='nat'/>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <mac address='52:54:00:60:8e:8f'/>
+  <ip address='192.168.122.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.122.2' end='192.168.122.254'/>
+    </dhcp>
+  </ip>
+</network>
+
+
+
+
+建置及調整 QEMU + KVM 環境
+====================
+BIOS設置
+----------
+UEFI BIOS > Advance Mode > CPU Configuration > ntel(VMX) Virtualization Technology] > Enabled
+
+
+安裝
+----------
+kvm-ok
+apt install qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager
+  kvm：kvm 必要套件，一般會同時安裝 qemu-common 及 bridge-utils 套件
+  kvm-ipxe：提供 PXE 開機 ROM，供網路開機使用
+  virt-manager：圖形管理界面，本身是 libvirt-bin 套件的強化，故安裝時會一併安裝 libvirt-bin、virtinst 套件
+
+
+檢查是否安裝成成功
+----------
+lsmod | grep kvm    # 若未出現回報資料，則 kvm 未安裝或未執行
+modprobe -l | grep kvm
+ls -la /usr/bin | grep kvm
+
+
+以登入帳號執行 virt-manager
+----------
+將登入帳號名稱，加入 kvm 、 libvirtd 及  libvirt-qemu(optional) 群組
+  sudo usermod -a -G kvm,libvirt $(whoami) && sudo usermod -a -G libvirt-qemu $(whoami)
+編輯 /etc/libvirt/libvirtd.conf，設定：
+  unix_sock_group = 'libvirt'
+  unix_sock_rw_perms = "0777"
+  log_filters="3:qemu 1:libvirt"
+  log_outputs="2:file:/var/log/libvirt/libvirtd.log"
+编辑 /etc/libvirt/qemu.conf
+  user = "group_name"
+  group = "user_name"
+以登入帳號建立連接(Connection)
+  virt-manager => File => Add Connection... => Hypervisor: QEMU/KVM user session , Autoconnect: V
+視情況重新登錄
+  sudo systemctl enable libvirtd && logout
+參考資料
+  性能更好的虛擬機，virt-manager 的安裝與使用 :: https://sspai.com/post/80638
+
+
+關閉 libvirt 產生的 virbr0 網卡
+----------
+virsh net-list
+virsh net-destroy default
+virsh net-undefine default
+virsh net-autostart --network default --disable  # prevent the network from automatically starting on boot
+ip addr
+
+
+支援 UEFI Fireware
+----------
+安裝 UEFI firmware for virtual machines
+  apt install ovmf
+將虛擬機設為 UEFI 模式
+  vim /etc/libvirt/qemu/virtual_machine
+  在 <os> 區段加入 <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
+
+
+libvirt 網路機制
+----------
+預設產生 virbr0 虛擬橋接器，供 NAT 虛擬網路模式使用
+虛擬機所用之 NAT 模式網路卡，依序為 vbet0、vbet1﹍
+之後建立 virbr[x] 虛擬橋接器，供 isolated 等非 NAT 之虛擬網路模式使用
+
+
+
+
+直接以硬碟分割區開機
+====================
+系統裝有 QEMU 模擬器，可以不必重開機，直接這樣測試：
+  qemu -usb /dev/sdz
+
+假設 grub 的相關檔案已先裝入 /dev/sdz4 且 /dev/sdz4 已掛載在 /mnt/sdz4 底下
+  gunzip bootcd-i486-7.0.iso.gz
+  mount -o loop bootcd-i486-7.0.iso /mnt/ttylinux
+  cd /mnt/ttylinux
+  mkdir /mnt/sdz4/boot/ttylinux
+  cp -a . /mnt/sdz4/boot/ttylinux    #不要用 cp -a /mnt/ttylinux/* /mnt/sdz4 之類的指令，這樣會漏掉隱藏檔。
+  cd -
+  umount /mnt/ttylinux
+
