@@ -1,0 +1,57 @@
+##/bin/xxxx
+# vim:ts=4
+# program: knowhow how to insuall macOS on Linux
+# made by: Engells
+# date: Dec 17, 2025
+# content: Install macOS with qemu-kvm
+
+
+
+常用指令
+====================
+1. 安裝必要套件
+   dmg2img, git, qemu*
+2. 複製OSX-KVM儲存庫，模擬 iMac Pro
+   git clone --depth 1 --recursive https://github.com/kholia/OSX-KVM.git
+3. 下載 macOS 安裝映像檔
+   ./fetch-macOS-v2.py
+   # 帶有RECOMMENDED標籤的是作者建議的穩定版本，太新的版本可能無法開機。
+4. 將 DMG 轉成 IMG
+   dmg2img -i BaseSystem.dmg BaseSystem.img
+5. 建立一個虛擬硬碟，建議至少 128GB
+   qemu-img create -f qcow2 mac_hdd_ng.img 128G
+6. 修改 OpenCore-Boot.sh 指令稿，視需求加大分配給虛擬機的RAM，修改模擬的 CPU 核心數，改成接近宿主機的數值
+   vim OpenCore-Boot.sh
+   # ALLOCATED_RAM="8192" # MiB
+   # CPU_SOCKETS="1"
+   # CPU_CORES="4"
+   # CPU_THREADS="4"
+   # -cpu Penryn => -cpu Haswell-noTSX
+7. 用 OpenCore-Boot.sh 指令稿開機，QEMU GTK 視窗應該會自己跳出來
+   ./OpenCore-Boot.sh
+   # 方向鍵移動到 Base System，按下 Enter
+   # 點選磁碟工具(Disk Utility)，按 Continue
+   # 選取剛剛建立的虛擬硬碟，點選 Erase 格式化，Format 選 macOS Extended (Journal)，虛擬機不要選 APFS
+   # 關閉磁碟工具，回到主畫面，點選 Reinstall macOS，按 Continue
+   # 按照螢幕指示完成安裝，下載檔案和安裝系統要 2 小時以上。安裝期間可能需要反覆重開虛擬機才能順利裝完。
+   # 設定好時間、語言、使用者帳號。進入桌面之後點選系統設定 → 系統更新，讓系統跑完更新，不要進行系統大版本升級，很容易失敗，建議先保持在安裝當下的版本
+8. 開機指令稿 OpenCore-Boot.sh有啟用 SSH通訊埠轉發，可從 Linux宿主機輸入 ssh localhost -p 2222登入macOS。
+9. 日後要開機請執行 OpenCore-Boot.sh 指令稿並選取 macOS 硬碟開機。
+10.虛擬機導入 virt-manager
+   cp macOS-libvirt-Catalina.xml macOS.xml
+   virt-xml-validate macOS.xml
+   virsh --connect qemu:///system define macOS.xml
+   sudo setfacl -m u:libvirt-qemu:rx /path/to/
+   sudo setfacl -R -m u:libvirt-qemu:rx /path/to/OSX-KVM
+   # macOS-libvirt-Catalina.xml 是 OSX-KVM 所用虛擬機的組態檔案
+   # 導入前，將組態檔案 /home/CHANGEME/ 路徑改為 macOS 虛擬機實際所在位置，專案中該位置包括 BIOS 等引導檔案
+   # 若變動 /home/CHANGEME/OSX-KVM/mac_hdd_ng.img 位置，亦需修正
+   # /path/to/OSX-KVM 以及該目錄的上一級目錄需作權限設定
+   # 參考指令 sudo virsh define /path/to/macOS-libvirt-Catalina.xml
+
+
+Refs:
+ 免 Mac 電腦，OSX-KVM 讓你在 Linux 系統安裝 macOS 的 QEMU 虛擬機 :: https://ivonblog.com/posts/linux-osx-kvm/
+ 在 Linux 系統安裝 macOS 的 QEMU 虛擬機 :: https://blog.wearzdk.me/article/how-to-run-macos-sonoma-on-linux-using-qemu-kvm
+ Archlinux安裝OSX-KVM(無顯卡直通) :: https://www.cnblogs.com/mindreamaster/p/17497485.html
+ kholia/OSX-KVM :: https://github.com/kholia/OSX-KVM

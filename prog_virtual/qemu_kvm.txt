@@ -1,4 +1,4 @@
-##/bin/bash
+##/bin/xxxx
 # vim:ts=4
 # program: knowhow about QEMU
 # made by: Engells
@@ -36,7 +36,7 @@ qemu-img create [-f fmt] [-o options] filename [size]
 qemu-img info --backing-chain /path/to/overlay_img
   ＃ 查詢 overlay 虛擬磁碟或快照等映像檔的上層繼承譜系
 
-qemu-img convert qemu-img convert [-c] [-e] [-p] [-f format] filename [-O output_format] output_filename
+qemu-img convert [-c] [-e] [-p] [-f format] filename [-O output_format] output_filename
   # qemu-img convert -c -f qcow2 Win_11_Base.qcow2 -O qcow2 Win_11_Base_b.qcow2
   # -c 壓​縮，-e 加​密，-p 顯示處理進度
 

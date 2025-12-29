@@ -1,0 +1,366 @@
+##!/bin/bash
+# vim:ts=4
+# program:Using to note the knowledge about proxmox
+# made by: Engells
+# date: Dec 25, 2025
+# content: Add storage usage of proxmox
+
+
+
+PVE direct IO
+====================
+Direct to HD
+---------------
+啟用 Host AT-D
+  BIOS => Advanced => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advanced => System Agent (SA) Configuration => VT-D >> Enable
+修改開機選項
+  編輯 /etc/default/grub >> GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on pcie_acs_override=downstream"
+  sudo update-grub
+  sudo reboot
+修改啟用模組
+  編輯 /etc/modules 或 /etc/modules-load.d/modules.conf，加入
+    vfio
+    vfio_iommu_type1
+    vfio_pcioptions     # vfio_pci ?
+    vfio_virqfd         # not need on PVE 8
+  sudo update-initramfs -u -k all
+將硬碟指定至虛擬機(選用步驟)
+  qm set <vmid> -<vm device> /path/to/disk
+  # 釋例 qm set 102 -scsi2 /dev/disk/by-id/ata-ST4000DM004-2CV104_WFN1Z43V
+  edit /etc/pve/qemu-server/vm_id.conf
+  # scsi[x]: /dev/disk/by-id/ata-ST4000DM004-2CV104_WFN1Z43V,size=xxxx,serial=xxxx
+  # serial 可以 lsblk -o +MODEL,SERIAL,WWN 指令查詢
+
+
+PVE 與 Ubuntu direct to HD 差異
+---------------
+PVE 啟用 VFIO 核心模組，搭配 qm 指令將 HD 掛於 VM，再編輯 VM 設定檔補充 Serial 資料。亦可不補充 Serial 資料
+Ubuntu 不需啟用 VFIO 核心模組，直接編輯 VM 設定檔即可。
+
+
+Direct to GPU
+---------------
+簡述
+  啟用 Host 硬體對 IOMMU / VFIO 支援
+  啟用 Host OS 核心對 IOMMU / VFIO 支援 <= /etc/kernel/cmdline >>> vmlinuz/kernel
+  隔離目標 GPU，使用 Host OS 非核心內置模組方式 <= /etc/modprobe.d/vfio.conf >>>  >>> 2nd init
+  啟用 Host OS 核心開機載入 VFIO 核心模組或核心套件 <= /etc/modules-load.d/conf.conf >>> initramfs/1st init
+  禁止 Host OS 開機佔用要直通之 GPU 驅動模組及其他相關模組 <= /etc/modprobe.d/xxxx.xonf >>> 2nd init
+  允許不正常中斷(選用)
+  修改 kvm 組態(選用)，修正 VM 重開機失敗
+  更新 initramfs 並重開機
+
+啟用 Host 硬體對 IOMMU / VFIO 支援，開啟 Host AT-D 功能
+  BIOS => Advanced => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advanced => System Agent (SA) Configuration => VT-D >> Enable
+
+啟用 Host OS 核心對 IOMMU / VFIO 支援 ，修改開機選項
+  Systemd-boot 開機管理模式
+    編輯 /etc/kernel/cmdline 修改 boot=xxx 相關的指令
+      root=ZFS=rpool/ROOT/pve-1 boot=zfs intel_iommu=on iommu=pt pcie_acs_override=downstream video=efifb:off,vesafb:off
+      # intel_iommu=on 參數，開啟IOMMU
+      # iommu=pt 參數，pt 指 Passthrough Mode，防止核心試圖接觸 (touching) 無法直通的設備
+      # pcie_acs_override=downstream 加入此參數，分組後可把繪圖裝置跟聲音裝置分別直通給不同 VM。沒加入此參數，分組後直通顯卡會同步綁定繪圖裝置跟聲音裝置
+      # pcie_acs_override: 核心參數，不管實際的 PCIe topology，另行產生 IOMMU groups，Arch 需要 linux-zen 之類核心才有支援
+      # downstream,multifunction: 核心參數值，強制核心盡可能拆分同一 PCIe 插槽的不同裝置
+      # video=efifb:off,vesafb:off efi 開機後不載入 fb0，若顯卡插在主機板第一條 PCI-E 才需要加上 video=efifb:off 參數
+      # 自 PVE 7.2 起，可以 initcall_blacklist=sysfb_init 取代 video=efifb:off,vesafb:off
+    pve-efiboot-tool refresh && reboot
+  Grub 開機管理模式
+    編輯 /etc/default/grub >> GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on iommu=pt pcie_acs_override=downstream video=efifb:off,vesafb:off"
+      # 選項 "intel_iommu=on" 或 "amd_iommu=on"
+      # 選項 iommu=pt iommu=1，參考： https://morphechan.com/pve-gpu-passthrough-ubuntu-vm/
+      # 選項 pcie_acs_override=downstream
+      # 自 PVE 7.2 起，initcall_blacklist=sysfb_init 可取代 video=efifb:off,vesafb:off 有較佳效果
+      # 只適用 grub 控制開機核心模組情形，若PVE 已改用 systemd-boot 開機，本段不適用
+    update-grub && reboot
+    確認 iommu 開啟成功
+      dmesg | grep -e DMAR -e IOMMU → [ ... ] ... : IOMMU performance counters supported
+      find /sys/kernel/iommu_groups/ -type l → /sys/kernel/iommu_groups/17/devices/0000:09:00.3 ...
+
+隔離目標 GPU
+  查詢目標 GPU 之 vemder ID 及 device ID
+    lspci -nnk or lspci -nnv or lspci -nn
+  編輯 /etc/modprobe.d/vfio.conf，檔名任意，加入：
+    options vfio-pci ids=XXXX:XXXX,YYYY.YYYY 或
+    options vfio-pci ids=XXXX:XXXX
+    options vfio-pci ids=YYYY:YYYY
+    # 後續 softdep 是讓核心在載入這些模組前優先載入 vfio，亦可編輯 /etc/modprobe.d/blacklist.conf 禁用目標 GPU 之驅動
+    # softdep nouveau pre: vfio-pci
+    # softdep nvidia pre: vfio-pci
+    # softdep nvidiafb pre: vfio-pci
+    # softdep nvidia_drm pre: vfio-pci
+    # softdep drm pre: vfio-pci
+
+啟用 Host OS 核心開機載入 VFIO 核心模組或核心套件
+  編輯 /etc/modules(該檔案為 /etc/modules-load.d/modules.conf 連結標的)，加入
+    # load GVT-G drive
+    kvmgt
+    # load VFIO drivers
+    vfio
+    vfio_iommu_type1
+    vfio_pcioptions
+  更新 initramfs，此步驟亦可順延至最後階段執行
+    update-initramfs -u -k all && reboot
+
+禁止 Host OS 開機佔用要直通之 GPU 驅動模組及其他相關模組
+  編輯 /etc/modprobe.d/pve-blacklist.conf，檔名任意，加入
+    # block INTEL driver
+    blacklist snd_hda_intel
+    blacklist snd_hda_codec_hdmi
+    blacklist i915
+    # block NVIDIA driver
+    blacklist nouveau
+    blacklist nvidia
+    blacklist nvidiafb
+    blacklist nvidiadrm
+    # block AMD driver
+    blacklist radeon
+    blacklist amdgpu
+
+允許不正常中斷(選用)
+  編輯 /etc/modprobe.d/iommu_unsafe_interrupts.conf，檔名任意，加入
+    # IOMMU interrupts allow
+    options vfio_iommu_type1 allow_unsafe_interrupts=1
+
+修改 kvm 組態(選用)，修正 VM 重開機失敗
+  NVIDIA 顯卡禁止自動開機，編輯 /etc/modprobe.d/kvm.conf，檔名任意，加入
+    # KVM config to avoid code 43
+    options kvm ignore_msrs=1
+    options report_ignored_msrs=0
+  AMD 顯卡禁止自動開機
+    apt install pve-headers-$(uname -r)
+    apt install git dkms build-essential
+    git clone https://github.com/gnif/vendor-reset.git
+    cd vendor-reset
+    dkms install .
+    echo "vendor-reset" >> /etc/modules
+    update-initramfs -u
+    shutdown -r now
+  Intel 顯卡啟用 GVT，編輯 /etc/modprobe.d/kvm.conf，加入
+    # INTEL Graphic config
+    options i915 enable_gvt=1
+    options i915 enable_guc=0
+
+更新 initramfs 並重開機，需開機 Host 才能啟用 pass-through
+  重開機
+    update-initramfs -u -k all && sudo reboot or systemctl reboot
+  確認模組加載成功
+    dmesg | grep -i vfio → ... [ ... ] VFIO - User Level meta-driver version: 0.3
+    dmesg | grep 'remapping' → [ ... ] ... : Interrupt remapping enabled
+    lspci -v → ... VGA compatible controlle ... Kernel driver in use: vfio-pci ...
+
+
+PVE 與 Ubuntu pass-through GPU 差異
+---------------
+啟用 Host OS 核心對 IOMMU / VFIO 支援階段
+  Ubuntu 未使用 video=efifb:off,vesafb:off 核心參數
+
+啟用 Host OS 核心 VFIO 模組階段
+  Ubuntu 使用較新核心已內建 vfio 及 iommu 驅動類模組，仍需補充目標 GPU 的 Device ID
+  PVE 預設未啟用 vfio 相關模組，需在 /etc/modules 設定，之後與 Ubuntu 相同需補充目標 GPU 的 Device ID
+
+其餘階段，兩者作法相同
+
+
+參考資料
+---------------
+PCI Passthrough :: https://pve.proxmox.com/wiki/PCI_Passthrough
+Proxmox VE總整理(二) - PVE基本配置(直通包括獨顯+開啟內顯GVT-G) :: https://home.gamer.com.tw/creationDetail.php?sn=5516262
+使用 PVE 安裝 Win11 :: https://2022.4inlibra.com/2022/04/install-win11-pve/
+PCI passthrough in Win 11 VM on Ubuntu 22.04 :: https://mathiashueber.com/passthrough-windows-11-vm-ubuntu-22-04/
+PCI/GPU Passthrough on PVE 8 :: https://forum.proxmox.com/threads/pci-gpu-passthrough-on-proxmox-ve-8-installation-and-configuration.130218/
+Proxmox VE總整理(二) - PVE基本配置(直通包括獨顯+開啟內顯GVT-G) :: https://home.gamer.com.tw/creationDetail.php?sn=5516262
+Proxmox VE设置GPU直通Ubuntu虚拟机 :: https://morphechan.com/pve-gpu-passthrough-ubuntu-vm/
+PVE 虛擬機直通 SATA硬盤，安裝、洗白黑群暉 :: https://www.v2rayssr.com/pve-nas.html
+Promox VE(PVE)虛擬機安裝黑群暉保姆級圖文教程 :: https://www.10bests.com/install-synology-dsm-on-pve/
+電腦數位 篇二：intel小主機安裝PVE+Kodi(18.6)+OpenWrt，實現HTPC+旁路由功能 :: https://post.smzdm.com/p/a9926n90/
+
+
+
+
+
+SR-IOV
+====================
+SR-IOV 全稱 Single Root I/O Virtualization，是用於虛擬機的一項技術，簡單說它在實體網卡上面產生一些虛擬網卡，然後把這些虛擬網卡直接指派(PassThrough)給虛擬機(VM)來使用，從而使得VM的網卡效能變好。
+
+SR-IOV 利用兩個概念來完成裝置虛擬化
+  物理功能 (Physical Function, PF) 就是標準的 PCIe 功能 ，也就是實體網卡的功能。
+  虛擬功能 (Virtual Function, VF) 是一種輕量級 PCIe 功能，可以與物理功能以及與同一物理功能關聯的其他 VF 共享一個或多個物理資源。VF 僅允許擁有用於其自身行為的配置資源。
+
+操作步驟
+  BIOS >> 把與虛擬有關的技術都打開：Intel VT-D 或 AMD-VI (IOMMU)、SR-IOV、"Virtualization Technology"
+  grub >> GRUB_CMDLINE_LINUX_DEFAULT=" ... intel_iommu=on ..."
+  VF網卡設定 >> echo 2 > /sys/class/net/NIC_ID/device/sriov_numvfs && lspci | grep Ethernet or ip link show ;; cat /sys/class/net/NIC_ID/device/sriov_totalvfs
+  LXC設定 >> edit vim /etc/pve/lxc/100.conf
+    lxc.net.0.type:phys
+    lxc.net.0.link:enp6s6 (NIC in host)
+    lxc.net.0.name:eth0 (NIC in lxc container or vm)
+    lxc.net.1.type:phys
+    lxc.net.1.link:enp6s6f1
+    lxc.net.1.name:eth1
+  boot strip >> 
+    echo 2 > /sys/class/net/enp6s0f1/device/sriov_numvfs      # sr-iov 啟用vf網卡兩張
+    ip link set enp6s0f1 vf 0 vlan 10 mac GE:C6:B2:3C:X6:DD   # 設 VF 網卡固定 mac address，ip link set 實體網卡代號 vf VF網卡序號 vlan vlan_tag qos 優先權
+    
+Refs
+  SR_IOV :: http://note.zn2.us/sriov.htm
+
+
+
+
+Proxmox 安裝
+====================
+更新套件
+ Datacenter > pve >> Updates > Repositories >> 停用 pve-enterprise > 按下上方的 Disable 按鈕
+ Datacenter > pve >> Updates > Repositories >> Add > Repositories > 選擇 No Subscription
+ Datacenter > pve >> Updates >> Refresh > Upgrade
+ Datacenter > pve >> Updates >> Refresh
+
+上傳 ISO
+ Datacenter > pve >> Disks > ZFS >> 建立 ZFS => 供虛擬機存放用 => 若已建立 ZFS pool，不需再建
+ Datacenter > pve > local(pve) >> ISO 映像檔 >> 上傳
+
+主硬碟上的 SSD 合併成一個分區，開放給 VM 放置 Disk Images 使用，即移除內建 local-lvm 合併空間到 local 中
+ 於 PVE GUI 界面打開 Host 的 Shell，或者用 SSH 連線到 Host 端
+  lvremove pve/data                  # 移除 local-lvm 分區
+  lvextend -l +100%FREE -f pve/root  # 將所有空閒分區移到 local 內
+  resize2fs /dev/mapper/pve-root     # 將 local 邏輯分區擴大
+ Datacenter >> Storage >> local-lvm > Remove
+ Datacenter >> Storage >> local > Edit > General > Content > 加入 Disk image、ISO image 等
+
+停用 SWAP
+ swapoff -a
+ lvchange -a n /dev/pve/swap
+ lvremove /dev/pve/swa
+ edit /etc/fstab
+  # UUID=... none swap sw 0 0
+ reboot && free -m
+
+將 /vae/log 遷入 tmpfs，此步驟慎用
+ edit /etc/fstab
+  # tmpfs /var/log tmpfs defaults,noatime,mode=0755,size=50M 0 0
+
+單網卡多個 IP，建立多個 Linux Bridge，各自使用一個 IP
+ Datacenter > pve >> System > Network >> Create > Linux Bridge
+ Datacenter > pve >> System > Network >> vmbr[x] > Edit > IP
+
+禁止登錄時訂閱提示
+ cp /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak
+ vim /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+  .data.status.toLowerCase() !== 'active' >> .data.status.toLowerCase() === 'active'
+ systemctl restart pveproxy.service
+
+
+
+
+Proxmox VE 相關簡述
+====================
+組態檔案
+----------
+設定檔：/etc/pve
+KVM 虛擬機：/etc/pve/qemu-server/xxxx.conf，VM ID 編號 100 至 999999999
+lxc 容器：/var/lib/lxc
+VM images             /var/lib/vz/images/<VM ID>/xxxx.raw or xxxx.qcow2
+ISO images            /var/lib/vz/template/iso/xxxx.iso
+Container templates   /var/lib/vz/template/cache/xxxx.tar.gz
+Backup files          /var/lib/vz/dump/
+Snippets              /var/lib/vz/snippets/
+
+
+PVE 硬碟使用
+----------
+PVE 常見硬碟使用方式，一顆主硬碟作為 local 系統分區，其餘多顆硬碟組成陣列使用作為 local-lvm 分區。此時主硬碟作 PVE 系統，其餘硬碟儲存 VM/CT。
+單硬碟安裝時，PVE 預設切用 30% 主磁碟的容量作為 local 系統分區、剩餘 70% 容量作為 local-lvm 儲存分區。需注意 local-lvm 分區因檔案格式限制，生成 VM 時無法使用 qcow2 格式，只能使用 raw 格式，也不能放 VM/CT 以外的資料，空間利用自由受限。此種情況宜刪除 local-lvm 分區，將原本該分區空間併入 local 分區。
+
+以虛擬機，單硬碟映像檔，安裝 Proxmox 時，對單硬碟映像檔使用如下:
+├─vda1               253:1    0 1007K  0 part
+├─vda2               253:2    0  512M  0 part /boot/efi
+└─vda3               253:3    0 59.5G  0 part
+ ├─pve-swap          252:0    0  7.4G  0 lvm  [SWAP]       <= SWAP 分區，/dev/pve/swap
+ ├─pve-root          252:1    0   25G  0 lvm  /            <= local 系統分區，在 PVE 代號 pve/root，/dev/mapper/pve-root
+ ├─pve-data_tmeta    252:2    0    1G  0 lvm               <= local-lvm 分區，在 PVE 代號 pve/data, /dev/mapper/pve-data
+ │ └─pve-data-tpool  252:4    0 17.7G  0 lvm
+ │   └─pve-data      252:5    0 17.7G  1 lvm
+ └─pve-data_tdata    252:3    0 17.7G  0 lvm               <= local-lvm 分區，在 PVE 代號 pve/data, /dev/mapper/pve-data
+   └─pve-data-tpool  252:4    0 17.7G  0 lvm
+      └─pve-data     252:5    0 17.7G  1 lvm
+
+local：Promox OS、儲存映像檔、容器模板、VM/CT 備份用的空間。使用的硬碟分區為 /dev/sd[x][3]/pve-root。
+local-lvm：儲存 VM 與 CT 虛擬硬碟的空間。使用的硬碟分區為 /dev/sd[x][3]/pve-data_tmeta 及 pve-data_tdata
+ # pve-data_tmeta: The logical volume that stores the metadata for the pve/data logical volume
+ # pve-data_tdata: The logical volume that stores the actual data (virtual disks, backups, etc.) for the pve/data logical volume
+ # pve/data: a common logical volume (LV) name in PVE, representing your main storage pool
+
+儲存設定檔
+ /etc/pve/storage.cfg
+
+
+PVE 建立 ZFS 採用 File Level 方式存放虛擬磁碟檔
+----------
+Datacenter >> Storage >> Add  > Directory
+ ID: 自行定義，例如 zfspool 原名為 vmimage，則取名 vmimage-dir，方便辨識此儲存是 Directory 的類型
+ Directory: zfspool 掛載目錄
+ Content: 該儲存支援的檔案類型，如 VM images、ISO images 等
+ # 以本方式讓虛擬機使用 qcow2 檔案若遇虛擬機開機失敗，該 qcow2 檔案之 Cache 需定為 Write through 或 Write back
+ # 本方法會讓 qcow2 做 File Level CoW (Copy on Write)，而 ZFS 本身已是 CoW 的檔案系統，經過兩個層級 CoW 後，對於寫入將會帶來較大的效能損耗，
+ # 若想要最佳效能，仍建議選用 Block Level 的 ZFS subvol 模式存放虛擬磁碟
+
+
+PVE 網路配置
+----------
+網路類型
+ 網路裝置：標準的網路介面，對應到實際網路裝置的連接埠
+  # 網路裝置連接埠名稱，在 PVE 系統中的編號規則以 en 開頭，後面的字元以規則進行套用：
+  #  o<index>[n<phys_port_name>|d<dev_port>]：主機板內建裝置
+  #  s<slot>[f<function>][n<phys_port_name>|d<dev_port>]：依安裝介面卡的 ID
+  #  [P<domain>]p<bus>s<slot>[f<function>][n<phys_port_name>|d<dev_port>]：依裝置在匯流排的 ID
+  #  x<MAC>：依裝置的 MAC 位址
+  #   eno1 指的是主機版上的第一個網路裝置連接埠，enp3s0f1 指的是 pcibus 3 插槽 0 的網路裝置，第一個連接埠。
+ Linux Bridge：軟體虛擬的網路裝置，用來將虛擬機網路與實體網路橋接起來
+ Linux Bond：將多個網路介面繫結聚合使用，例如 LACP
+ Linux VLAN：建立與指定 VLAN 連接的裝置介面
+
+網路裝置介面命名規則
+ en[x]：乙太網路裝置連接埠 (在 5.0 以前版本則是 eth[N]，用途完全相同)，由 1 開始編號，例如 eno1、eno2 ...
+ vmbr[x]：虛擬網路橋接器，由 0 開始編號最大至 4094，例如 vmbr0、vmbr1 ...
+ bond[xN]：網路繫結，由 0 開始編號，例如 bond0、bond1 ...
+ VLAN.[xN]：VLAN 網路，在網路裝置名稱後加上點以及 VLAN 編號，例如 eno1.50、bond1.30 ...
+
+網路設定檔
+ 網路配置： /etc/network/interfaces
+ 名稱伺服器相關設定： /etc/resolv.conf
+
+
+PVE 套件庫
+----------
+Proxmox VE 的套件庫共有三種
+ Enterprise Repository
+  預設企業級套件庫，提供給付費授權並取得金鑰的客戶使用。這個套件庫的特點是提供最穩定的版本，適合使用在正式上線服務的環境使用。
+ No-Subscription Repository
+  這個套件庫不需授權密鑰即可取得套件更新清單。官方建議用在測試與非正式上線的環境，因部份套件未經過較長週期的測試與驗證，套件更新較 Enterprise Repository 快一些。較適合在單位內部使用，且維運人員具備一定程度的 Proxmox VE 技能知識。
+ Test Repository
+  這個套件庫包含最新版本的套件，開發團隊大量使用它來測試新功能。最好只用於嘗鮮、測試新功能或是除錯，絕對不要使用在正式環境。
+
+套件庫
+ /etc/apt/sources.list
+ /etc/apt/sources.list.d/pve-enterprise.list
+
+
+
+
+Proxmox VE 參考指令
+====================
+qm importdisk <vmid> <images-name> <storage pool> --format=<disk-fs>
+  # vmid： virtual machinne id
+  # storage pool: pool name / location
+  # disk-fs: raw / vmdk / qcow2
+  # qm importdisk 102 Ubuntu_22.04.vmdk local-lvm --format=qcow2
+qm set <vmid> -<vm device> /path/to/disk
+  # qm set 102 -sata2 /dev/disk/by-id/xxxxx
+pvesh get /nodes/{nodename}/hardware/pci --pci-class-blacklist ""
+  # 認要直通的 PCI device 是不是單獨在一個 iommu group 裡
+qemu-img convert -f raw -O qcow2 /dev/zvol/ZFS-4TB-Spinner/vm-201-disk-0 /dev/zvol/ZFS-4TB-Spinner/vm-201-disk-0.qcow2
+
+

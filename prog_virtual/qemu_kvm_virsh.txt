@@ -1,4 +1,4 @@
-##!/bim/bash
+##!/bim/xxxx
 # vim:ts=2
 # program: knowhow about libvirt
 # made by: Engells

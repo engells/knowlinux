@@ -1,0 +1,103 @@
+##!/bin/xxxx
+# vim:ts=4
+# program: Knowhow about Monitor Apps on Raspberry Pi
+# made by: Engells
+# date: Feb 9, 2023
+# content: Just for memo
+
+
+
+Retroarch
+====================
+config retroarch 
+----------
+edit $HOME/snap/retroarch/1841/.config/retroarch.cfg or $HOME/.config/retroarch.cfg
+ core_updater_buildbot_url = "http://buildbot.libretro.com
+ core_updater_buildbot_assets_url = "http://buildbot.libretro.com/assets/"
+ core_updater_buildbot_cores_url = "http://buildbot.libretro.com/nightly/linux/armhf/latest/"
+
+
+install retroarch with snap
+----------
+sudo apt update && sudo apt install snapd && sudo reboot
+sudo snap install core
+sudo snap install retroarch
+sudo apt update && sudo apt install libnotify-bin notification-daemon dbus
+mkdir -p $XDG_DATA_HOME/dbus-1/services
+edit $XDG_DATA_HOME/dbus-1/services/org.freedesktop.Notifications.service
+ echo '
+ [D-BUS Service]
+ Name=org.freedesktop.Notifications
+ Exec=/usr/lib/notification-daemon/notification-daemon
+ ' > $XDG_DATA_HOME/dbus-1/services/org.freedesktop.Notifications.service
+
+
+
+
+FTP server
+====================
+install and config
+----------
+sudo apt update && sudo apt install vsfptd
+sudo vim /etc/vsftpd.conf
+ anonymous_enable=NO
+ local_enable=YES
+ write_enable=YES
+ chroot_local_user=YES # optional
+ pasv_min_port=30000   # optional, use use passive mode
+ pasv_max_port=31000
+
+
+securing transmissions with SSL/TLS # optional
+----------
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem or
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/vsftpd/cert/mydomain.key -out /etc/vsftpd/cert/mydomain.crt
+sudo vim /etc/vsftpd.conf
+ rsa_cert_file=/etc/ssl/private/vsftpd.pem or /etc/vsftpd/cert/mydomain.crt
+ rsa_private_key_file=/etc/ssl/private/vsftpd.pem or /etc/vsftpd/cert/mydomain.key
+ ssl_enable=YES
+sudo systemctl restart vsftpd
+
+
+refs
+----------
+How to Setup FTP Server with Vsftpd on Raspberry Pi :: https://linuxize.com/post/how-to-setup-ftp-server-with-vsftpd-on-raspberry-pi/
+
+
+
+
+RPi-Monitor 樹莓派的監控系統
+====================
+commands
+----------
+http://xxx.xxx.xxx.xxx:8888
+sudo /etc/init.d/rpimonitor update
+sudo systemctl restart rpimonitor
+sudo systemctl start rpimonitor
+sudo systemctl stop rpimonitor
+
+edit /etc/rpimonitor/data.conf
+  # include=/etc/rpimonitor/template/wlan.conf
+
+
+install
+----------
+sudo apt install dirmngr
+sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 2C0D3C0F
+sudo wget http://goo.gl/vewCLL -O /etc/apt/sources.list.d/rpimonitor.list
+sudo apt update
+sudo apt install rpimonitor
+
+
+
+
+其他軟體
+====================
+RPi-Monitor ;; Pi-Dashboard ;; NetData
+vcgencmd measure_clock arm ; vcgencmd measure_volts ; vcgencmd measure_temp
+  使用 vcgencmd 指令查看 Raspberry Pi 的 CPU 溫度等資訊 - G.T.Wang :: https://blog.gtwang.org/iot/raspberry-pi-vcgencmd-hardware-information/
+htop ; speedometer ; s-tui
+  樹莓派監控 CPU 負載，溫度，內存和網路的工具 :: https://blog.csdn.net/xingqingly/article/details/104328570
+Volumio
+ufw
+

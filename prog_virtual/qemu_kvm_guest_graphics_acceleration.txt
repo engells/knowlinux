@@ -1,0 +1,193 @@
+##/bin/xxxx
+# vim:ts=4
+# program: knowhow about QEMU Passthrough
+# made by: Engells
+# date: Dec 26, 2025
+# content: Update GPU isolation experience
+
+
+
+Guest graphics acceleration
+====================
+QXL video driver and SPICE client for display
+  常規顯示方式，在 virt-manager 設定虛擬機設置如下
+    Display: Type: Spice Server + Listen Type: Address + Port: Auto ;; Video Model: virtio
+
+PCI GPU passthrough
+  PCI VGA/GPU passthrough via OVMF
+  Looking Glass
+
+GPU virtualization
+  SR-IOV
+    Intel 11 代 CPU 之後的內顯支持 SR-IOV vGPU，10 代以前使用 GVT 技術
+  Virgil3d
+    使用 VirGL(virtio-gl) 及 virtio-gpu(GPU time shareing solution) 技術，常使用 virglrenderer 套件，在 virt-manager 設定虛擬機設置如下
+      Display: Type: Spice Server + Listen Type: None + OpenGL: V ;; Video Model: virtio + 3D acceleration: V
+
+Ref
+  ArchWiki :: https://wiki.archlinux.org/title/QEMU/Guest_graphics_acceleration
+  Single GPU Passthrough :: https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/1)-Preparations
+  Linux i915 driver with SR-IOV support :: https://github.com/strongtz/i915-sriov-dkms
+  PVE 启用 Intel 核显 SR-IOV vGPU :: https://www.cnblogs.com/doracloud/p/Proxmox_Intel_SRIOV_VGPU.html
+  N100 小主机 ——显卡虚拟化及虚拟机设置 :: https://post.smzdm.com/p/aqmwwzd7/
+
+
+
+
+PCI VGA/GPU passthrough via OVMF
+====================
+摘要
+  啟用 Host 硬體對 IOMMU / VFIO 支援
+  啟用 Host OS 核心對 IOMMU / VFIO 支援 <= /etc/default/grub >>> vmlinuz/kernel
+  隔離目標 GPU，使用 GRUB 開機參數隔離 PCI <= /etc/default/grub >>> vmlinuz/kernel
+  啟用 Host OS 核心開機載入 VFIO 核心模組或核心套件 <= /etc/modules-load.d/conf.conf >>> initramfs/1st init
+  禁止 Host OS 開機佔用要直通之 GPU 驅動模組及其他相關模組 <= /etc/modprobe.d/xxxx.xonf >>> 2nd init
+  允許不正常中斷(選用) <= /etc/modprobe.d/xxxx.conf
+  更新 GRUB 和 initramfs，重開機時設定 BIOS
+
+
+啟用 Host 硬體對 IOMMU / VFIO 支援，開啟 Host AT-D 功能
+  BIOS => Advanced => CPU Configuration => Intel AMX Virtualization >> Enable
+  BIOS => Advanced => System Agent (SA) Configuration => VT-D >> Enable
+
+啟用 Host OS 核心對 IOMMU / VFIO 支援
+  # 啟用 Host OS 核心對 IOMMU / VFIO 支援，有二種方式：
+  #  編輯 /etc/default/grub，適用 bootloader 為 GRUB 情況，如 Arch Linux
+  #  編輯 /etc/kernel/cmdline，適用 bootloader 為 systemd-boot 情況，如 PVE7 以後版本
+
+  修改 GRUB 開機參數
+    edit /etc/default/grub
+      GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on iommu=pt"
+    # intel_iommu=on 參數，開啟IOMMU
+    # iommu=pt 參數，pt 指 Passthrough Mode，防止核心試圖接觸 (touching) 無法直通的設備
+    # pcie_acs_override=downstream 加入此參數，分組後可把繪圖裝置跟聲音裝置分別直通給不同 VM。沒加入此參數，分組後直通顯卡會同步綁定繪圖裝置跟聲音裝置
+  重開機，啟用 Host OS 核心對 IOMMU / VFIO 支援，若已知目標 GPU 之 vemder ID 及 device ID，此步驟亦可順延至最後階段執行
+    sudo update-grub && sudo reboot
+
+隔離目標 GPU
+  # 依據 Arch Wiki，隔離目標 GPU，有二種方式
+  #  編輯 /etc/default/grub，加入內核啟動參數 vfio-pci.ids=xxxx:xxxx,xxxx:xxxx
+  #  編輯 /etc/modprobe.d/vfio-pci.conf，寫入 options vfio-pci ids=xxxx:xxxx,xxxx:xxxx
+
+  查詢目標 GPU 之 vemder ID 及 device ID，需已有 Host OS 核心對 IOMMU / VFIO 支援
+    lspci -nnk or lspci -nn | grep -i nvidia or dmesg | grep -e DMAR -e IOMMU or lspci -v | grep -A1 -e VGA -e 3D
+  隔離目標顯卡：方法一
+    edit /etc/default/grub
+      GRUB_CMDLINE_LINUX_DEFAULT="... intel_iommu=on iommu=pt video=efifb:off rd.driver.pre=vfio-pci vfio-pci.ids=xxxx:xxxx,xxxx:xxxx pcie_acs_override=downstream"
+    # video=efifb:off 參數，若顯卡插在主機板第一條 PCI-E，才需要加
+    # 參考參數 video=efifb:off,vesafb:off，efifb:off 禁用 uefi BIOS 啟動的顯示設備，vesafb:off 禁用 legacy BIOS 啟動的顯示設備
+    # rd.driver.pre=vfio-pci 參數，loads the vfio-pci stub driver in the ram drive before booting.
+    # pcie_acs_override=downstream 加入此參數，分組後可把繪圖裝置跟聲音裝置分別直通給不同 VM。沒加此參數，分組後直通顯卡會同步綁定繪圖裝置跟聲音裝置
+  隔離目標顯卡：方法二
+    edit /etc/modprobe.d/vfio-pci.conf，檔名任意
+     options vfio-pci ids=ids=xxxx:xxxx,xxxx:xxxx
+     softdep nouveau pre: vfio-pci
+     softdep nvidia pre: vfio-pci
+     softdep nvidiafb pre: vfio-pci
+     softdep nvidia_drm pre: vfio-pci
+     softdep i915 pre: vfio-pci
+     softdep drm pre: vfio-pci
+    # 在 Linux Mint 21.2 Kernel 6.5 實作，編輯 /etc/modprobe.d/vfio-pci.conf 方式有效
+    # VFIO 在 Kernel 5.8 後已整合進核心套件而非 Module，故部分 Linux Distro 採 /etc/modprobe.d/xxxx.conf 方式設置 PCI 隔離無效
+    # Arch Linux 實測，使用方法二將 UHD 730 隔離成功
+
+啟用 Host OS 核心開機載入 VFIO 核心模組或核心套件
+  # 開機載入 VFIO 核心模組或核心套件，有二種方式：
+  #  編輯 /etc/mkinitcpio.conf，適用 Arch Linux
+  #  編輯 /etc/modules-load.d/vfio-pci.conf，適用 PVE
+
+  edit /etc/modules-load.d/vfio-pci.conf，檔名任意
+    sudo echo 'vfio-pci' > /etc/modules-load.d/vfio-pci.conf
+    # 視情況加入 vfio 及 vfio_iommu_type1 模組
+    # Arch Linux 設置 /etc/mkinitcpio.conf，MODULES=(vfio_pci vfio vfio_iommu_type1)，且 HOOKS=(... modconf ...)
+    # 自內核 6.2 版本開始，vfio_virqfd 的功能已經並入 vfio 模組
+    # 本步驟可採手動指令方式替代 sudo modprobe vfio_pci && sudo modprobe vfio_iommu_type1 && sudo modprobe vfio
+
+禁止 Host OS 開機佔用要直通之 GPU 驅動模組及其他相關模組
+  edit /etc/modprobe.d/blacklist-nvidia，檔名任意
+    sudo echo "blacklist nvidia" >> /etc/modprobe.d/blacklist-nvidia
+    sudo echo "blacklist nouveau" >> /etc/modprobe.d/blacklist-nvidia
+
+允許不正常中斷(選用)
+  edit /etc/modprobe.d/iommu_unsafe_interrupts.conf，檔名任意
+    sudo echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iommu-unsafe-interrupts.conf
+
+修改 kvm 組態(選用)
+  edit /etc/modprobe.d/kvm.conf，此擋在 Linux Mint 未存在
+    options kvm ignore_msrs=1
+    options kvm report_ignored_msrs=0
+
+更新 GRUB 和 initramfs 並重開機，需開機 Host 才能啟用 pass-through
+  sudo update-grub && sudo update-initramfs -u or update-initramfs -u -k all && sudo reboot
+  # Arch Linux 指令 sudo mkinitcpio -p linux
+
+設定 BIOS 開啟混合螢幕輸出
+  Advanced → System Agent (SA) Configuration → IGFX，設定以內顯優先開機
+
+檢視 IOMMU 及 VFIO 情形
+  dmesg | grep -E "DMAR|IOMMU"
+  dmesg | grep -i vfio or lsmod | grep vfio               # 檢查 vfio 模組是否運作，即使 vfio 已運行，仍需確認裝置的驅動是 vfio-pci，而非 i915 等
+  lspci -k | grep -E "NVIDIA" or lspci -nnk -d xxxx:xxxx  # 檢查 GPU 是否已被 vfio-pci 使用
+
+將獨顯加入到虛擬機
+  Virt Manager => VM => Add Hardwares => 新增 PCI 裝置，加入獨顯和獨顯音訊 HDMI
+  VM 開機後，主螢幕看到 Windows 畫面，副螢幕暫時黑畫面 => VM 安裝 GeForce 顯示卡驅動 => VM 系統設定 → 顯示器 → 圖形，指定 Nvidia 顯卡，而非 QXL
+
+安裝 Looking Glass，Looking Glass Host 與 Client 的版本需一致
+  sudo apt update && sudo apt install looking-glass-client
+  apt-cache showpkg looking-glass-client
+
+
+Refs
+  使用 lsusb 命令來獲取裝置的 vendorid 和 productid :: https://www.net-usb.com/kvm-usb-redirection/
+  Ubuntu：Windows 虛擬機 Nvidia 顯示卡直通 ＋ Looking Glass 安裝 :: https://ivonblog.com/posts/ubuntu-gpu-passthrough/
+  在 Windows 虛擬機玩遊戲 ～ Linux QEMU/KVM 雙 GPU 直通 ＋ Looking Glass 安裝過程 :: https://ivonblog.com/posts/qemu-kvm-vfio-gaming/
+  KVM/QEMU 虛擬機器設定 GPU Passthrough 記錄 :: https://blog.gtwang.org/linux/ubuntu-linux-kvm-qemu-gpu-passthrough-tutorial/
+  Arch Linux 將 Nvidia GPU 直通給 Windows QEMU/KVM 虛擬機 :: https://ivonblog.com/posts/archlinux-gpu-passthrough/
+  GPU Passthrough設定及一些眉角分享 :: https://www.ptt.cc/bbs/Linux/M.1622355127.A.128.html
+  PTT GPU Passthrough設定及一些眉角分享 :: https://www.ptt.cc/bbs/Linux/M.1622355127.A.128.html
+  Fedora qemu/kvm gpu 直通(passthrough) 筆記 :: https://hackmd.io/@U9m9FarsR0SQGVuSmTJNiw/HkBjGlwuq
+  雙顯卡筆記本獨顯直通 :: https://www.codeplayer.org/Blog/%E5%8F%8C%E6%98%BE%E5%8D%A1%E7%AC%94%E8%AE%B0%E6%9C%AC%E7%8B%AC%E6%98%BE%E7%9B%B4%E9%80%9A.html
+  Virtual machines with PCI passthrough on Ubuntu 20.04 :: https://mathiashueber.com/pci-passthrough-ubuntu-2004-virtual-machine/
+  Single GPU Passthrough :: https://gitlab.com/risingprismtv/single-gpu-passthrough/-/wikis/1)-Preparations
+  GPU-Passthrough-Manager :: https://github.com/uwzis/gpu-passthrough-manager
+  Building the Linux kernel for dedicated hardware VMs :: https://some-natalie.dev/blog/fedora-acs-override/
+  Windows VM with GPU Passthrough, Part 3: Setting up Looking Glass :: https://quantum5.ca/2022/09/18/windows-vm-gpu-passthrough-part-3-setting-up-looking-glass/
+
+
+
+
+Memo
+====================
+iommu 設置後，系統 iommu 群組檔案
+  /sys/class/iommu ; /sys/kernel/iommu_groups/ ; 
+
+手動配置 vfio pci 裝置(需搭配 initramfs 更新)
+  Debian like
+    /etc/modules-load.d/xxxx.conf
+    /etc/initramfs-tools/scripts/init-top/xxxx.sh
+  Arch Linux like
+    /etc/mkinitcpio.conf
+      MODULES=( ... vfat vfio-pci vfio_iommu_type1 ... )
+      FILES=(/etc/modprobe.d/vfio.conf /path/to/vfio_pci_override.sh)
+    /etc/modprobe.d/vfio.conf
+      install vfio-pci /path/to/vfio_pci_override.sh 
+    /path/to/vfio_pci_override.sh
+      ...
+      echo "vfio-pci" > /sys/bus/pci/devices/$GROUP/$DEV/driver_override
+      ...
+      modprobe -i vfio-pci
+  Common
+    /etc/modprobe.d/xxxx.conf
+
+開機後，手動配置 vfio pci 裝置(純粹參考)
+  echo '0000:03:00.0' > /sys/bus/pci/devices/0000:03:00.0/driver/unbind
+  echo '8086 56a5'    > /sys/bus/pci/drivers/vfio-pci/new_id
+  echo '0000:03:00.0' > /sys/bus/pci/devices/0000:03:00.0/driver/bind
+  echo '8086 56a5'    > /sys/bus/pci/drivers/vfio-pci/remove_id
+
+  echo 1 > /sys/bus/pci/devices/0000:03:00.0/remove,rescan,reset
+  echo "8086 56a5" > /sys/bus/pci/drivers/vfio-pci/new_id
+  echo 1 > "/sys/bus/pci/rescan"
+
+

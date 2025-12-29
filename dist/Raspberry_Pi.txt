@@ -1,0 +1,159 @@
+##!/bin/bash
+# vim:ts=4
+# program: Knowhow about Raspberry Pi
+# made by: Engells
+# date: Nov 6, 2025
+# content: Add raspap acct and passwd
+
+
+Environment
+====================
+account:   admit
+passwd:    acctatlxc~year5
+vncserver: abcd1234
+ip4 addr:  192.168.1.121:62 / 192.168.1.122:62
+raspap:    admit / cvv***1
+
+先插好 HDMI 接線再開機，避免訊號輸出至 RC
+
+常用指令
+----------
+sudo sync && sudo shutdown -r now ;; sudo poweroff ;; sudo reboot
+startx
+sudo raspi-config
+sudo /etc/rc.local
+sudo update-rc.d -f ssh defaults 20    # allow ssh login
+
+dosbox
+  edit conf => usescancodes=false
+
+安裝套件
+----------
+zsh oh-my-zsh tmux neovim dosbox retroarch flatpak snapd
+
+
+
+
+指令
+====================
+inxi -D                                       # 查詢 Linux 系統軟硬體資訊，安裝 sudo apt install inxi
+lshw                                          # 查詢 Linux 系統軟硬體資訊，以 sudo 方式執行
+strings /boot/start.elf | grep VC_BUILD_ID    # 查詢 firmware 版本
+rpi-update                                    # 更新核心和韌體到最新版本，此指令似較 rpi-eeprom-update 新
+rpi-eeprom-update -a                          # 更新韌體，編輯 /etc/default/rpi-eeprom-update => FIRMWARE_RELEASE_STATUS="stable"
+
+
+
+
+USB 啟動系統
+====================
+Raspberry Pi 4B
+----------
+修改設定檔 /etc/default/rpi-eeprom-update
+  FIRMWARE_RELEASE_STATUS="stable"
+更新系統
+  sudo apt update ; sudo apt upgrade ; sudo rpi-update ; sudo reboot
+更新韌體
+  sudo rpi-eeprom-update -d -f && reboot
+檢查韌體版本
+  vcgencmd bootloader_version
+
+參考資料
+  樹莓派4B從USB啟動系統【EEPROM原生方案】 :: https://pa.ci/102.html
+
+
+Raspberry Pi 3B
+----------
+修改設定檔 /boot/config.txt 加入
+  program_usb_boot_mode=1
+
+確認是否啟用 USB 開機，執行指令
+  vcgencmd otp_dump | grep 17
+    # 若結果為 17:3020000a，則可自 USB 啟動系統。實測 OK
+
+
+選擇開機裝置
+----------
+直接指定開機裝置
+  sudo raspi-config > Advanced Options > Boot Order > SD or USB or Network
+
+開機時手動指定
+  開機時長按空白鍵不放，直至螢幕出現開機選單，選擇開機裝置
+
+
+
+
+設定螢幕解析度
+====================
+編輯 /boot/config.txt
+  取消註解
+    hdmi_safe=1               # safe mode for HDMI
+    hdmi_drive=2              # force to HDMI mode
+    config_hdmi_boost=4       # 640x480 60Hz, mode=9 => 800x600 60Hz ; mode=16 => 1024x768 60Hz ; mode=82 => 1080p 60Hz
+  設置
+    hdmi_group=2              # DMT=2(Monitor without audio), CEA=1,4(TV with sound)
+    hdmi_mode=47              # mode=47   1440x900   60 Hz
+    hdmi_force_edid_audio=1   # force audio
+
+進入 Raspbian 終端機
+  tvservice -d edid.dat ;; edidparser edid.dat
+
+重開機
+  sudo reboot
+
+參數意義
+  hdmi_drive：設定要驅動 DVI (1) 還是 HDMI (2)，必須使用 HDMI ，也就是設定為 2 才會有聲音。
+  hdmi_group：用來指定要使用 CEA 或 DMT 的格式設定解析度。
+  hdmi_mode：當 hdmi_group=2，而 hdmi_mode=16 時，表示使用 1024x768 60 Hz 的解析度。
+   hdmi_mode=69   1920x1200  60 Hz  
+   hdmi_mode=70   1920x1200  75 Hz
+
+其他參考指令:
+  sudo tvservice -n       # video output device name
+  sudo tvservice -s       # video output device mode: 
+  sudo tvservice -m CEA:  # supported list of CEA mode
+  sudo tvservice -m DMT:  # supported list of DMT mode 
+
+參考資料
+  http://elinux.org/RPiconfig
+
+
+
+
+鍵盤及聲音設置
+====================
+鍵盤
+  sudo raspi-config => Localization Options => Keyboard => Generic 105-key PC (Intl.) => Other >> English (US)
+聲音
+  查詢現有裝置:      sudo aplay -l
+  查詢或變更預設裝置: sudo amixer scontrols ;; sudo amixer scontrols -D sound_card_name
+  設定音量:         sudo alsamixer
+  其他參考指令:
+    amixer cset numid=3 n == raspi-config => System Options => Audio
+      n = 0 auto，HDMI first
+      n = 1 analog only, 3.5mm headphone
+      n = 2 HDMI only
+    sudo lsmod | grep snd_bcm2835
+    sudo cat /proc/asound/cards
+    /etc/modules snd-bcm2835
+
+
+
+
+安裝 Raspbian
+====================
+一般安裝
+----
+下載 raspbian stretch lite 或其他鏡像 img
+鏡像 dump 至 SD Card
+  dd if=/path/to/img_file of=/dev/sd_card bs=8M
+啟用 SSH
+  touch /path/to/raspberry_pi/boot/ssh[.txt]    # or login Raspberry and run raspi-config to enable ssh
+其他設定(備用)
+  edit /boot/config
+  edit /boot/wpa_supplicant.conf
+開機：先插入鍵盤、滑鼠，接著開啟螢幕，插上 HDMI，最後插上樹莓派電源。
+組態設定
+  sudo raspi-config
+    sudo /usr/bin/rootfs-expand    # expand rootfs on microsd card
+
