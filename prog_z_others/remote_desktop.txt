@@ -1,0 +1,199 @@
+##!/bin/xxxx
+# vim:ts=4
+# program: Using to note the knowledge about remote desktop
+# made by: Engells
+# date: Jan 1, 2026
+# content: Add sections of VNC and RDP
+
+
+
+
+Moonlight + Sunshine
+====================
+安裝、設定與移除 Sunshine
+----------
+伺服器端(虛擬機)安裝 Sunsine
+在伺服器端開啟瀏覽器，輸入 https://localhost:47990，設定後台帳號密碼
+  # Sunshine 後台 > Configuration > Network > Allow LAN Web UI
+伺服器端開啟「Windows防火牆設定」，允許應用程式通過防火牆，確認 Sunshine 是否有打勾。
+伺服器端 Windows的「服務」選單控制 Sunshine 是否要在電腦開機後自動啟動
+注意事項:
+  Sunshine 跟 Windows 內建RDP遠端桌面可能會衝突，二者不可以同時登入
+  筆電有內顯與獨顯二個GPU，導致 Sunshine 畫面出不來，請嘗試到 UEFI 關閉內顯
+
+
+安裝、設定與移除 Moonlight
+----------
+客戶端(宿主機)安裝 Moonlight
+客戶端啟動 Moonlight，會掃描區域網路下的電腦，點選配對，出現 PIN
+伺服器端 Sunshine 後台 > 左上角 PIN > Pairing PIN > 輸入 PIN 碼完成配對
+  # 完成配對的裝置會出現在 Sunshine 後台 > PIN 頁面，可點選各裝置右方的筆桿符號設置權限
+  # 本步驟可在客戶端(宿主機)瀏覽器，輸入伺服器端(虛擬機)網址 https://xxx.xxx.xxx.xxx:47990，進行 PIN 碼配對，但 Sunshine 需開放 Allow LAN Web UI
+結束 Ctl + Alt + Shift + Q
+  結束連接：僅中斷伺服器與客戶端連接，伺服器端的應用程式仍在持續執行
+  結束會話：終止伺服器端的應用程式
+注意事項:
+  若連線卡卡的，試試在設定選單降低連線解析度
+  手機版 Moonlight 遠端連線的時候從螢幕底部三指往上滑喚醒鍵盤。另外可在設定選單開啟模擬觸控手把
+
+
+簡述
+----------
+Sunshine 是開源的遊戲串流伺服器軟體，常與 Moonlight 等開源的遊戲串流客戶端搭配使用，讓使用者在如手機、平板及電腦等不同設備上低延遲地玩伺服器端安裝的遊戲，就像把遊戲畫面直接串流到其他設備一樣。遊戲伺服器和客戶端常同在 LAN 上，但不一定要在同一個網路環境下。Sunshine 能支援多種顯示卡（AMD、NVIDIA、Intel）硬體編碼。
+
+Moonlight 是免費開源的遊戲串流軟體，讓使用者可以在手機、平板或另一台電腦上，遠端玩遊戲伺服器上的遊戲或進行遠端桌面操作，Moonlight 利用客戶端的 GPU 將畫面串流過來，實現低延遲的遊戲體驗，特別是搭配 Sunshine 伺服器軟體之後，目前 Nvidia、AMD、Intel 等顯卡都能用，支援 Windows、Linux、macOS、Android、iOS 等系統。
+
+替代方案: Apollo + Artemis，針對 Windows 主機及 Android 客戶端最佳化方案，參 https://www.youtube.com/watch?v=BE9BS_MBYks
+
+
+URL
+----------
+Sunshine Github :: https://github.com/LizardByte/Sunshine
+Moonlight Github :: https://github.com/moonlight-stream
+Moonlight 官網 :: https://moonlight-stream.org/
+Moonlight + Sunshine + 外網連線安裝教學，Windows 遠端串流玩遊戲 :: https://ivonblog.com/posts/windows-sunshine-remote-gaming/
+
+
+
+Looking Glass
+====================
+安裝、設定與移除
+----------
+宿主機 Linux 系統安裝 Looking Glass Client
+  sudo apt install looking-glass-client
+    # Looking Glass Client 設定檔位於 ~/.looking-glass-client.ini
+宿主機 Linux 系統新增 IVSHMEM 裝置到虛擬機
+  在 Virt Manager 編輯 Windows 虛擬機的 XML，在 <devices> 區塊的加入 IVSHMEM裝置。
+    <devices>
+    ...
+      <shmem name='looking-glass'>
+        <model type='ivshmem-plain'/>
+        <size unit='M'>32</size>
+      </shmem>
+    ...
+    </devices>
+    # IVSHMEM(Inter-VM Shared Memory device)是讓宿主機與虛擬機共享記憶體的檔案
+    # 32M 是以螢幕解析度為 1920x1080 下去算的。計算公式為：(螢幕寬 x 螢幕高 x 4 x 2) ÷ 1024 ÷ 1024 + 10，四捨五入取最接近的2的平方數。
+宿主機 Linux 系統開機自動建立 /dev/shm/looking-glass 的暫存檔
+  sudo vim /etc/tmpfiles.d/10-looking-glass.conf
+    f  /dev/shm/looking-glass  0660  <user>  kvm  -
+      # <user> 是宿主機的用戶名稱
+  sudo systemd-tmpfiles --create /etc/tmpfiles.d/10-looking-glass.conf
+虛擬機 Windows 系統安裝 Looking Glass Host
+  到 Fedora網站，下載 stable-virtio 目錄下的 virtio-win-gt-x64.msi，點選安裝 Virt-IO 驅動
+  虛擬機內安裝最新 Microsoft Visual C++ 可轉散發，檔名為VC_redist.x64.exe
+  Looking Glass Host 官網下載壓縮檔。照 Linux 宿主機所安裝的 Looking Glass Client，安裝對應版本的Looking Glass Host。例如 Looking Glass Client 版本為 B6，這裡就要下載 B6 版本
+  Looking Glass Host 預設在 Windows 開機後自動啟動，若無請到 Windows的「服務」選單手動啟動 Looking Glass。建議一併用 netplwiz 設定開機自動登入 Windows帳號
+    # Looking Glass Host 的設定檔位於 C:/Program Files/Looking Glass (host)/looking-glass-host.ini
+調整虛擬機 Windows 系統 Looking Glass Host 要擷取的螢幕
+  Windows 系統設定 → 顯示，應該會看到二個螢幕
+  選第二個螢幕 → 進階顯示設定，確認這是 Virtual Display Driver 生成的螢幕
+  在宿主機 Linux 系統啟動Looking Glass Guest
+  再將虛擬機 Windows 系統螢幕改為「只在2顯示」或者「將2作為主要顯示器」
+在宿主機 Linux 系統啟動 Looking Glass Guest
+  looking-glass-client -F -k egl:vsync
+    # 參數 -F 顯示全螢幕，-k 顯示 FPS，egl:vsync 防止畫面撕裂
+注意事項
+  Looking Glass Guest 預設是用 SPICE 來輸入鍵盤與滑鼠訊號給虛擬機的。若滑鼠位置跑來跑去，請準備第二組滑鼠，在 Virt Manager 新增硬體的界面直通進去
+  按 Scroll Lock + R 旋轉螢幕。
+  跳出全螢幕請按 Scroll Lock ＋ F。
+
+
+簡述
+----------
+Linux 用 QEMU/KVM 安裝 Windows 虛擬機，並將 Nvidia GPU 直通給 Windows 虛擬機改善圖形效能。之後尚有一個問題，那就是如何存取 Windows 系統的畫面。Virt Manager 預設插入一個虛擬顯示卡（通常是QXL），然後再透過 SPICE 協定通訊，在 Virt Manager 視窗所看到的畫面便是虛擬顯示卡的畫面。而直通進去的 Nvidia 顯示卡要輸出畫面，得再接一個實體螢幕才可以看到 Nvidia 輸出的畫面，此時就會產生二個螢幕。
+
+此時有二個問題：Windows 應用程式即使在電源設定指定使用 Nvidia 算繪，QXL 的畫面依然有效能低落和畫面不同步的問題。此外希望可以在單個螢幕存取 Linux 和 Windows 的畫面。這個時候「Looking Glass」就是款有用的工具。
+
+Looking Glass 使用 KVM Framebuffer 技術，讓使用者能夠從 Linux 宿主機開一個視窗，直接存取 Windows 系統的畫面，畫面都是透過 DXGI 或 Nvidia Capture 傳送到 Linux算繪的，所以延遲極低，玩遊戲是有可能的。但 Looking Glass 需要額外花費資源在宿主機解碼畫面，可能會對宿主機帶來額外負擔，導致畫面傳輸效率比不上實體螢幕。
+
+至於如何解決實體二個螢幕的問題，可利用 Virtual Display Driver 或 HDMI 欺騙器，於 Windows 系統虛擬出第二個螢幕，如此一來就不需要實體螢幕佔空間了，然後告訴 Looking Glass 擷取該螢幕內容傳送到 Linux 即可。
+
+
+URL
+----------
+Github project :: https://github.com/gnif/LookingGlass
+Looking Glass 說明 :: https://looking-glass.io/docs/B6/build/#client
+Looking Glass 官網 :: https://looking-glass.io/downloads
+Linux Looking Glass 安裝教學，低延遲顯示 Windows QEMU/KVM 的遊戲畫面 :: https://ivonblog.com/posts/looking-glass-host-for-windows/
+Fedora Virt-IO :: https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/
+Microsoft Visual C++ :: https://learn.microsoft.com/zh-tw/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022
+
+
+
+
+VNC 遠端桌面
+====================
+簡述
+----------
+VNC(Virtual Network Computing，虛擬網路主控台)是常見的遠端桌面技術，可讓使用者透過網路遠程操控另一台電腦。VNC 基於圖形介面的遠程桌面技術，使用者在本地端操作鍵盤、滑鼠，VNC 會將這些動作即時傳送至遠端設備，並回傳畫面顯示結果。VNC 為開放源碼技術，已衍生出多種版本，如 RealVNC、TightVNC、UltraVNC 等。
+
+VNC 的運作主要依賴兩個組件：VNC Server 與 VNC Viewer。
+  VNC Server 安裝在被控制的電腦上，負責擷取畫面並將畫面數據透過網路傳輸給用戶端。
+  VNC Viewer 則是安裝在操作者電腦上的應用程式，用於接收畫面並發送使用者輸入的指令。
+
+組件之間透過 RFB（Remote Frame Buffer）協定進行通訊，使不同作業系統（如 Windows、macOS、Linux）之間實現跨平台控制。使用者只需知道遠端設備的 IP 位址或訪問代碼，即可快速建立連線。
+
+
+URL
+----------
+什麼是 VNC？一次搞懂遠程桌面控制技術 :: https://deskin.io/zh/resource/blog/what-is-vnc
+
+
+
+
+RDP 遠端桌面
+====================
+簡述
+----------
+RDP(Remoe Desktop Protocal)是用於遠端使用桌上型電腦的通訊協定或技術標準，此專有協議由微軟開發，於 1998年 作為 Windows NT 4.0 終端伺服器版的一部分推出。RDP 默認運行於端口 3389 的情況下，使用安全的加密連接來促進客戶設備與主機之間的通信。該協議兩個設備之間傳輸圖形界面數據，允許遠程用戶查看並與主機的桌面環境互動。
+
+RDP 是一個多功能工具，支持各種功能，包括：
+  遠端應用程式執行：在主機上運行軟體應用程式。
+  螢幕共享：即時查看和控制主機的顯示器。
+  檔案和列印共享：訪問本地印表機並在設備之間傳輸檔案。
+  會話加密：使用先進的加密協議進行安全數據傳輸，確保隱私和數據完整性。
+
+
+URL
+----------
+什麼是遠端桌面協定 (RDP)？:: https://tsplus.net/zh_tw/remote-access/blog/what-is-rdp-remote-desktop-software/
+
+
+
+
+Virtual Display Driver
+====================
+安裝、設定與移除
+----------
+執行 Virtual.Display.Driver-setup-x64.exe 安裝，一直下一步，並依照畫面指示安裝 .Net Desktop Runtime 套件。這個安裝器除了安裝虛擬顯示器的驅動之外，還有一個 VDD Control 面板。
+驅動安裝好之後，開啟 Windows 系統設定 → 顯示器，就會出現一個新螢幕了，可以調整解析度，啟用 HDR。第二個螢幕選擇延伸模式
+關閉虛擬螢幕，進階顯示設定 → 從桌面移除顯示器，暫時關閉該螢幕
+完全不要這個虛擬螢幕了，到 Windows 系統設定 → 應用程式，解除安裝 VDD Control 和 Virtual Display Driver，虛擬顯示器驅動應該也會一併移除
+
+
+簡述
+----------
+Virtual Display Driver 利用 Windows 的間接顯示驅動程式，模擬另一個實體螢幕出來，不需要插兩個實體螢幕也可以擁有第二個螢幕！Virtual Display Driver 為 Mike Rodriguez 所維護的開源專案，該專案為 lddSampleDriver 的 fork，加入了 HDR 以及高刷新率螢幕的支援，還能夠模擬到最高 8K 的螢幕
+
+Virtual Display Driver 用途
+  取代 HDMI 欺騙器的功能，讓 Windows 即使沒接實體螢幕也有畫面
+  方便給 OBS Studio、VR 頭盔串流、Google Meet 擷取，多一個螢幕可以分享內容，不佔用主螢幕空間
+  多了一個螢幕後，就可以在另一台電腦或平板跑遠端桌面軟體，把螢幕給遠端存取！藉此讓平板成為電腦的第二螢幕。參見：平板當電腦第二螢幕：Moonlight ＋ Sunshine教學
+  給 Linux 的 QEMU/KVM 虛擬機的 Looking Glass 擷取 Windows 螢幕之用，這樣就不用使用 HDMI 欺騙器了
+
+
+URL
+----------
+Github project :: https://github.com/VirtualDrivers/Virtual-Display-Driver
+軟體模擬 Windows 雙螢幕：Virtual Display Driver :: https://ivonblog.com/posts/windows-virtual-display-driver/
+
+
+
+
+顯示伺服器
+====================
+X = Σ servers = Σ screens(logical) = Σ monitors(physical + vnc simulate device) :: /etc/X11/xinit
+DISPLAY=remote_ip:x_server_id.screen_id, DISPLAY=172.26.3.138:0.0
+快速理解 X server, DISPLAY 與 X11 Forwarding :: https://blog.csdn.net/weixin_41973774/article/details/132511452
+

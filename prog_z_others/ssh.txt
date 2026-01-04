@@ -1,0 +1,147 @@
+##!/bin/xxxx
+# vim:ts=4
+# program: Using to note the knowledge about SSH
+# made by: Engells
+# date: Oct 25, 2025
+# content: 伺服器設定檔定義金鑰檔案位置
+
+
+
+Environment
+====================
+使用多對金鑰，搭配 $HOME/.ssh/config 組態檔，以不同金鑰用於 githib、gitlab、lxc container、VM 及 raspberry pi 等的連線。
+金鑰命名方式：id_<type of key>_<account_name>_<server_name>，如 id_ed25519_angus_github
+注意，凡是不使用 id_rsa 金鑰的連線，均應在 $HOME/.ssh/config 有獨立區段組態。
+
+
+
+
+SSH X forwarding
+====================
+ssh -v -X user_name@remote_computer_ip
+ssh -YC4c user_name@remote_computer_ip
+ssh -v -X user_name@remote_computer_ip nautilus --new-window
+
+設定 remote_computer
+    編輯 /etc/ssh/sshd_config 加一句 X11UseLocalhost no，再重新啟動服務： systemctl restart sshd
+    # 不確定參數：ForwardX11 yes、ForwardX11Trusted yes、AllowTcpForwarding yes、X11Forwarding yes、AllowAgentForwarding yes、X11DisplayOffset 10
+    編輯 root 的 .bashrc 裡面設定 export XAUTHORITY=/home/user_name/.Xauthority
+
+
+
+
+以金鑰使用 SSH
+====================
+本機端產生金鑰
+  ssh-keygen -t ed25519 -b 4096 -C "aaa@gmail.com" -f /path/to/file
+    # 可從 linux shell 或 git bash for Windows 執行該指令，金鑰位置在 $HOME/.ssh 或 path\to\usrs\xxxx\.ssh(Windows)
+    # -t 金鑰加密演算法，-t rsa，產生 id_rsa、id_rsa.pub 兩個檔案，id_rsa 檔案為私鑰，id_rsa.pub 檔案為公鑰。此演算法較舊，除非有相容性要求不建議使用
+    # -f：金鑰檔名，預設檔名隨演算法而變動，使用 rsa 加密時，其檔名預設為 id_rsa（私鑰id_rsa，公鑰id_rsa.pub）
+    # -P：提供舊密碼，空表示不需要密碼（-P ‘’）
+    # -N：提供新密碼，空表示不需要密碼(-N ‘’)
+    # -b：指定金鑰長度（bits）。
+    # -C：提供一個新標籤，常用 email address 作為標籤。
+    # ssh-keygen -t rsa -b 4096 -C "aaa@gmail.com" -f /path/to/file
+
+將公鑰送至執行服務的伺服器
+  ssh-copy-id -i ~/.ssh/id_rsa.pub -p xx user_name@machine_ip
+
+回到伺服器端，開啟 SSH 設定檔 /etc/ssh/sshd_config，將以下一行的注解取消，改成：
+  PubkeyAuthentication yes
+  AuthorizedKeysFile %h/.ssh/authorized_keys    # 可將此設定置入 /etc/ssh/sshd_config.d/xxxx.conf
+
+重新啟動 SSH 伺服器:
+  systemctl restart sshd
+
+連線伺服器端
+  ssh -i 'id_rsa_xxxx' -pxx user_name@machine_ip
+
+
+
+
+多重金鑰對應不同使用目的
+====================
+產生 SSH Key
+  ssh-keygen -t ed25519 -C "aaa@gmail.com" -f /path/to/id_ed25519_aaa_github
+
+將公鑰放到要設定的空間中
+
+編輯本機 SSH 組態檔
+  vim $HOME/.ssh/config
+    Host gh.aaa.my
+      HostName github.com
+      User Hi_AAA
+      PreferredAuthentications publickey
+      IdentityFile /path/to/id_ed25519_aaa_github
+    ....
+    # Host                       連線至遠端的別稱，任意填寫
+    # HostName                   遠端的 Domain 或 IP
+    # Port                       遠端的 SSH 連接埠，此項不填寫代表預設值
+    # User                       使用者名稱
+    # PreferredAuthentications   偏好使用的驗證，常見為 publickey
+    # IdentityFile               私鑰的位置，建議使用絕對位置
+    # 組態檔釋例將 domain 由 github.com 映射為 gh.aaa.my。
+    # 因此 repository 自 git@github.com:<user_id>/<project_name>.git 變為 git@gh.aaa.my:<user_id>/<project_name>.git
+
+將金鑰加入 ssh-agent 控管(Optional)
+  ssh-add /path/to/id_rsa_aaa_github
+    # 成功訊息: Identity added: /path/to/id_rsa_aaa_github (/Users/XXX/.ssh/id_rsa_aaa_github)
+    # 金鑰代理用於有設定金鑰密碼的情況，如果設有密碼但不想每次使用金鑰就要輸入一次，可以考慮設定金鑰代理。
+    # 如果沒有設定金鑰密碼，或是不願有 agent daemon 在背景跑，寧願每次輸入密碼的，可以跳過這個步驟。
+
+嘗試使用 ssh 連線
+  ssh -T git@gh.aaa.my or ssh git@gh.aaa.my
+    # 連線網域值使用 $HOME/.ssh/config 設定的 Host 參數值，連線時 SSH 會自動映射網域至 HostName 參數值
+    # 初次連線確認 logged in as Hi_AAA 表示 domain: git@gh.aaa.my 在 github 對應到 Hi_AAA 帳號，與預想要設定的使用者一樣就是成功了
+    # 如果出現的不是預想的使用者名稱，則可能是設定檔或中間的過程有打字錯誤
+    # 出現 Hi XXX! You’ve successfully authenticated, but GitHub does not provide shell access. 表示 ssh 連線成功
+    # 遇到明明輸入正確但一直卡關的狀況可以嘗試：
+    #   刪除所有 ssh-agent 管理的 key: ssh-add -D
+    #   移除known_hosts檔案: mvv $HOME/.ssh/known_hosts $HOME/.ssh/known_hosts_bak
+    #   $HOME/.ssh/config 中的 IdentityFile 使用絕對位置
+
+重複建立其他使用者
+
+
+Ref:
+  [Git] 多個SSH Key與帳號的設定(Mac) :: https://dotblogs.com.tw/as15774/2018/04/30/174737
+  使用SSH 金鑰與GitHub 連線 :: https://hackmd.io/@CynthiaChuang/Generating-a-Ssh-Key-and-Adding-It-to-the-Github
+
+
+
+
+
+SSH 安全性設定
+====================
+編輯 /etc/ssh/sshd_config.d/xxxx.conf
+  PermitRootLogin no
+    # 禁止以 root 帳號登入
+  AllowUsers admit
+  AllowGroups admit
+    # 只准特定帳號或群組登入 SSH
+  PermitEmptyPasswords no
+    # 若帳號是空密碼, 禁止登入
+  Protocol 2
+    # 只開啟 Protocol 2 版本
+  Port 62
+    # SSH 預設埠號是 22，改成其他的埠號。
+  PubkeyAuthentication yes
+  PasswordAuthentication no
+    # 使用金鑰登入，原設定為 optional
+  AuthorizedKeysFile .ssh/authorized_keys
+    # 舊式設定 %h/.ssh/authorized_keys，新式絕對路徑 %d/.ssh/authorized_keys
+
+
+
+
+安裝 openssh-server
+====================
+sudo apt update
+sudo apt install openssh-server
+sudo systemctl status ssh
+sudo systemctl stop ssh
+sudo systemctl start ssh
+sudo systemctl enable ssh
+sudo systemctl disable ssh
+
+
