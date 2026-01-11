@@ -1,31 +1,24 @@
-##!/bin/bash
+##!/bin/xxxx
 # vim:ts=2
 # program: Using to note knowhow about network environment
 # made by: Engells
-# date: Dec 29, 2025
+# date: Jan 9, 2026
 # content: Add a section of Common Network Configuration Files and Tools
 
 
 
-Network Manager
+Common Network Configuration Files and Tools
 ====================
-nmcli device wifi list
-nmcli device wifi connect SSID_name password xxxx hidden yes 
-nmcli device disconnect ifname eth0
-nmcli connection show
-nmcli radio wifi [on|off]
-----
-nmcli con add type wifi con-name <connect name> ifname wlan0 ssid <ssid>
-nmcli con modify <connect name> wifi-sec.key-mgmt wpa-psk
-nmcli con modify <connect name> wifi-sec.psk <password>
-nmcli con mod <connect name> 802-11-wireless.hidden yes
-nmcli con up <connect name>
- HOW TO CONNECT TO HIDDEN WIFI USING NMCLI :: https://blog.khmersite.net/2019/01/how-to-connect-to-hidden-wifi-using-nmcli/
-----
-nmcli con show
-nmcli con add type bridge ifname <bridge_name>
-nmcli con add type bridge-slave ifname <nic_name> master <bridge_name>
-nmcli con up <bridge_name>
+Configuration Tool   Primary File(s)                          Typical Use Case
+ifupdown             /etc/network/interfaces                  Simple server config, or minimal installs without a desktop environment
+NetworkManager       /etc/NetworkManager/system-connections/* Default for most desktop installations (e.g., GNOME, KDE)
+systemd-networkd     /etc/systemd/network/*                   Modern, non-GUI configuration method using systemd's networking daemon
+Netplan              /etc/netplan/*.yaml                      Acts as a front-end for either NetworkManager or systemd-networkd
+
+Configuration Tool   Service
+ifupdown             systemctl status networking.service
+NetworkManager       systemctl status NetworkManager.service
+systemd-networkd     systemctl status systemd-networkd.service
 
 
 
@@ -54,20 +47,4 @@ Others
 
 Ref:
  使用 systemd-networkd 設定網路組態 :: https://www.freedomwolf.cc/2019/10/network_by_systemd/
-
-
-
-
-Common Network Configuration Files and Tools
-====================
-Configuration Tool   Primary File(s)                          Typical Use Case
-ifupdown             /etc/network/interfaces                  Simple server config, or minimal installs without a desktop environment
-NetworkManager       /etc/NetworkManager/system-connections/* Default for most desktop installations (e.g., GNOME, KDE)
-systemd-networkd     /etc/systemd/network/*                   Modern, non-GUI configuration method using systemd's networking daemon
-Netplan              /etc/netplan/*.yaml                      Acts as a front-end for either NetworkManager or systemd-networkd
-
-Configuration Tool   Service
-ifupdown             systemctl status networking.service
-NetworkManager       systemctl status NetworkManager.service
-systemd-networkd     systemctl status systemd-networkd.service
 

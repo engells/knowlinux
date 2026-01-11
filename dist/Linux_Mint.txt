@@ -16,7 +16,15 @@ sudo dpkg --purge linux-image-5.4.0-48-generic
 
 
 
-fcitx5
+Install netplan
+====================
+sudo apt update && sudo apt install netplan.io
+sudo vim /etc/netplan/xxxx.yaml
+sudo netplan try && o netplan apply
+
+
+
+Install fcitx5
 ====================
 Set font size:
   fcitx5-configtool => addons(t) => UI => Classic User Interface => settings icon => Fonts:

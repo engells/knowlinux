@@ -1,0 +1,215 @@
+##!/bin/xxxx
+# vim:ts=4
+# program: Using to note the knowledge about netplan
+# made by: Engells
+# date: Mar 16, 2019
+# content: 內容並未最佳化，單純作為書摘使用
+
+
+
+常用指令
+====================
+sudo netplan try			# 檢查設定檔格式
+sudo netplan apply			# 啟用 netplan 組態
+sudo netplan --debug apply	# 以偵錯模式啟用 netplan 組態
+sudo netplan generate		# 以 /etc/netplan/*.yaml 建置網路組態: /run/NetworkManager/conf.d ?
+nmcli						# command-line tool for controlling NetworkManager
+
+
+
+
+Static IP
+====================
+Singal addresson a single interface
+----------
+# Let NetworkManager manage all devices on this system
+network:
+  ethernets:
+    enp129s0f0:
+      dhcp4: no
+      dhcp6: no
+      addresses: [172.16.50.100/24]
+      gateway4: 172.16.50.254
+      dhcp4: no
+      optional: true
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+  version: 2
+  #renderer: NetworkManager
+
+multiple addresses on a single interface, interface aliases (e.g. eth0:0) are not supported
+----------
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp3s0:
+     addresses:
+       - 10.100.1.38/24
+       - 10.100.1.39/24
+     gateway4: 10.100.1.1
+
+
+Multiple addresses with multiple gateways on a single interface
+----------
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp3s0:
+     addresses:
+       - 9.0.0.9/24
+       - 10.0.0.10/24
+       - 11.0.0.11/24
+     #gateway4:    # unset, since we configure routes below
+     routes:
+       - to: 0.0.0.0/0
+         via: 9.0.0.1
+         metric: 100
+       - to: 0.0.0.0/0
+         via: 10.0.0.1
+         metric: 100
+       - to: 0.0.0.0/0
+         via: 11.0.0.1
+         metric: 100
+
+
+
+
+Dynamic IP
+===================
+vim /etc/netplan/01-xxxx.yaml
+  network:
+    ethernets:
+      enp129s0f0:
+        addresses: []
+        dhcp4: yes
+        optional: yes
+    version: 2
+    renderer: NetworkManager
+
+組態文件的每一行都必須靠空格來縮進，不能用 TAB 來代替。
+
+
+
+
+Configuring network bridges
+====================
+Simple bridge consisting of a single device that uses DHCP
+----------
+network:
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+    enp2s0:
+      dhcp4: no
+  bridges:
+    br0:
+      dhcp4: yes
+      interfaces:
+        - enp2s0
+
+Bridge work with vlan, br0 is under /etc/libvirtd/qemu/networks/
+----------
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s25:
+      dhcp4: true
+  bridges:
+    br0:
+      addresses: [ 10.3.99.25/24 ]
+      interfaces: [ vlan15 ]
+  vlans:
+    vlan15:
+      accept-ra: no
+      id: 15
+      link: enp0s25
+
+VLAN 網卡不是實體的網路界面設備，而是將實體網卡加入不同的 VLAN 來產生 VLAN 虛擬網卡，可作為網絡界面在系統中出現。與子網卡不同的是，VLAN 沒有獨自的組態文件，如將一個實體網卡添加到多個 VLAN ，就會有多個 VLAN 虛擬網卡出現，相關資訊保存在 /proc/net/vlan/config 臨時檔案。VLAN 虛擬網卡的名稱一般是 eth0.1、eth1.2等。子網卡的名稱則是 eth0:1、eth1:2等。
+
+啟用 VLAN 虛擬網卡時，關聯的實體網卡卡網絡界面上不能有 IP 位址的組態資料。
+
+
+
+
+Wireless IP
+====================
+Personal wireless network
+----------
+network:
+  version: 2
+  renderer: networkd
+  wifis:
+    wlp2s0b1:
+      dhcp4: no
+      dhcp6: no
+      addresses: [192.168.0.21/24]
+      gateway4: 192.168.0.1
+      nameservers:
+        addresses: [192.168.0.1, 8.8.8.8]
+      access-points:
+        "network_ssid_name":
+          password: "**********"
+
+
+Enterprise wireless networks, WPA-EAP and TTLS
+----------
+network:
+  version: 2
+  wifis:
+    wl0:
+      access-points:
+        workplace:
+          auth:
+            key-management: eap
+            method: ttls
+            anonymous-identity: "@internal.example.com"
+            identity: "joe@internal.example.com"
+            password: "v3ryS3kr1t"
+      dhcp4: yes
+
+
+Enterprise wireless networks, WPA-EAP and TLS
+----------
+network:
+  version: 2
+  wifis:
+    wl0:
+      access-points:
+        university:
+          auth:
+            key-management: eap
+            method: tls
+            anonymous-identity: "@cust.example.com"
+            identity: "cert-joe@cust.example.com"
+            ca-certificate: /etc/ssl/cust-cacrt.pem
+            client-certificate: /etc/ssl/cust-crt.pem
+            client-key: /etc/ssl/cust-key.pem
+            client-key-password: "d3cryptPr1v4t3K3y"
+      dhcp4: yes
+
+
+General wireless networks
+----------
+network:
+  version: 2
+  wifis:
+    wl0:
+      access-points:
+        opennetwork: {}
+      dhcp4: yes
+
+
+
+
+簡介
+====================
+NetPlan：YAML network configuration abstraction for various backends
+組態檔 /etc/netplan/*.yaml => backend config => Network Manager、systemd-networkd
+後端程式：Netplan 可選 networkd 或 Network Manager 作為後端。
+相關程式：Network Manager、systemd-networkd
+參考範例： https://netplan.io/examples
+
+

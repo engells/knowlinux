@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/xxxx
 # vim:ts=4
 # program: Using to note the knowledge about Chromium
 # made by: Engells

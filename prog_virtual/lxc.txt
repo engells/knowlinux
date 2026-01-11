@@ -1,8 +1,8 @@
-# #!/bin/bash
+##!/bin/xxxx
 # vim:ts=2
 # program: Using to note the knowledge about lxc
 # made by: Engells
-# date: Oct 8, 2025
+# date: Jan 9, 2026
 # content: mount directory in tmpfs mode
 
 
@@ -76,7 +76,7 @@ Package install
   # https://linuxconfig.org/ubuntu-debian-jdownloader-installation-howto
 
 Network
-  build thaubr0 in host, and link veth to thaubr0
+  build thaubr0 in host, and link veth to thaubr0  <= TUN/TAP + Bridge
   edit /etc/netplan/10-lxc.yaml
 
 Physiacal hard disk partition

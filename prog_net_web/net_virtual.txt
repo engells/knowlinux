@@ -1,9 +1,51 @@
-# #!/bin/bash
+##!/bin/xxxx
 # vim:ts=4
 # program: Knowhow about virtual network
 # made by: Engells
-# date: Mar 7, 2024
-# content:
+# date: Jan 9, 2026
+# content: Add a section of brief introduction.
+
+
+
+網路虛擬化技術
+====================
+VLAN(Virtual Local Area Network)
+  建構於區域網路交換技術（LAN Switch）的網路管理技術，將大型的區域網路劃分成多個較小的邏輯上獨立的區域，網管人員控制交換器有效分派出入區域網的封包到正確的出入埠，對不同實體區域網中的裝置進行邏輯分群（Grouping）管理，並降低區域網內大量資料流通時，因無用封包過多導致壅塞的問題，以及提昇區域網的資訊安全保障。
+
+TUN/TAP
+  在 Linux 核心模擬的虛擬網卡(Network Interface Card)，TUN 處理 IP 封包，而 TAP 處理 Ethernet 封包。
+
+MACVLAN
+  在同一張實體網卡上設定多個 Layer 2 address (一般就是 MAC address)，在單一 NIC 上配置多個虛擬的 NIC，虛擬 NIC 有其獨立的 MAC 地址，也可以配置上 IP address 進行通訊。在 MACVLAN 下的 VM 或者 container 的網路和 Host 都在同一個網段中，共享同一個 broadcast domain。
+
+MACVTAP(MACVLAN TAP)
+   Linux 內核技術，結合了 MACVLAN 和 TAP 設備的優點，簡化虛擬化環境中的橋接網路配置，允許虛擬機/容器直接在物理網路上擁有獨立的 MAC 地址。MACVTAP 將原先虛擬化網路配置（需要 TAP 設備和 Linux Bridge）整合到一個驅動程式中，KVM/QEMU 等虛擬化平臺可以直接使用 MACVTAP 設備，而無需額外的 Bridge。
+
+
+
+
+Tun and Tap
+====================
+確認內核是否支持
+  sudo lsmod | grep -E "tun|tap"
+安裝 tunctl
+  sudo pacman -S iproute2  # udo apt install uml-utilities
+建立 tun and tup
+  參見各 distribution guideline
+
+
+簡述
+----------
+TUN/TAP 驅動程序可建置虛擬網卡，TUN 虛擬點對點設備處理 IP 封包，TAP 虛擬以太網設備處理 Ethernet 封包，這兩種設備針對網絡包實施不同的封裝。利用 TUN/TAP 驅動，可以將 TCP/IP 協議棧處理好的網絡分包傳給任何一個使用 TUN/TAP 驅動的進程，由進程重新處理後再發到物理鏈路中。
+
+TUN/TAP 驅動程序的數據接收和發送並不直接和真實網卡打交道，其在 Linux 內核中添加了 TUN/TAP 虛擬網絡設備的驅動程序和配對關連的字符設備(Character Device)： /dev/net/tun，以 /dev/net/tun 作為用戶空間和內核空間交換數據的接口。當內核將數據包發送到虛擬網絡設備時，數據包保先存在設備的資料佇列中，直到用戶空間程序通過 /dev/net/tun 符讀取，數據才會被拷貝到用戶空間的緩衝區。其效果就相當於，數據包直接發送到了用戶空間。通過系統調用 write 發送數據包時其原理與此類似。
+
+在 Linux 下，有多種方式在內核空間和用戶空間交互數據：
+  使用 socket 創建特殊套接字，利用套接字實現數據交互
+  使用 proc 文件系統創建文件來進行數據交互
+  使用設備文件的方式，訪問設備文件會調用設備驅動相應的例程，設備驅動本身就是內核空間和用戶空間的一個接口。TUN/TAP 驅動使用此法。
+
+從結構上來說，TUN/TAP 驅動並不單純是實現網卡驅動，其還實現了字符設備驅動部分。以字符設備的方式連接用戶空間和內核空間。
 
 
 
@@ -25,8 +67,6 @@ TUN 設備是一種虛擬網絡設備，通過此設備，程序可以模擬網�
 　數據包會通過內核網絡棧兩次。但是經過 APP 的處理後，數據包可能已經加密，並且原有的 ip 頭被封裝在 udp 內部，所以第二次通過網絡棧內核看到的是截然不同的網絡包。
 
 
-
-
 TAP 設備
 ----------
 TAP 設備與 TUN 設備工作方式完全相同，區別在於：
@@ -36,10 +76,16 @@ TAP 設備與 TUN 設備工作方式完全相同，區別在於：
 　APP(User Space) <==> /dev/tapX <==> tapX(Kernel Space) <==> Network Stack(Kernel Space) <==> Socket API(User Space)
 
 
+Refs
+----------
+Linux网络命令必知必会之创建 tap/tun 设备 :: https://ctimbai.github.io/2019/02/28/tech/net/vnet/%E5%88%9B%E5%BB%BAtaptun%E8%AE%BE%E5%A4%87/
+Linux下 TUN/TAP 虛擬網卡的使用 :: https://puremonkey2010.blogspot.com/2016/11/linux-linux-tuntap.html
+
+
 
 
 MACVLAN
-----------
+====================
 有時需要一塊物理網卡綁定多個 IP 以及多個 MAC 地址，綁定多個 IP 很容易，但這些 IP 會共享物理網卡的 MAC 地址，可能無法滿足需求，所以有了 MACVLAN 設備，其工作方式如下：https://pic1.xuehuaimg.com/proxy/csdn/https://img-blog.csdn.net/20151105104404253
 　eth0(NIC Device) <==> macvlan0 <==> Network Stack(Kernel Space) <==> Socket API(User Space)
 　MACVLAN 會根據收到包的目的 MAC 地址判斷這個包需要交給哪個虛擬網卡。
@@ -50,8 +96,6 @@ MACVLAN
 　由於 macvlan 與 eth0 處於不同的 namespace，擁有不同的 network stack，這樣使用可以不需要建立 bridge 在 virtual namespace 裏面使用網絡。
 
 
-
-
 MACVTAP
 ----------
 MACVTAP 是對 MACVLAN的改進，把 MACVLAN 與 TAP 設備的特點綜合一下，使用 MACVLAN 的方式收發數據包，但收到的數據包不交給 network stack 處理，而是生成 /dev/tapX 文件，並由該文件處理數據包：https://pic1.xuehuaimg.com/proxy/csdn/https://img-blog.csdn.net/20151105104545824
@@ -59,8 +103,6 @@ MACVTAP 是對 MACVLAN的改進，把 MACVLAN 與 TAP 設備的特點綜合一�
 　eth0(NIC Device) <==> macvlan0 <==> /dev/tapX <==> APP(VM namepace)
 
 由於 MACVLAN 是工作在 MAC 層的，所以 MACVTAP 也只能工作在 MAC 層，不會有 MACVTUN 這樣的設備。
-
-
 
 
 Refs
