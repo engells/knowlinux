@@ -2,7 +2,7 @@
 # vim:ts=4
 # program: Using to note the knowledge about SSH
 # made by: Engells
-# date: Oct 25, 2025
+# date: Jan 17, 2026
 # content: 伺服器設定檔定義金鑰檔案位置
 
 
@@ -48,7 +48,7 @@ ssh -v -X user_name@remote_computer_ip nautilus --new-window
 
 回到伺服器端，開啟 SSH 設定檔 /etc/ssh/sshd_config，將以下一行的注解取消，改成：
   PubkeyAuthentication yes
-  AuthorizedKeysFile %h/.ssh/authorized_keys    # 可將此設定置入 /etc/ssh/sshd_config.d/xxxx.conf
+  AuthorizedKeysFile %d/.ssh/authorized_keys    # 可將此設定置入 /etc/ssh/sshd_config.d/xxxx.conf
 
 重新啟動 SSH 伺服器:
   systemctl restart sshd
