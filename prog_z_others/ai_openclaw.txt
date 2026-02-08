@@ -1,0 +1,33 @@
+##!/bin/xxxx
+# vim:ts=4
+# program: Using to note the knowledge about AI
+# made by: Engells
+# date: Feb 7, 2026
+# content:
+
+
+
+Install Openclaw
+====================
+openclaw
+sudo apt update && sudo apt install -y curl ca-certificates
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
+sudo apt install -y nodejs && node --version
+curl -fsSL https://openclaw.ai/install.sh | bash
+ 選擇 AI 模型，Anthropic or OpenAI
+ 登入 AI 模型 帳號
+ 登入完成後，將最後頁面的網址複製起來，貼到 Terminal 中並按確認，啟用 AI 模型
+ 選擇 App 溝通管道，可以先不選，先用網頁版或 Terminal，等之後再決定
+ Skills 也可先跳過，等之後再決定要不要裝。如果選 Yes 即刻安裝 Skill，會要求安裝管理器，選第一個 npm 即可。
+ 管理器安裝好後，選擇想要安裝的 Skills
+ API Key 都選 No
+ hooks 先選 Skip for now
+ ...
+ 網頁版網址是：http://127.0.0.1:18789
+ 打開聊天時，出現 disconnected (1008): unauthorized: gateway token missing 錯誤的話，可以到 Terminal 輸入 openclaw dashboard，會列出類似下方的網址：
+  http://127.0.0.1:18789/?token=xxxxxxxx
+  打開這個就能正常聊天了
+
+URL
+ 虛擬機上安裝 OpenClaw :: https://www.koc.com.tw/archives/628805
+ Moltbot 改名 OpenClaw 了！:: https://laplusda.com/posts/openclaw-rebranding/
