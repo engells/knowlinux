@@ -40,12 +40,12 @@ sudo mount -t ecryptfs /path/to/real /path/to/mount
       # plaintext passthrough(y/n) [n]：密碼是否以明文顯示，預設是「否」
       # filename encryption (y/n) [n]：目錄內檔名是否加密，預設是「否」。檔名加密的話，進入目錄所看到的是一堆亂碼的檔名
       # Filename Encryption Key (FNEK) Signature [799d2f922c0f1f26]:
-      #	  無論是否加密檔案名稱，都會產生加密檔名用的金鑰(FNEK/sig)，該金鑰預設紀錄在 /root/.ecryptfs/sig-cache.txt
-      #	  由此推測初次建立加密目錄時即使選擇不加密檔案名稱，後續應可改換為加密檔案名稱
+      #  無論是否加密檔案名稱，都會產生加密檔名用的金鑰(FNEK/sig)，該金鑰預設紀錄在 /root/.ecryptfs/sig-cache.txt
+      #  由此推測初次建立加密目錄時即使選擇不加密檔案名稱，後續應可改換為加密檔案名稱
       # Would you like to proceed with the mount (yes/no)？選擇「yes」，繼續掛載
       # Would you like to append sig [799d2f922c0f1f26] to [/root/.ecryptfs/sig-cache.txt]
       # in order to avoid this warning in the future (yes/no)？如果選擇「yes」，FNEK 會存入檔案。
-      #	下一次使用該密碼時，系統就不會發出警示說無相關的 FNEK/sig
+      #  下一次使用該密碼時，系統就不會發出警示說無相關的 FNEK/sig
     sudo mount -t ecryptfs -o key=openssl:keyfile=/usb-drive/mykey.pem /path/to/real /path/to/mount
       # 掛載時直接指定解密方式及密碼檔案，
       # -o key=passphrase,ecryptfs_cipher=aes,ecryptfs_key_bytes=32,ecryptfs_passthrough=n,ecryptfs_enable_filename_crypto=y
